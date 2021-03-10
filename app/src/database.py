@@ -19,7 +19,7 @@ class Database():
 
   def refresh(self):
     self.db = mysql.connector.connect(
-        host="python-docker-3_db_1",
+        host="db",
         user="root",
         password='db-78n9n',
         database="youtube_comments",
