@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    
+    {% if video_data: %}
+
+        <img src="{{video_data['thumbnail']}}" style="width: 100%"></img>
+        <div style="text-align: left;">
+            <b style="font-size: 1.3em;">{{video_data['title']}}</b>
+            <p>by <u>{{video_data['channelTitle']}}</u></p>
+        </div>
+        <hr>
+
+        <div style="line-height: 1.3em; margin: 0 75px">
+            <p class="faint" style="text-align: center;">YouTube Metrics:</p>
+            {% for stat in ['views', 'likes', 'dislikes', 'comments']: %}
+                <div style="display: flex; flex-direction: row; justify-content: space-between;">
+                    <p>{{stat}}: </p>
+                    <p>{{video_data[stat]}}</p>
+                </div>
+            {% endfor %}
+
+            <p class="faint" style="text-align: center;">CommentSense Metrics:</p>
+            {% for stat in ['positive', 'neutral', 'negative', 'polarity', 'subjectivity']: %}
+                <div style="display: flex; flex-direction: row; justify-content: space-between;">
+                    <p>{{stat}}: </p>
+                    <p>{{video_data[stat]}}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if comment_data: %}
+        </hr>
+        {% for comment in comment_data: %}
+            <div style="text-align: left; padding: 10px; margin: 10px 0;">
+                <p>{{comment['textDisplay']}}</p>
+                <div style="display: flex; flex-direction: row; justify-content: space-between" class="faint">
+                    <p>Likes: {{comment['likedCount']}}</p>
+                    <p>Polarity: {{comment['polarity']}}</p>
+                    <p>Subjectivity: {{comment['subjectivity']}}</p>          
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}
