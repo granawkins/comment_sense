@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if database_videos: %}
+        {% for video in database_videos: %}
+        <div class="card" onclick="location.href='/video/{{video['id']}}';">
+            <img src="{{video['thumbnail']}}" width="120px" alt="Thumb"></img>
+            <div style="
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    vertical-align: top;
+                    text-align: left;
+                    padding: 10px;
+                ">
+                <p>{{video['title']}}</p>
+                <p class="faint">{{video['channelTitle']}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if youtube_videos: %}
+        {% for video in youtube_videos: %}
+        <div class="card" onclick="location.href='/video/{{video['id']}}';">
+            <img src="{{video['thumbnail']}}" width="120px" alt="Thumb"></img>
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    vertical-align: top;
+                    text-align: left;
+                    padding: 10px;
+                ">
+                    <p>{{video['title']}}</p>
+                    <p class="faint">{{video['channelTitle']}}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
