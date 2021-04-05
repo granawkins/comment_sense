@@ -1,5 +1,8 @@
 import mysql.connector
 import json
+from get_docker_secret import get_docker_secret
+
+pw = get_docker_secret('db-password', default='password')
 
 class Database():
 
@@ -7,7 +10,7 @@ class Database():
     self.db = mysql.connector.connect(
       host="db",
       user="root",
-      password='db-78n9n',
+      password=pw,
     )
     self.cursor = self.db.cursor(dictionary=True)
 
@@ -21,7 +24,7 @@ class Database():
     self.db = mysql.connector.connect(
         host="db",
         user="root",
-        password='db-78n9n',
+        password=pw,
         database="youtube_comments",
     )
     self.cursor = self.db.cursor(dictionary=True)

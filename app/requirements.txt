@@ -10,6 +10,7 @@ cycler==0.10.0
 decorator==4.4.2
 Django==3.1.7
 Flask==1.1.2
+get-docker-secret==1.0.1
 google-api-client==3.14.159265359.post1
 google-api-core==1.26.0
 google-api-python-client==1.12.8
