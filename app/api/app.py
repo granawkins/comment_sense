@@ -4,7 +4,6 @@ import threading
 
 from youtube import YouTube
 from database import Database
-from scraper import Scraper
 from analyzer import Analyzer
 from clusterer import Clusterer, cluster
 from id_hash import hash
@@ -12,7 +11,7 @@ import socketio
 import eventlet
 
 env='desktop'
-db_name = 'comment_sense_3'
+db_name = 'comment_sense'
 
 yt = YouTube()
 db = Database(env, name=db_name)
@@ -59,12 +58,12 @@ def video(sid, data):
 
         sio.emit('video', {'video': video_data}, to=sid)
 
-@sio.event # api.route('/comments', methods=['POST', 'GET'])
+@sio.event
 def comments(sid, data):
     comments_data = db.comments(data['comments'])
     sio.emit('comments', {'comments': comments_data}, to=sid)
 
-@sio.event # api.route('/topics/<videoId>')
+@sio.event
 def topics(sid, data):
     video_data = db.video(data['videoId'])
     topics_data = []
@@ -78,55 +77,60 @@ def topics(sid, data):
 
 @sio.event
 def analyze(sid, data):
-    global rooms
+
+    # Parse request info
     video_data = data['videoData']
     videoId = video_data['id']
-    rooms.append(videoId)
-    sio.enter_room(sid, videoId)
-    n = int(data['nComments'])
+    n_target = int(data['nComments'])
 
-    cl = Clusterer(video_data, db)
-    sc = Scraper(env)
-
+    # Initialize progress object. Used to send data to frontend
     progress = {
         'loaded': 0, 
         'analyzed': 0, 
         'clustered': 0, 
         'status': 'init', 
         'topics': video_data['topics']}
-    
-    # Initialize Chrome
-    sio.emit('loading', progress, room=videoId)
-    sc.load_video(videoId)     
-    sc.scroll(to='start')
-    progress['status'] = 'load'
-    sio.emit('loading', progress, room=videoId)
-    eventlet.sleep(1)
-    progress['status'] = 'scrape'
+
+    # Add user to room to receive websocket updates
+    global rooms
+    rooms.append(videoId)
+    sio.enter_room(sid, videoId)
     sio.emit('loading', progress, room=videoId)
 
-    # Scrape Comments
-    error = None
-    try:
-        initialized = threading.Event()
-        aborted = threading.Event()
-        comment_pipeline = queue.Queue()
-        topics_pipeline = queue.Queue()
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            executor.submit(sc.stream, n, progress, comment_pipeline, initialized, aborted)
-            executor.submit(an.stream, n, progress, comment_pipeline, topics_pipeline, initialized, aborted)
-            executor.submit(cl.stream, n, progress, topics_pipeline, initialized, aborted)
-            
-            while (progress['clustered'] < n) & (not aborted.is_set()):
-                sio.emit('loading', progress, room=videoId)
-                eventlet.sleep(1)
-    except:
-        error = sys.exc_info()[0]
-    finally:
-        progress['status'] = 'done'
-        progress['error'] = error
-        sio.emit('loading', progress, room=videoId)
-        rooms.remove(videoId)
+    # Get comments from YouTube API
+    comment_data = yt.comments(videoId, {'nComments': n_target})
+    # -> [[id, videoId, text, author, parent, likes, published], ...]
+    
+    # Get analyzed comments and add to database
+    comments_analyzed = an.analyze(comment_data)
+    # -> [[id, likes, sentiment, topics], ...]
+
+    # Extract a sorted list of topics from comments
+    cl = Clusterer(video_data, db)
+    topics_raw = cl.cluster(comments_analyzed)
+    # -> [[token, toks, label, n, likes, sentiment, commentIds], ...]
+    topics_data = [{
+        'token': token,
+        'toks': toks,
+        'score': n,
+        'likes': likes,
+        'sentiment': sentiment,
+        'type': label,
+        'comments': commentIds
+    } for (token, toks, label, n, likes, sentiment, commentIds) in topics_raw]
+    video_data['topics'] = json.dumps(topics_data)
+    db.add_video(video_data)
+
+    # Send results to frontend
+    n_actual = len(comments_analyzed)
+    progress['loaded'] = n_actual
+    progress['analyzed'] = n_actual
+    progress['clustered'] = n_actual
+    progress['status'] = 'done'
+    progress['topics'] = video_data['topics']
+
+    sio.emit('loading', progress, room=videoId)
+    rooms.remove(videoId)
 
 # if __name__ == '__main__':
 eventlet.wsgi.server(eventlet.listen(('', 5050)), app)

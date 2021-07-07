@@ -9,7 +9,7 @@ class Analyzer():
     def __init__(self, env, database):
         self.env = env
         self.db = database
-        self.nlp = spacy.load('en_core_web_trf')
+        self.nlp = spacy.load('en_core_web_lg')
         self.nlp.add_pipe('spacytextblob')
         
     def clean(self, dirty):
