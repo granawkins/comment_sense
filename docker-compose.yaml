@@ -11,20 +11,39 @@ services:
     networks:
       - csnet
     environment: #sets up the database
-      - MYSQL_DATABASE=example
+      - MYSQL_DATABASE=db
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
 
+  # Python, Flask, Gunicorn
   app:
-    build: app
+    container_name: app
+    build: ./app
     restart: always
     ports:
-      - 5000:5000
-    volumes:
-      - ./app/src:/code # get from folder, not image
+      - 5050:5050
+    depends_on: 
+      - 'db'
+    # volumes:
+    #   - ./app/src:/code # get from folder, not image
     secrets:
       - db-password
     networks:
       - csnet
+    environment:
+      - FLASK_APP=app.py
+
+  # React, nginx
+  web:
+    container_name: web
+    build: ./web
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      NODE_ENV: production
+    networks:
+      - csnet
+    
 
   adminer:
     image: adminer
@@ -32,7 +51,9 @@ services:
     networks:
       - csnet
     ports: 
-     - 8080:8080
+      - 8080:8080
+    depends_on:
+      - db
 
 
 
