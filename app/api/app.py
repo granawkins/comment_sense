@@ -37,8 +37,9 @@ def video(videoId):
 @app.route('/api/comments', methods=['POST'])
 def comments():
     request_data = request.get_json()
-    comments_data = db.comments(request_data['comments'])
-    return comments_data
+    comment_ids = request_data['comments']
+    comments = db.comments(comment_ids)
+    return {'comments': comments}
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
