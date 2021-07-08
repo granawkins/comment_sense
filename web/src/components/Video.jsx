@@ -33,8 +33,8 @@ const Video = ({classes}) => {
         fetch(`/api/video/${videoId}`)
             .then(res => res.json())
             .then(data => {
-                setVideoData(data.video)
-                setTopics(data.video['topics'])
+                setVideoData(data.video_data)
+                setTopics(data.video_data['topics'])
             })
     }, [])
     

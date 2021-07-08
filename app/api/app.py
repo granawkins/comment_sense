@@ -6,8 +6,8 @@ from analyzer import Analyzer
 from clusterer import Clusterer, cluster
 from id_hash import hash
 
-env='docker'
-db_name = 'comment_sense'
+env='desktop'
+db_name = 'comment_sense_3'
 
 app = Flask(__name__)
 yt = YouTube()
