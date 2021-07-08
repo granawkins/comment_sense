@@ -78,7 +78,7 @@ def analyze():
     db.add_video(video_data)
 
     # Send results to frontend
-    return video_data
+    return {'video_data': video_data}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

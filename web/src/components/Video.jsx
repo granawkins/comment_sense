@@ -38,8 +38,27 @@ const Video = ({classes}) => {
             })
     }, [])
     
-    const analyze = (n) => {
-        console.log("analyze")
+    const analyze = (nComments) => {
+        // ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch 
+        const postData = async (url, data) => {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            console.log(response)
+            return response.json()
+        }
+        
+        postData('/api/analyze', {
+            videoData: videoData,
+            nComments: nComments
+        }).then(data => {
+            setVideoData(data.video_data)
+            setTopics(data.video_data['topics'])
+        })
     }
 
     return(
