@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Comment from './Comment'
-import { socket } from '../App'
-// import io from 'socket.io-client'
 
 const CommentsBlock = ({topicComments}) => {
     // let commentsList = topicComments.map(c => c[0])
@@ -10,8 +8,7 @@ const CommentsBlock = ({topicComments}) => {
 
     const [comments, setComments] = useState(null)
     useEffect(() => {
-        socket.emit('comments', {comments: topicComments})
-        socket.on('comments', (data) => {setComments(data.comments)})
+        console.log('Get comments')
     }, [])
     
     if (!comments) {

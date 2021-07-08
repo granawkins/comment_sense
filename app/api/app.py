@@ -1,101 +1,52 @@
 import json, time, queue, sys
-from concurrent.futures import ThreadPoolExecutor
-import threading
-
+from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
 from database import Database
 from analyzer import Analyzer
 from clusterer import Clusterer, cluster
 from id_hash import hash
-import socketio
-import eventlet
 
-env='desktop'
+env='docker'
 db_name = 'comment_sense'
 
+app = Flask(__name__)
 yt = YouTube()
 db = Database(env, name=db_name)
 an = Analyzer(env, db)
 
-sio = socketio.Server(cors_allowed_origins='*', async_mode='eventlet')
-app = socketio.WSGIApp(sio)
+@app.route('/api/recent', methods=['GET'])
+def recent():
+    database_videos = db.recent(10)
+    return {'videos': database_videos}
 
-rooms = []
+@app.route('/api/search/<key>', methods=['GET'])
+def search(key):
+    if not key:
+        return {'videos': []}
+    youtube_videos = yt.search(key)
+    return {'videos': youtube_videos}
 
-@sio.event
-def connect(sid, environ):
-    print(f'connected to {sid}.')
+@app.route('/api/video/<videoId>', methods=['GET'])
+def video(videoId):
+    video_data = yt.video(videoId)
+    db_data = db.video(videoId)
+    video_data['topics'] = [] if not db_data else db_data['topics']
+    video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
+    return {'video_data': video_data}
 
-@sio.event
-def disconnect(sid):
-    print(f'disconnected from {sid}.')
+@app.route('/api/comments', methods=['POST'])
+def comments():
+    request_data = request.get_json()
+    comments_data = db.comments(request_data['comments'])
+    return comments_data
 
-@sio.event
-def recent(sid, data):
-    if data['n']:
-        database_videos = db.recent(data['n'])
-        return {'videos': database_videos}
-
-@sio.event
-def search(sid, data):
-    if data['key']:
-        database_videos = yt.search(data['key'])
-        return {'videos': database_videos}
-
-@sio.event
-def video(sid, data):
-    global rooms
-    if data['videoId']:
-        videoId = data['videoId']
-        video_data = yt.video(videoId)
-
-        db_data = db.video(videoId)
-        video_data['topics'] = [] if not db_data else db_data['topics']
-        video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
-
-        if videoId in rooms:
-            sio.enter_room(sid, videoId)
-
-        sio.emit('video', {'video': video_data}, to=sid)
-
-@sio.event
-def comments(sid, data):
-    comments_data = db.comments(data['comments'])
-    sio.emit('comments', {'comments': comments_data}, to=sid)
-
-@sio.event
-def topics(sid, data):
-    video_data = db.video(data['videoId'])
-    topics_data = []
-    n_analyzed = 0
-    if video_data:
-        if 'topics' in video_data.keys():
-            topics_data = video_data['topics']
-        if 'n_analyzed' in video_data.keys():
-            n_analyzed = video_data['n_analyzed']
-    sio.emit('topics', {'topics': topics_data, 'n_analyzed': n_analyzed}, to=sid)
-
-@sio.event
-def analyze(sid, data):
-
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
     # Parse request info
-    video_data = data['videoData']
+    request_data = request.get_json()
+    video_data = request_data['videoData']
     videoId = video_data['id']
-    n_target = int(data['nComments'])
-
-    # Initialize progress object. Used to send data to frontend
-    progress = {
-        'loaded': 0, 
-        'analyzed': 0, 
-        'clustered': 0, 
-        'status': 'init', 
-        'topics': video_data['topics']}
-
-    # Add user to room to receive websocket updates
-    global rooms
-    rooms.append(videoId)
-    sio.enter_room(sid, videoId)
-    sio.emit('loading', progress, room=videoId)
+    n_target = int(request_data['nComments'])
 
     # Get comments from YouTube API
     comment_data = yt.comments(videoId, {'nComments': n_target})
@@ -106,9 +57,13 @@ def analyze(sid, data):
     # -> [[id, likes, sentiment, topics], ...]
 
     # Extract a sorted list of topics from comments
-    cl = Clusterer(video_data, db)
-    topics_raw = cl.cluster(comments_analyzed)
+    n_topics = 200
+    subs = []
+    user_labs = []
+    topics_raw = cluster(comments_analyzed, n_topics, subs, user_labs)
     # -> [[token, toks, label, n, likes, sentiment, commentIds], ...]
+
+    # Add topics to database
     topics_data = [{
         'token': token,
         'toks': toks,
@@ -122,15 +77,7 @@ def analyze(sid, data):
     db.add_video(video_data)
 
     # Send results to frontend
-    n_actual = len(comments_analyzed)
-    progress['loaded'] = n_actual
-    progress['analyzed'] = n_actual
-    progress['clustered'] = n_actual
-    progress['status'] = 'done'
-    progress['topics'] = video_data['topics']
+    return video_data
 
-    sio.emit('loading', progress, room=videoId)
-    rooms.remove(videoId)
-
-# if __name__ == '__main__':
-eventlet.wsgi.server(eventlet.listen(('', 5050)), app)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)

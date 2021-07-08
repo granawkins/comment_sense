@@ -3,9 +3,6 @@ import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import FeedCard from "./FeedCard.jsx"
-// import { initiateSocket, disconnectSocket, recent } from './sock'
-// import io from 'socket.io-client'
-import { socket } from '../App'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,53 +17,33 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const Feed = ({page, host}) => {
+const Feed = ({page}) => {
     const classes = useStyles();
     const [feed, setFeed] = useState([])
     const key = useParams().key
-    
-    // var socket    
 
     useEffect(() => {
-        buildPage(page)
-        // socket = io(host, {transports: ['websocket']});
-        // socket.on('connect', () => {
-        //     console.log("Connected")
-        //     buildPage(page)
-        // })
-        // socket.on('disconnect', () => {
-        //     console.log("Disconnected")
-        // })
-    }, [])
-
-    const buildPage = (type) => {
-        switch(type) {
+        switch(page) {
             case 'recent' : getRecent(10); break;
             case 'search' : getSearch(key); break;
         }
-    }
+    }, [])
     
-    const getRecent = (num) => {
-        socket.emit('recent', {n: num}, (result) => {
-            buildFeed(result.videos)
-        })
+    const getRecent = async (num) => {
+        fetch(`/api/recent`)
+            .then(res => res.json())
+            .then(data => {
+                buildFeed(data.videos)
+            })
     }
 
     const getSearch = (key) => {
-        socket.emit('search', {key: key}, (result) => {
-            buildFeed(result.videos)
-        })
+        fetch(`/api/search/${key}`)
+            .then(res => res.json())
+            .then(data => {
+                buildFeed(data.videos)
+            })
     }
-
-    // fetch(`/api/recent/${n}`)
-        // .then(res => res.json())
-        // .then(data => {buildFeed(data.database_videos)})
-
-    // const getSearch = () => {
-    //     fetch(`../api/search/${key}`)
-    //     .then(res => res.json())
-    //     .then(data => {buildFeed(data.youtube_videos)})
-    // }
 
     const buildFeed = (video_data) => {
         setFeed(video_data.reverse().map(video => <FeedCard video={video} />))

@@ -36,13 +36,13 @@ const styles = (theme) => ({
     },
 })
 
-const TopicCard = ({topic, max, host, classes}) => {
+const TopicCard = ({topic, max, classes}) => {
 
     const [comments, setComments] = useState(null)
     const getComments = () => {
         if (!comments) {
             console.log(topic)
-            setComments(<CommentsBlock topicComments={topic.comments} host={host}/>)
+            setComments(<CommentsBlock topicComments={topic.comments} />)
         }
     }
 

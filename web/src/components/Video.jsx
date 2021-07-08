@@ -11,10 +11,6 @@ import VideoPlayer from "./VideoPlayer.jsx"
 import Controller from "./Controller.jsx"
 import Topics from "./Topics.jsx"
 
-// import io from 'socket.io-client'
-import { socket } from '../App'
-// import { thousands_separators } from '../helpers.js'
-
 const styles = (theme) => ({
     root: {
         display: 'flex',
@@ -34,22 +30,16 @@ const Video = ({classes}) => {
     const [topics, setTopics] = useState([])
     const [progress, setProgress] = useState(null)
     useEffect(() => {
-        socket.emit('video', {videoId: videoId})
-        socket.on('video', (data) => {
-            setVideoData(data.video)
-            setTopics(data.video['topics'])
-        })
-        socket.on('loading', (data) => {
-            let new_topics = data.topics
-            setTopics(new_topics)
-            delete data.topics
-            setProgress(data)
-        })
+        fetch(`/api/video/${videoId}`)
+            .then(res => res.json())
+            .then(data => {
+                setVideoData(data.video)
+                setTopics(data.video['topics'])
+            })
     }, [])
     
     const analyze = (n) => {
-        socket.emit('analyze', {videoData: videoData, nComments: n})
-        setProgress({status: 'init'})
+        console.log("analyze")
     }
 
     return(

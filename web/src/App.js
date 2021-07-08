@@ -5,11 +5,6 @@ import Feed from "./components/Feed.jsx"
 import Video from "./components/Video.jsx"
 import './App.css';
 
-// SocketIO Host
-import io from 'socket.io-client'
-const HOST_NAME = "http://0.0.0.0:5050/"
-export const socket = io(HOST_NAME, {transports: ['websocket'], timeout: 60000})
-
 function App() {
 
   let theme = createMuiTheme({
@@ -38,9 +33,9 @@ function App() {
         <Router>
           <Navbar />
           <Switch>
-            <Route path='/' exact component={() => <Feed page="recent"  host={HOST_NAME}/>} />
-            <Route path='/search/:key' exact component={() => <Feed page="search" host={HOST_NAME}/>} />
-            <Route path='/video/:videoId' exact component={() => <Video  host={HOST_NAME}/>} />
+            <Route path='/' exact component={() => <Feed page="recent" />} />
+            <Route path='/search/:key' exact component={() => <Feed page="search" />} />
+            <Route path='/video/:videoId' exact component={() => <Video  />} />
           </Switch>
         </Router>
       </ThemeProvider>
