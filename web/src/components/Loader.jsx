@@ -54,7 +54,7 @@ const Loader = ({ target, progress, classes }) => {
             case 'done': setDisplay("Preparing results..."); break;
             default: setDisplay(""); break;
         }
-    }, [progress])
+    }, [target, progress])
 
     return (
         <div className={classes.root}>

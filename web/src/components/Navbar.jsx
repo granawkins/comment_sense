@@ -1,5 +1,5 @@
 import React from 'react';
-import { fade, makeStyles } from '@material-ui/core/styles';
+import { alpha, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import * as Router from 'react-router-dom';
@@ -25,9 +25,9 @@ const useStyles = makeStyles((theme) => ({
   search: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
     '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.25),
+      backgroundColor: alpha(theme.palette.common.white, 0.25),
     },
     marginRight: theme.spacing(2),
     marginLeft: theme.spacing(3),
@@ -176,7 +176,7 @@ export default function Navbar() {
               <Link 
                   component="button"
                   underline="none"
-                  color="accent"
+                  color="textPrimary"
               >
                   <Typography display="inline" variant="h6" className={classes.logo}>Comment</Typography>
                   <Typography display="inline" variant="h6" color="secondary" className={classes.logo}>Sense</Typography>
@@ -185,7 +185,7 @@ export default function Navbar() {
           </Grid>
 
           {/* Desktop Search Bar */}
-          <Grid item s>
+          <Grid item sm>
             <div className={classes.search}>
                 <div className={classes.searchIcon}>
                 <SearchIcon />
@@ -202,7 +202,7 @@ export default function Navbar() {
                 />
             </div>
           </Grid>
-          <Grid container xs direction="row" alignContent="flex-end" justify="flex-end">
+          <Grid container item xs direction="row" alignContent="flex-end" justifyContent="flex-end">
             
             {/* Mobile Search Button */}
             <IconButton 

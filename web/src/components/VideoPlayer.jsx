@@ -3,13 +3,9 @@ import { withStyles } from '@material-ui/core/styles';
 
 import Typography from '@material-ui/core/Typography';
 import CardMedia from '@material-ui/core/CardMedia';
-import Card from '@material-ui/core/Card';
-import CircularProgress from '@material-ui/core/CircularProgress';
 
 import Details from './Details'
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import ScheduleIcon from '@material-ui/icons/Schedule';
-import { thousands_separators } from '../helpers.js'
+import LoadingCircle from '../utils/LoadingCircle';
 
 const styles = (theme) => ({
     root: {
@@ -67,7 +63,7 @@ const VideoPlayer = ({videoData, classes}) => {
 
     if (!video) {
         return(
-            <CircularProgress color='secondary'/>
+            <LoadingCircle />
         )
     } else {
         return(

@@ -1,5 +1,4 @@
 import { Box, withStyles, Typography } from '@material-ui/core'
-import { useState, useEffect } from 'react'
 
 const styles = () => ({
     bar: {
@@ -20,20 +19,14 @@ const styles = () => ({
     }
 })
 
-const TopicBar = (props) => {
-
-    const [barWidth, setBarWidth] = useState(0)
-
-    useEffect(() => {
-        setBarWidth(100)
-    }, [])
+const TopicBar = ({token, score, barRatio, classes}) => {
 
     return(
         <div style={{width: "100%"}}>
-            <Box className={props.classes.bar} width={Math.round(props.barRatio*100) + "%"}/>
-            <div className={props.classes.label}>
-                <Typography variant='h6' className={props.classes.text}>{props.token}</Typography>
-                <Typography variant='h6' className={props.classes.text}>{props.score}</Typography>
+            <Box className={classes.bar} width={Math.round(barRatio*100) + "%"}/>
+            <div className={classes.label}>
+                <Typography variant='h6' className={classes.text}>{token}</Typography>
+                <Typography variant='h6' className={classes.text}>{score}</Typography>
             </div>
         </div>
     )

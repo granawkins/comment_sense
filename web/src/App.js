@@ -1,4 +1,4 @@
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Feed from "./components/Feed.jsx"
@@ -7,7 +7,7 @@ import './App.css';
 
 function App() {
 
-  let theme = createMuiTheme({
+  let theme = createTheme({
     palette: {
       primary: {
         main: '#fafafa',
