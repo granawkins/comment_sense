@@ -3,10 +3,11 @@ import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
+
 import { postData } from '../utils/helpers'
-import VideoPlayer from "./VideoPlayer.jsx"
-import Controller from "./Controller.jsx"
-import Topics from "./Topics.jsx"
+import VideoPlayer from "./Video/VideoPlayer.jsx"
+import Controller from "./Video/Controller.jsx"
+import Topics from "./Video/Topics.jsx"
 
 const styles = (theme) => ({
     root: {
@@ -24,24 +25,38 @@ const Video = ({classes}) => {
     
     const { videoId } = useParams()
     const [videoData, setVideoData] = useState(null)
+    const [commentsAnalyzed, setCommentsAnalyzed] = useState("...")
+    const [commentsTotal, setCommentsTotal] = useState("...")
     const [topics, setTopics] = useState([])
-    const [progress, setProgress] = useState(null)
+    const [loading, setLoading] = useState(false)
+
     useEffect(() => {
         fetch(`/api/video/${videoId}`)
             .then(res => res.json())
             .then(data => {
-                setVideoData(data.video_data)
-                setTopics(data.video_data['topics'])
+                if (!data.video_data) {
+                    console.log("No video data.")
+                } else {
+                    setVideoData(data.video_data)
+                    let fields = Object.keys(data.video_data)
+                    setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
+                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)                
+                    setTopics(fields.includes('topics') ? data.video_data.topics : [])
+
+                    console.log(commentsAnalyzed)
+                }
             })
     }, [])
     
-    const analyze = (nComments) => {
+    const analyze = (commentsTarget) => {
+        setLoading(true)
         postData('/api/analyze', {
             videoData: videoData,
-            nComments: nComments
+            nComments: commentsTarget
         }).then(data => {
-            setVideoData(data.video_data)
+            setCommentsAnalyzed(data.video_data['n_analyzed'])
             setTopics(data.video_data['topics'])
+            setLoading(false)
         })
     }
 
@@ -50,12 +65,13 @@ const Video = ({classes}) => {
             <Card>
                 <VideoPlayer videoData={videoData} />
                 <Controller 
-                    videoData={videoData} 
-                    progress={progress} 
+                    commentsAnalyzed={commentsAnalyzed} 
+                    commentsTotal={commentsTotal} 
+                    loading={loading}
                     analyze={analyze}
                 />
             </Card>
-            <Topics topics={topics}/>
+            <Topics topics={topics} loading={loading} />
         </Grid>
     )
 }

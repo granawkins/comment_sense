@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import CardMedia from '@material-ui/core/CardMedia';
 
 import Details from './Details'
-import LoadingCircle from '../utils/LoadingCircle';
+import LoadingCircle from '../../utils/LoadingCircle';
 
 const styles = (theme) => ({
     root: {

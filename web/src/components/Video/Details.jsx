@@ -4,7 +4,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 import Typography from '@material-ui/core/Typography';
-import { thousands_separators } from '../helpers.js'
+import { thousands_separator } from '../../utils/helpers.js'
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = (theme) => ({
@@ -30,7 +30,7 @@ const Details = ({ video, classes }) => {
             <div className={classes.line}>
                 <VisibilityIcon style={{padding: '0px 10px'}}/>
                 <Typography noWrap={true}>
-                    {thousands_separators(video.views)}
+                    {thousands_separator(video.views)}
                 </Typography>
             </div>
             <div className={classes.line}>
@@ -42,11 +42,11 @@ const Details = ({ video, classes }) => {
             <div className={classes.line}>
                 <ThumbUpAltIcon style={{padding: '0px 10px'}}/>
                 <Typography variant="body1" >
-                    {thousands_separators(video.likes)}
+                    {thousands_separator(video.likes)}
                 </Typography>
                 <ThumbDownAltIcon style={{padding: '0px 10px'}}/>
                 <Typography variant="body1" >
-                    {thousands_separators(video.dislikes)}
+                    {thousands_separator(video.dislikes)}
                 </Typography>
             </div>
         </div>

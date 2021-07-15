@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { postData } from '../utils/helpers'
-import LoadingCircle from '../utils/LoadingCircle';
+import { postData } from '../../utils/helpers'
+import LoadingCircle from '../../utils/LoadingCircle';
 import Comment from './Comment'
 
 const CommentsBlock = ({topicComments}) => {
