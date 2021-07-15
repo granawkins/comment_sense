@@ -24,8 +24,8 @@ def recent(n):
 def search(key):
     if not key:
         return {'videos': []}
-    youtube_videos = yt.search(key)
-    return {'videos': youtube_videos}
+    results = yt.search(key)
+    return {'videos': results['videos'], 'channels': results['channels']}
 
 @app.route('/api/video/<videoId>', methods=['GET'])
 def video(videoId):

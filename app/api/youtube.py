@@ -25,13 +25,29 @@ class YouTube():
     def search(self, key, n=25):
         search_request = self.youtube.search().list(
             part="snippet",
-            type="video",
+            # type="video",
             maxResults=n,
             q=key,
         ) 
-        videos = search_request.execute()
-        parsed = []
-        for video in videos['items']:
+        results = search_request.execute()
+        channels = filter(lambda item: (item['id']['kind'] == 'youtube#channel'), results['items'])
+        parsed_channels = []
+        for channel in channels:
+            channelId = channel['snippet']['channelId'][:100]
+            channelTitle = channel['snippet']['channelTitle'][:100]
+            description = channel['snippet']['description'][:500]
+            thumbnail = channel['snippet']['thumbnails']['medium']['url']
+            output = {
+                'channelId': channelId,
+                'channelTitle': channelTitle,
+                'description': description,
+                'thumbnail': thumbnail,
+            }
+            parsed_channels.append(output)
+
+        videos = filter(lambda item: (item['id']['kind'] == 'youtube#video'), results['items'])
+        parsed_videos = []
+        for video in videos:
             vid = video['id']['videoId']
             title = video['snippet']['title'][:300]
             channelId = video['snippet']['channelId'][:100]
@@ -47,8 +63,8 @@ class YouTube():
                 "thumbnail": thumbnail,
                 'publishedAt': publishedAt
             }
-            parsed.append(output)
-        return parsed
+            parsed_videos.append(output)
+        return {'channels': parsed_channels, 'videos': parsed_videos}
 
     def video(self, videoId):
         video_request = self.youtube.videos().list(

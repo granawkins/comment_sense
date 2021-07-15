@@ -6,8 +6,9 @@ import Card from '@material-ui/core/Card';
 import CardMedia from '@material-ui/core/CardMedia';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import Typography from '@material-ui/core/Typography';
+import { withStyles } from '@material-ui/styles';
 
-const useStyles = makeStyles((theme) => ({
+const styles = (theme) => ({
     root: {
         display: 'flex',
         width: '100%',
@@ -67,30 +68,27 @@ const useStyles = makeStyles((theme) => ({
         margin: '0',
         padding: '0',
     }
-}));
+})
 
-function FeedCard(props) {
-
-    let video = props.video
-    let classes = useStyles()
+const ChannelCard = ({channel, classes}) => {
 
     return (
-        <Link to={"../video/" + video.id} className={classes.link}>
+        <Link to={"#" + channel.channelId} className={classes.link}>
             <Card className={classes.root}>
                 <CardMedia
                     className={classes.cover}
                     component='img'
-                    src={video.thumbnail}
-                    title={video.title}
+                    src={channel.thumbnail}
+                    title={channel.channelTitle}
                     />
                 <CardActionArea className={classes.actionArea}>
                 <div className={classes.details}>
                     <Typography 
-                        className={classes.title} 
-                        dangerouslySetInnerHTML={{__html: video.title}}
+                        className={classes.channelTitle} 
+                        dangerouslySetInnerHTML={{__html: channel.channelTitle}}
                     >
                     </Typography>
-                    <Typography className={classes.faint}>{video.channelTitle}</Typography>
+                    <Typography className={classes.faint}>{channel.description}</Typography>
                 </div>
                 </CardActionArea>
             </Card>
@@ -98,4 +96,4 @@ function FeedCard(props) {
     )
 }
 
-export default withRouter(FeedCard)
+export default withStyles(styles)(ChannelCard)
