@@ -57,6 +57,7 @@ def analyze():
     # Get analyzed comments and add to database
     comments_analyzed = an.analyze(comment_data)
     # -> [[id, likes, sentiment, topics], ...]
+    video_data['n_analyzed'] = len(comments_analyzed)
 
     # Extract a sorted list of topics from comments
     n_topics = 200
