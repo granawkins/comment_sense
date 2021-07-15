@@ -32,35 +32,46 @@ const styles = (theme) => ({
         [theme.breakpoints.up('md')]: {
             width: '768px',
         },
+        fontSize: '1.1em',
     },
     link: {
         color: 'gray',
         width: '100px',
         textAlign: 'center',
         textDecorationLine: 'underline',
+        fontWeight: '200',
+    },
+    copyright: {
+        color: 'gray',
+        fontWeight: '200',
+        fontSize: '0.9em',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
     }
 })
 
 const Footer = ({classes}) => {
-
     return(
         <div className={classes.root}>
-            <div className={classes.links}>
+            <Typography className={classes.links}>
                 <Router.Link  to={"/blog"} className={classes.link}>
-                    <Typography>Blog</Typography>
+                    Blog
                 </Router.Link>
                 <Router.Link  to={"/contact"} className={classes.link}>
-                    <Typography>Contact</Typography>
+                    Contact
                 </Router.Link>
                 <Router.Link  to={"/privacy"} className={classes.link}>
-                    <Typography>Privacy</Typography>
+                    Privacy
                 </Router.Link>
                 <Router.Link  to={"/terms"} className={classes.link}>
-                    <Typography>Terms</Typography>
+                    Terms
                 </Router.Link>
-            </div>
-            <Typography variant='body1'>
-                &copy; 2021 Comment Sense
+            </Typography>
+            <Typography className={classes.copyright}>
+                <span>Built by <a href="http://twitter.com/granawkins" className={classes.link}>@granawkins</a></span>
+                &copy;2021 Comment Sense
             </Typography>
         </div>
     )

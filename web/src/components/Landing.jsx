@@ -19,6 +19,14 @@ const styles = (theme) => ({
         paddingTop: '10px',
         width: '100%',
     },
+    subHeading: {
+        fontFamily: 'Roboto',
+        fontWeight: '200',
+        fontSize: '1.4rem',
+        color: 'red',
+        marginTop: '100px',
+        textAlign: 'center',
+    }
 })
 
 const Landing = ({classes}) => {
@@ -26,8 +34,11 @@ const Landing = ({classes}) => {
     return(
         <div className={classes.root}>
             <Splash />
+            <div className={classes.subHeading}>Search by video, keyword or creator</div>
             <BigSearch />
+            <div className={classes.subHeading}>Connect to see your history & recommendations</div>
             <GoogleLogin />
+            <div className={classes.subHeading}>Browse Popular Videos</div>
             <Popular />
         </div>
     )

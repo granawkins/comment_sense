@@ -13,14 +13,14 @@ const styles = (theme) => ({
         flexWrap: 'nowrap',
         backgroundColor: '#f5f5f5',
         margin: '0',
-        padding: '40px 0',
-        width: '100%',
+        width: '80%',
         [theme.breakpoints.up('sm')]: {
             width: '400px',
         },
         [theme.breakpoints.up('md')]: {
             width: '600px',
         },
+        padding: '20px',
     },
     search: {
         position: 'relative',
@@ -59,7 +59,7 @@ const BigSearch = ({classes}) => {
     const [searchValue, setSearchValue] = useState("")
 
     const search = () => {
-        console.log(searchValue)
+        window.location.href = '/search/' + searchValue
     }
 
     const handleEnter = (e) => {
@@ -70,9 +70,6 @@ const BigSearch = ({classes}) => {
 
     return(
         <div className={classes.root}>
-            <Typography variant='h6'>
-                Search by video, keyword or creator
-            </Typography>
             <div className={classes.search}>
                 <div className={classes.searchIcon}>
                 <SearchIcon />

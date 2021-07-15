@@ -15,8 +15,8 @@ db = Database(env, name=db_name)
 an = Analyzer(env, db)
 
 @app.route('/api/recent/<n>', methods=['GET'])
-def recent(n):
-    nComments = min(int(n), 10)
+def recent(n = 10):
+    nComments = min(int(n), 100)
     database_videos = db.recent(nComments)
     return {'videos': database_videos}
 

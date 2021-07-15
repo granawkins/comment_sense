@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
         flexWrap: 'nowrap',
         backgroundColor: '#f5f5f5',
         margin: '0',
-        paddingTop: '10px',
+        padding: '10px 0',
     },
 }));
 
@@ -58,7 +58,7 @@ const Feed = ({page}) => {
 
         switch(page) {
             case 'recent': {
-                getRecent(10)
+                getRecent(key)
                 break
             }
             case 'search': {

@@ -188,7 +188,7 @@ class Database():
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published FROM videos ORDER BY created DESC")
     result = self.cursor.fetchall()
     result.reverse()
-    n = max(int(n), len(result))
+    n = min(int(n), len(result))
     return result[:n]
 
   def video(self, videoId):
