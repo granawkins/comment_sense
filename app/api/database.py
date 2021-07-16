@@ -203,6 +203,17 @@ class Database():
     else:
       return result[0]
 
+  def topics(self, videoId, n=20, page=1):
+    video_data = self.video(videoId)
+    if not video_data:
+      return None
+    if 'topics' not in video_data.keys():
+      return None
+    topics = json.loads(video_data['topics'])
+    start = min(len(topics), int(n) * (int(page) - 1))
+    finish = min(len(topics), start + int(n))
+    return json.dumps(topics[start:finish])
+
   def n_analyzed(self, videoId):
     sql = "SELECT n_analyzed FROM videos WHERE id = %s"
     self.cursor.execute(sql, (videoId, ))

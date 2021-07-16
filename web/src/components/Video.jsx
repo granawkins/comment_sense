@@ -7,7 +7,7 @@ import Card from '@material-ui/core/Card'
 import { postData } from '../utils/helpers'
 import VideoPlayer from "./Video/VideoPlayer.jsx"
 import Controller from "./Video/Controller.jsx"
-import Topics from "./Video/Topics.jsx"
+import Topics from "./Topics/Topics.jsx"
 
 const styles = (theme) => ({
     root: {
@@ -25,7 +25,7 @@ const Video = ({classes}) => {
     
     const { videoId } = useParams()
     const [videoData, setVideoData] = useState(null)
-    const [commentsAnalyzed, setCommentsAnalyzed] = useState("...")
+    const [commentsAnalyzed, setCommentsAnalyzed] = useState(0)
     const [commentsTotal, setCommentsTotal] = useState("...")
     const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(false)
@@ -42,8 +42,6 @@ const Video = ({classes}) => {
                     setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
                     setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)                
                     setTopics(fields.includes('topics') ? data.video_data.topics : [])
-
-                    console.log(commentsAnalyzed)
                 }
             })
     }, [])
@@ -71,7 +69,12 @@ const Video = ({classes}) => {
                     analyze={analyze}
                 />
             </Card>
-            <Topics topics={topics} loading={loading} />
+            <Topics 
+                videoId={videoId}
+                commentsAnalyzed={commentsAnalyzed} 
+                topics={topics} 
+                loading={loading} 
+            />
         </Grid>
     )
 }

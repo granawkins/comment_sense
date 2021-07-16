@@ -49,6 +49,21 @@ def video(videoId):
     video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
     return {'video_data': video_data}
 
+@app.route('/api/topics', methods=['POST'])
+def topics():
+    topics_per_page = 20
+    request_data = request.get_json()
+    videoId = request_data['videoId']
+    page_number = request_data['page']
+    args = {
+        'videoId': videoId,
+        'n': topics_per_page,
+    }
+    if 'page' in request_data:
+        args['page'] = request_data['page']
+    db_data = db.topics(**args)
+    return {'topics': db_data}
+
 @app.route('/api/comments', methods=['POST'])
 def comments():
     request_data = request.get_json()
