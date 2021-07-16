@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
 import Navbar from './components/Navbar.jsx'
-import Feed from "./components/Feed.jsx"
+import Feed from "./components/Feed2.jsx"
 import Video from "./components/Video.jsx"
 import Landing from "./components/Landing.jsx"
 import Placeholder from "./components/Placeholder.jsx"
@@ -52,8 +52,8 @@ const App = ({classes}) => {
           <div className={classes.body}>
           <Switch>
             <Route path='/' exact component={() => <Landing />} />
-            <Route path='/recent/:key' exact component={() => <Feed page="recent" />} />
-            <Route path='/search/:key' exact component={() => <Feed page="search" />} />
+            <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
+            <Route path='/search/:key' exact component={() => <Feed pageName="search" />} />
             <Route path='/video/:videoId' exact component={() => <Video  />} />
             <Route path='/blog' exact component={() => <Placeholder pageName='Blog' />} />
             <Route path='/contact' exact component={() => <Placeholder pageName='Contact' />} />

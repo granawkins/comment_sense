@@ -36,10 +36,11 @@ const Landing = ({classes}) => {
             <Splash />
             <div className={classes.subHeading}>Search by video, keyword or creator</div>
             <BigSearch />
+            <div className={classes.subHeading}>Browse popular videos</div>
+            <Popular />
             <div className={classes.subHeading}>Connect to see your history & recommendations</div>
             <GoogleLogin />
-            <div className={classes.subHeading}>Browse Popular Videos</div>
-            <Popular />
+            <div style={{marginBottom: '100px'}} />
         </div>
     )
 }

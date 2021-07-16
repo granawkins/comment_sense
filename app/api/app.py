@@ -14,10 +14,14 @@ yt = YouTube()
 db = Database(env, name=db_name)
 an = Analyzer(env, db)
 
-@app.route('/api/recent/<n>', methods=['GET'])
-def recent(n = 10):
-    nComments = min(int(n), 100)
-    database_videos = db.recent(nComments)
+@app.route('/api/recent', methods=['GET', 'POST'])
+def recent():
+    videos_per_page = 10
+    request_data = request.get_json()
+    page_number = request_data['page']
+    # print(f'fetching {videos_per_page} videos from page {page_number}.')
+    database_videos = db.recent(int(videos_per_page), int(page_number))
+    print(database_videos)
     return {'videos': database_videos}
 
 @app.route('/api/search/<key>', methods=['GET'])

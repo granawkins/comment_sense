@@ -182,14 +182,15 @@ class Database():
     except mysql.connector.Error as err:
       print("Error adding topic: {}".format(err))
 
-  def recent(self, n=10):
+  def recent(self, n=10, page=1):
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published FROM videos ORDER BY created DESC")
     result = self.cursor.fetchall()
     result.reverse()
-    n = min(int(n), len(result))
-    return result[:n]
+    start = min(len(result), int(n) * (int(page) - 1))
+    finish = min(len(result), start + int(n))
+    return result[start:finish]
 
   def video(self, videoId):
     self.refresh()

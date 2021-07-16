@@ -52,7 +52,7 @@ const Popular = ({classes}) => {
     return(
         <div className={classes.root}>
             {feed}
-            <Link to={"../recent/25"} className={classes.more}>
+            <Link to={"../recent"} className={classes.more}>
                 <Typography>more</Typography>
                 <ChevronRightIcon />
             </Link>
