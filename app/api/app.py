@@ -80,7 +80,7 @@ def analyze():
     n_target = int(request_data['nComments'])
 
     # Get comments from YouTube API
-    comment_data = yt.comments(videoId, {'nComments': n_target})
+    comment_data = yt.comments(videoId, n_target)
     # -> [[id, videoId, text, author, parent, likes, published], ...]
     
     # Get analyzed comments and add to database

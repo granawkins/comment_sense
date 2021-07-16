@@ -1,4 +1,4 @@
-import os
+import os, math
 import googleapiclient.discovery
 import datetime
 from id_hash import hash
@@ -95,25 +95,41 @@ class YouTube():
             }
             return parsed
 
-    def comments(self, videoId, req):
-        n = req['nComments']
-        comments_request = self.youtube.commentThreads().list(
-            part="id,snippet,replies",
-            maxResults=n,
-            order="relevance",
-            videoId=videoId
-        )
-        comments = comments_request.execute()
-        parsed = []
-        for thread in comments['items']:
-            # Flatten comments/replies, add 'level' field
-            n_children = 0 if 'totalReplyCount' not in thread['snippet'].keys() else thread['snippet']["totalReplyCount"]
-            parsed.append(parse_comment(thread['snippet']['topLevelComment'], None, n_children))
-            parent_id = parsed[-1]['id']
-            if 'replies' in thread:
-                for reply in thread['replies']['comments']:
-                    parsed.append(parse_comment(reply, parent_id, 0))
-        return parsed
+    def comments(self, videoId, n=100):
+        max_results = 1000
+        n_results = min(int(n), max_results)
+
+        max_per_loop = 100
+        n_loops = math.ceil(n_results / max_per_loop)
+        topics = []
+        next_page_token = None
+        for i in range(n_loops):
+            # Get comments
+            args = {
+                'videoId': videoId,
+                'part': 'id, snippet, replies',
+                'maxResults': n_results,
+                'order': 'relevance',
+            }
+            print(next_page_token)
+            if (next_page_token):
+                args['pageToken'] = next_page_token
+            comments_request = self.youtube.commentThreads().list(**args)
+            comments = comments_request.execute()
+
+            # Parse useful fields
+            if len(comments['items']) == 0:
+                break
+            next_page_token = comments['nextPageToken']
+            for thread in comments['items']:
+                # Flatten comments/replies, add 'level' field
+                n_children = 0 if 'totalReplyCount' not in thread['snippet'].keys() else thread['snippet']["totalReplyCount"]
+                topics.append(parse_comment(thread['snippet']['topLevelComment'], None, n_children))
+                parent_id = topics[-1]['id']
+                if 'replies' in thread:
+                    for reply in thread['replies']['comments']:
+                        topics.append(parse_comment(reply, parent_id, 0))
+        return topics
 
 def parse_comment(comment, parent, n_children=None):
 
