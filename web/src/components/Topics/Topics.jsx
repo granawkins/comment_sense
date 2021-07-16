@@ -95,6 +95,7 @@ const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
         if (commentsAnalyzed > 0) {
             // Empty current feed
             setTopicsFeed([])
+            setPageNumber(0)
 
             // Connect observer if not yet connected
             if (!observer) {

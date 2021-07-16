@@ -95,14 +95,13 @@ class YouTube():
             }
             return parsed
 
-    def comments(self, videoId, n=100):
+    def comments(self, videoId, n=100, next_page_token=None):
         max_results = 1000
         n_results = min(int(n), max_results)
 
         max_per_loop = 100
         n_loops = math.ceil(n_results / max_per_loop)
         topics = []
-        next_page_token = None
         for i in range(n_loops):
             # Get comments
             args = {
@@ -111,7 +110,6 @@ class YouTube():
                 'maxResults': n_results,
                 'order': 'relevance',
             }
-            print(next_page_token)
             if (next_page_token):
                 args['pageToken'] = next_page_token
             comments_request = self.youtube.commentThreads().list(**args)
@@ -129,7 +127,7 @@ class YouTube():
                 if 'replies' in thread:
                     for reply in thread['replies']['comments']:
                         topics.append(parse_comment(reply, parent_id, 0))
-        return topics
+        return topics, next_page_token
 
 def parse_comment(comment, parent, n_children=None):
 

@@ -45,6 +45,7 @@ class Database():
       "published VARCHAR(32), "
       "topics JSON, "
       "n_analyzed INT, "
+      "next_page_token JSON, "
       "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "PRIMARY KEY (`id`) "
     ")")
@@ -242,3 +243,10 @@ class Database():
       if len(results) > 0:
         comments_data.append(results[0])
     return comments_data
+
+  def all_comments(self, videoId):
+    self.refresh()
+    sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE videoId = %s"
+    self.cursor.execute(sql, (videoId, ))
+    results = self.cursor.fetchall()
+    return results

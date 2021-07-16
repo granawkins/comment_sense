@@ -78,7 +78,7 @@ const VideoPlayer = ({videoData, classes}) => {
                 <div className={classes.details} >
                     <Typography variant="h6" style={{lineHeight: '1.1', marginBottom: '10px'}}>{video.title}</Typography>
                     <Typography variant="body1" ><u>{video.channelTitle}</u></Typography>
-                    <Details video={video}></Details>
+                    <Details videoData={videoData}></Details>
                 </div>
             </div>
         )

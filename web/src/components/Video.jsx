@@ -27,6 +27,7 @@ const Video = ({classes}) => {
     const [videoData, setVideoData] = useState(null)
     const [commentsAnalyzed, setCommentsAnalyzed] = useState(0)
     const [commentsTotal, setCommentsTotal] = useState("...")
+    const [pageToken, setPageToken] = useState(null)
     const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(false)
 
@@ -40,7 +41,8 @@ const Video = ({classes}) => {
                     setVideoData(data.video_data)
                     let fields = Object.keys(data.video_data)
                     setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
-                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)                
+                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)  
+                    setPageToken(fields.includes('next_page_token') ? data.video_data.next_page_token : null)              
                     setTopics(fields.includes('topics') ? data.video_data.topics : [])
                 }
             })
@@ -49,10 +51,11 @@ const Video = ({classes}) => {
     const analyze = (commentsTarget) => {
         setLoading(true)
         postData('/api/analyze', {
-            videoData: videoData,
+            videoData: {...videoData, 'next_page_token': pageToken},
             nComments: commentsTarget
         }).then(data => {
             setCommentsAnalyzed(data.video_data['n_analyzed'])
+            setPageToken(data.video_data['next_page_token'])
             setTopics(data.video_data['topics'])
             setLoading(false)
         })

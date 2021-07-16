@@ -7,7 +7,7 @@ from clusterer import Clusterer, cluster
 from id_hash import hash
 
 env='desktop'
-db_name = 'comment_sense_3'
+db_name = 'comment_sense_6'
 
 app = Flask(__name__)
 yt = YouTube()
@@ -47,6 +47,7 @@ def video(videoId):
     db_data = db.video(videoId)
     video_data['topics'] = [] if not db_data else db_data['topics']
     video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
+    video_data['next_page_token'] = None if not db_data else db_data['next_page_token']
     return {'video_data': video_data}
 
 @app.route('/api/topics', methods=['POST'])
@@ -78,21 +79,30 @@ def analyze():
     video_data = request_data['videoData']
     videoId = video_data['id']
     n_target = int(request_data['nComments'])
+    if 'next_page_token' in video_data.keys():
+        page_token =  video_data['next_page_token']
+        old_analyzed = db.all_comments(videoId)
+    else:
+        page_token = None
+        old_analyzed = []
 
     # Get comments from YouTube API
-    comment_data = yt.comments(videoId, n_target)
+    comment_data, next_page_token = yt.comments(videoId, n_target, page_token)
     # -> [[id, videoId, text, author, parent, likes, published], ...]
-    
+
     # Get analyzed comments and add to database
-    comments_analyzed = an.analyze(comment_data)
+    new_analyzed = an.analyze(comment_data)
     # -> [[id, likes, sentiment, topics], ...]
-    video_data['n_analyzed'] = len(comments_analyzed)
+
+    video_data['next_page_token'] = json.dumps(next_page_token)
+    analyzed = old_analyzed + new_analyzed
+    video_data['n_analyzed'] = len(analyzed)
 
     # Extract a sorted list of topics from comments
     n_topics = 200
     subs = []
     user_labs = []
-    topics_raw = cluster(comments_analyzed, n_topics, subs, user_labs)
+    topics_raw = cluster(analyzed, n_topics, subs, user_labs)
     # -> [[token, toks, label, n, likes, sentiment, commentIds], ...]
 
     # Add topics to database

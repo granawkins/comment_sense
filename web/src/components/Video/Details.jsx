@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from 'react';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
@@ -23,30 +23,43 @@ const styles = (theme) => ({
     },
 })
 
-const Details = ({ video, classes }) => {
+const Details = ({ videoData, classes }) => {
+
+    const [views, setViews] = useState(0)
+    const [published, setPublished] = useState("")
+    const [likes, setLikes] = useState(0)
+    const [dislikes, setDislikes] = useState(0)
+    useEffect(() => {
+        if (videoData) {
+            setViews(thousands_separator(videoData.views))
+            setPublished(videoData.published)
+            setLikes(thousands_separator(videoData.likes))
+            setDislikes(thousands_separator(videoData.dislikes))
+        }
+    }, [videoData])
 
     return(
         <div className={classes.root}>
             <div className={classes.line}>
                 <VisibilityIcon style={{padding: '0px 10px'}}/>
                 <Typography noWrap={true}>
-                    {thousands_separator(video.views)}
+                    {views}
                 </Typography>
             </div>
             <div className={classes.line}>
                 <ScheduleIcon style={{padding: '0px 10px'}}/>
                 <Typography variant="body1" noWrap={true}>
-                    {video.published}
+                    {published}
                 </Typography>
             </div>
             <div className={classes.line}>
                 <ThumbUpAltIcon style={{padding: '0px 10px'}}/>
                 <Typography variant="body1" >
-                    {thousands_separator(video.likes)}
+                    {likes}
                 </Typography>
                 <ThumbDownAltIcon style={{padding: '0px 10px'}}/>
                 <Typography variant="body1" >
-                    {thousands_separator(video.dislikes)}
+                    {dislikes}
                 </Typography>
             </div>
         </div>
