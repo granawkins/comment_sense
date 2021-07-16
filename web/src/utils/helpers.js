@@ -7,7 +7,7 @@ const postData = async (url, data) => {
         },
         body: JSON.stringify(data)
     })
-    console.log(response)
+    // console.log(response)
     return response.json()
 }
 

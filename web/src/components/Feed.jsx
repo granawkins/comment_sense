@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
+import { withStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 import VideoCard from "./Feed/VideoCard.jsx"
 import ChannelCard from "./Feed/ChannelCard.jsx"
 import LoadingCircle from '../utils/LoadingCircle';
+import { postData } from '../utils/helpers.js';
 
-const useStyles = makeStyles((theme) => ({
+const styles = (theme) => ({
     root: {
         display: 'flex',
         flexDirection: 'column',
@@ -16,67 +17,112 @@ const useStyles = makeStyles((theme) => ({
         margin: '0',
         padding: '10px 0',
     },
-}));
+    loading: {
+        margin: '20px 0',
+    },
+    error: {
+        width: '100%',
+        textAlign: 'center',
+        color: 'gray',
+        padding: '20px',
+        fontWeight: '400',
+    }
+})
 
+const API_URLS = {
+    recent: '/api/recent',
+    search: '/api/search',
+}
 
-const Feed = ({page}) => {
-    const classes = useStyles();
-    const [feed, setFeed] = useState(<LoadingCircle />)
+const Feed = ({pageName, classes}) => {
     const key = useParams().key
-
-    const buildFeed = (data) => {
-        let feedItems = []
-        if (Object.keys(data).includes('channels')) {
-            data.channels.reverse().forEach(channel => feedItems.push(
+    
+    const [isLoading, setIsLoading] = useState(false)
+    const [hasError, setHasError] = useState(false)
+    const [isEnd, setIsEnd] = useState(false)
+    const [feed, setFeed] = useState([])
+    const [pageNumber, setPageNumber] = useState(0)
+    const [nextPageToken, setNextPageToken] = useState(null)
+    
+    const addToFeed = (items) => {
+        let newItems = []
+        if (Object.keys(items).includes('channels')) {
+            items.channels.reverse().forEach(channel => newItems.push(
                 <ChannelCard channel={channel} key={channel.channelId} />
             ))
         }
-        if (Object.keys(data).includes('videos')) {
-            data.videos.reverse().forEach(video => feedItems.push(
+        if (Object.keys(items).includes('videos')) {
+            items.videos.reverse().forEach(video => newItems.push(
                 <VideoCard video={video} key={video.id} />
             ))
         }
-        setFeed(feedItems)
+        if (Object.keys(items).includes('next')) {
+            setNextPageToken(items.next)
+        }
+        if (newItems.length === 0) {
+            setIsEnd(true)
+        } else {
+            setFeed(oldItems => [...oldItems, newItems])
+        }
     }
     
-    useEffect(() => {        
-        const getRecent = async (n = 10) => {
-            fetch(`/api/recent/${n}`)
-                .then(res => res.json())
-                .then(data => buildFeed(data))
+    const handleLoad = async () => {
+        if (isEnd) {
+            return
         }
-        
-        const getSearch = async (key) => {
-            fetch(`/api/search/${key}`)
-                .then(res => res.json())
-                .then(data => buildFeed(data))
+        setIsLoading(true)
+        try {
+            let apiRef = (Object.keys(API_URLS).includes(pageName)) ? API_URLS[pageName] : null
+            let data = {
+                key: (key) ? key : null, 
+                page: pageNumber,
+                next: (nextPageToken) ? nextPageToken: null
+            }
+            let newItems = await postData(apiRef, data)
+            console.log(newItems)
+            addToFeed(newItems)
+            setIsLoading(false)
         }
+        catch (err) {
+            console.log(`Error loading new items: ${err}`)
+            setIsLoading(false)
+            setHasError(true)
+        }
+    }
     
-        const getEmpty = () => {
-            setFeed(<p>Unrecognized feed type.</p>)
+    useEffect(() => {
+        if (pageNumber > 0) {
+            handleLoad()
         }
+    }, [pageNumber])
 
-        switch(page) {
-            case 'recent': {
-                getRecent(key)
-                break
-            }
-            case 'search': {
-                getSearch(key)
-                break
-            }
-            default: {
-                getEmpty()
-                break
-            }
+    const handleObserver = (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && !isLoading && !hasError && !isEnd) {
+            setPageNumber((p) => p + 1)
         }
-    }, [page, key])
+    }
 
-    return(
-        <Grid container className={classes.root} direction="column">
+    const loader = useRef(null)
+    useEffect(() => {
+        const option = {
+            root: null,
+            rootMargin: "20px",
+            threshold: 0
+        };
+        const observer = new IntersectionObserver(handleObserver, option);
+        if (loader.current) observer.observe(loader.current);
+    }, [])
+
+    return (
+        <div>
             {feed}
-        </Grid>
+            <div ref={loader} />
+            {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
+            {hasError ? <Typography className={classes.error}>ERROR</Typography> : null}
+            {isEnd ? <Typography className={classes.error}>END OF FEED</Typography> : null}
+        </div>
     )
 }
 
-export default Feed
+export default withStyles(styles)(Feed)

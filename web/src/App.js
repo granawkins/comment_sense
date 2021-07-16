@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
 import Navbar from './components/Navbar.jsx'
-import Feed from "./components/Feed2.jsx"
+import Feed from "./components/Feed.jsx"
 import Video from "./components/Video.jsx"
 import Landing from "./components/Landing.jsx"
 import Placeholder from "./components/Placeholder.jsx"

@@ -5,6 +5,7 @@ import { Link, withRouter } from 'react-router-dom';
 import Typography from '@material-ui/core/Typography'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import VideoCard from '../Feed/VideoCard'
+import { postData } from '../../utils/helpers';
 
 const styles = (theme) => ({
     root: {
@@ -42,9 +43,10 @@ const Popular = ({classes}) => {
 
     useEffect(() => {
         const getRecent = async (n = 10) => {
-            fetch(`/api/recent/${n}`)
-                .then(res => res.json())
-                .then(data => buildFeed(data))
+            let url = '/api/recent'
+            let data = {page: 1}
+            let results = await postData(url, data)
+            buildFeed(results)
         }
         getRecent(10)
     }, [])

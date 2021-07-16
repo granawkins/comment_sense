@@ -19,16 +19,27 @@ def recent():
     videos_per_page = 10
     request_data = request.get_json()
     page_number = request_data['page']
-    # print(f'fetching {videos_per_page} videos from page {page_number}.')
     database_videos = db.recent(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
-@app.route('/api/search/<key>', methods=['GET'])
-def search(key):
+@app.route('/api/search', methods=['GET', 'POST'])
+def search():
+    results_per_page = 10
+    request_data = request.get_json()
+    key = request_data['key']
     if not key:
         return {'videos': []}
-    results = yt.search(key)
-    return {'videos': results['videos'], 'channels': results['channels']}
+    args = {
+        'key': key,
+        'n': results_per_page
+    }
+    if 'next' in request_data.keys():
+        args['page_token'] = request_data['next']
+    results = yt.search(**args)
+    return {
+        'videos': results['videos'], 
+        'channels': results['channels'], 
+        'next': results['next']}
 
 @app.route('/api/video/<videoId>', methods=['GET'])
 def video(videoId):

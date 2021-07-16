@@ -22,14 +22,18 @@ class YouTube():
         self.youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
-    def search(self, key, n=25):
-        search_request = self.youtube.search().list(
-            part="snippet",
-            # type="video",
-            maxResults=n,
-            q=key,
-        ) 
+    def search(self, key, n=25, page_token=None):
+        args = {
+            'part': 'snippet',
+            'maxResults': n,
+            'q': key,
+        }
+        if page_token:
+            args['pageToken'] = page_token
+        search_request = self.youtube.search().list(**args) 
         results = search_request.execute()
+        next_page_token = results['nextPageToken']
+
         channels = filter(lambda item: (item['id']['kind'] == 'youtube#channel'), results['items'])
         parsed_channels = []
         for channel in channels:
@@ -64,7 +68,7 @@ class YouTube():
                 'publishedAt': publishedAt
             }
             parsed_videos.append(output)
-        return {'channels': parsed_channels, 'videos': parsed_videos}
+        return {'channels': parsed_channels, 'videos': parsed_videos, 'next': next_page_token}
 
     def video(self, videoId):
         video_request = self.youtube.videos().list(
