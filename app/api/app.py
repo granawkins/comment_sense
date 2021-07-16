@@ -21,7 +21,6 @@ def recent():
     page_number = request_data['page']
     # print(f'fetching {videos_per_page} videos from page {page_number}.')
     database_videos = db.recent(int(videos_per_page), int(page_number))
-    print(database_videos)
     return {'videos': database_videos}
 
 @app.route('/api/search/<key>', methods=['GET'])

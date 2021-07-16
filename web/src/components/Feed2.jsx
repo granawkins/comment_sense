@@ -29,6 +29,10 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+const API_URLS = {
+    recent: '/api/recent',
+    search: '/api/search',
+}
 
 const Feed = ({pageName}) => {
     const classes = useStyles();
@@ -38,7 +42,7 @@ const Feed = ({pageName}) => {
     const [hasError, setHasError] = useState(false)
     const [isEnd, setIsEnd] = useState(false)
     const [feed, setFeed] = useState([])
-    const [pageNumber, setPageNumber] = useState(1)
+    const [pageNumber, setPageNumber] = useState(0)
     
     const addToFeed = (items) => {
         let newItems = []
@@ -56,20 +60,16 @@ const Feed = ({pageName}) => {
             setIsEnd(true)
         } else {
             setFeed(oldItems => [...oldItems, newItems])
-            setPageNumber((n) => n + 1)
         }
     }
     
-    const apiUrls = {
-        recent: '/api/recent',
-        search: '/api/search',
-    }
     const handleLoad = async () => {
         if (isEnd) {
             return
         }
+        setIsLoading(true)
         try {
-            let apiRef = (Object.keys(apiUrls).includes(pageName)) ? apiUrls[pageName] : null
+            let apiRef = (Object.keys(API_URLS).includes(pageName)) ? API_URLS[pageName] : null
             let data = {
                 key: (key) ? key : null, 
                 page: pageNumber
@@ -87,13 +87,17 @@ const Feed = ({pageName}) => {
         }
     }
     
-    // const [intersecting, setIntersecting] = useState(true)
+    useEffect(() => {
+        if (pageNumber > 0) {
+            handleLoad()
+        }
+    }, [pageNumber])
+
     const handleObserver = (entries) => {
         const target = entries[0];
-        console.log(target)
-        // if (target.isIntersecting) {
-        //     handleLoad()
-        // }
+        if (target.isIntersecting && !isLoading && !hasError && !isEnd) {
+            setPageNumber((p) => p + 1)
+        }
     }
 
     const loader = useRef(null)
@@ -110,70 +114,12 @@ const Feed = ({pageName}) => {
     return (
         <div>
             {feed}
-            <button onClick={handleLoad}>Load More</button>
             <div ref={loader} />
             {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
             {hasError ? <Typography className={classes.error}>ERROR</Typography> : null}
             {isEnd ? <Typography className={classes.error}>END OF FEED</Typography> : null}
         </div>
     )
-
-    // const [feed, setFeed] = useState(<LoadingCircle />)
-    // const key = useParams().key
-
-    // const buildFeed = (data) => {
-    //     let feedItems = []
-    //     if (Object.keys(data).includes('channels')) {
-    //         data.channels.reverse().forEach(channel => feedItems.push(
-    //             <ChannelCard channel={channel} key={channel.channelId} />
-    //         ))
-    //     }
-    //     if (Object.keys(data).includes('videos')) {
-    //         data.videos.reverse().forEach(video => feedItems.push(
-    //             <VideoCard video={video} key={video.id} />
-    //         ))
-    //     }
-    //     setFeed(feedItems)
-    // }
-    
-    // useEffect(() => {        
-    //     const getRecent = async (n = 10) => {
-    //         fetch(`/api/recent/${n}`)
-    //             .then(res => res.json())
-    //             .then(data => buildFeed(data))
-    //     }
-        
-    //     const getSearch = async (key) => {
-    //         fetch(`/api/search/${key}`)
-    //             .then(res => res.json())
-    //             .then(data => buildFeed(data))
-    //     }
-    
-    //     const getEmpty = () => {
-    //         setFeed(<p>Unrecognized feed type.</p>)
-    //     }
-
-    //     switch(page) {
-    //         case 'recent': {
-    //             getRecent(key)
-    //             break
-    //         }
-    //         case 'search': {
-    //             getSearch(key)
-    //             break
-    //         }
-    //         default: {
-    //             getEmpty()
-    //             break
-    //         }
-    //     }
-    // }, [page, key])
-
-    // return(
-    //     <Grid container className={classes.root} direction="column">
-    //         {feed}
-    //     </Grid>
-    // )
 }
 
 export default Feed
