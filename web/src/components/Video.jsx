@@ -22,7 +22,7 @@ const styles = (theme) => ({
 })
 
 const Video = ({classes}) => {
-    
+
     const { videoId } = useParams()
     const [videoData, setVideoData] = useState(null)
     const [commentsAnalyzed, setCommentsAnalyzed] = useState(0)
@@ -41,13 +41,13 @@ const Video = ({classes}) => {
                     setVideoData(data.video_data)
                     let fields = Object.keys(data.video_data)
                     setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
-                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)  
-                    setPageToken(fields.includes('next_page_token') ? data.video_data.next_page_token : null)              
+                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)
+                    setPageToken(fields.includes('next_page_token') ? data.video_data.next_page_token : null)
                     setTopics(fields.includes('topics') ? data.video_data.topics : [])
                 }
             })
     }, [])
-    
+
     const analyze = (commentsTarget) => {
         setLoading(true)
         postData('/api/analyze', {
@@ -65,18 +65,17 @@ const Video = ({classes}) => {
         <Grid container className={classes.root} direction="column">
             <Card>
                 <VideoPlayer videoData={videoData} />
-                <Controller 
-                    commentsAnalyzed={commentsAnalyzed} 
-                    commentsTotal={commentsTotal} 
+                <Controller
+                    commentsAnalyzed={commentsAnalyzed}
+                    commentsTotal={commentsTotal}
                     loading={loading}
                     analyze={analyze}
                 />
             </Card>
-            <Topics 
+            <Topics
                 videoId={videoId}
-                commentsAnalyzed={commentsAnalyzed} 
-                topics={topics} 
-                loading={loading} 
+                commentsAnalyzed={commentsAnalyzed}
+                loadingComments={loading}
             />
         </Grid>
     )

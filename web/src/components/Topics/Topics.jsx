@@ -7,6 +7,7 @@ import { postData } from '../../utils/helpers.js'
 
 const styles = (theme) => ({
     root: {
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -14,6 +15,15 @@ const styles = (theme) => ({
         backgroundColor: '#f5f5f5',
         margin: '0',
         padding: '10px 0',
+    },
+    grayout: {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(245, 245, 245, 0.4)',
+        zIndex: '1000',
     },
     loading: {
         margin: '20px 0',
@@ -27,7 +37,7 @@ const styles = (theme) => ({
     }
 })
 
-const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
+const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
 
     const [isLoading, setIsLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
@@ -35,10 +45,18 @@ const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
     const [topicsFeed, setTopicsFeed] = useState([])
     const [pageNumber, setPageNumber] = useState(0)
     const loader = useRef(null)
-    
+    const grayout = useRef(null)
+
+    useEffect(() => {
+        if (!loadingComments) {
+            grayout.current.style.display = 'none'
+        } else {
+            grayout.current.style.display = 'block'
+        }
+    }, [loadingComments])
+
     const [maxScore, setMaxScore] = useState(0)
     const addToFeed = (items) =>  {
-        console.log(items)
         let newItems = []
         if (items.length === 0) {
             setIsEnd(true)
@@ -52,7 +70,7 @@ const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
     }
 
     const handleLoad = async () => {
-        if (isEnd) {
+        if (isEnd || loadingComments) {
             return
         }
         setIsLoading(true)
@@ -83,7 +101,7 @@ const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
 
     const handleObserver = (entries) => {
         const target = entries[0]
-        if (target.isIntersecting && !isLoading) {
+        if (target.isIntersecting && !isLoading && !loadingComments) {
             setPageNumber((p) => p + 1)
         }
     }
@@ -116,10 +134,12 @@ const Topics = ({videoId, commentsAnalyzed, topics, loading, classes}) => {
     }, [commentsAnalyzed])
 
     return (
-        <div className='root'>
+        <div className={classes.root}>
+            {loadingComments ?  <div className={classes.loading}><LoadingCircle /></div> : null}
+            <div ref={grayout} className={classes.grayout} />
             {topicsFeed}
             <div ref={loader} />
-            {loading ? <div className={classes.loading}><LoadingCircle /></div> : null}
+            {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
             {hasError ? <Typography className={classes.error}>ERROR</Typography> : null}
             {isEnd ? <Typography className={classes.error}>END OF TOPICS</Typography> : null}
         </div>

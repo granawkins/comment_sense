@@ -9,7 +9,7 @@ def pretty_date(str):
     return d1.strftime(new_format)
 
 class YouTube():
-    
+
     def __init__(self):
         # Disable OAuthlib's HTTPS verification when running locally.
         # *DO NOT* leave this option enabled in production.
@@ -30,7 +30,7 @@ class YouTube():
         }
         if page_token:
             args['pageToken'] = page_token
-        search_request = self.youtube.search().list(**args) 
+        search_request = self.youtube.search().list(**args)
         results = search_request.execute()
         next_page_token = results['nextPageToken']
 
@@ -118,7 +118,7 @@ class YouTube():
             # Parse useful fields
             if len(comments['items']) == 0:
                 break
-            next_page_token = comments['nextPageToken']
+            next_page_token = None if 'nextPageToken' not in comments.keys() else comments['nextPageToken']
             for thread in comments['items']:
                 # Flatten comments/replies, add 'level' field
                 n_children = 0 if 'totalReplyCount' not in thread['snippet'].keys() else thread['snippet']["totalReplyCount"]
