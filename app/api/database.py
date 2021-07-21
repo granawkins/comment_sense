@@ -93,7 +93,7 @@ class Database():
 
       for field in ['views', 'likes', 'dislikes', 'comments', 'description']:
         if field in video_data.keys():
-          del video_data[field] 
+          del video_data[field]
 
       # Add new record
       if len(current) == 0:
@@ -187,6 +187,16 @@ class Database():
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY created DESC")
+    result = self.cursor.fetchall()
+    result.reverse()
+    start = min(len(result), int(n) * (int(page) - 1))
+    finish = min(len(result), start + int(n))
+    return result[start:finish]
+
+  def popular(self, n=10, page=1):
+    self.refresh()
+    # Doesn't accept datetime object, so have to exclude created.
+    self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY n_analyzed DESC")
     result = self.cursor.fetchall()
     result.reverse()
     start = min(len(result), int(n) * (int(page) - 1))

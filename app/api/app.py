@@ -22,6 +22,14 @@ def recent():
     database_videos = db.recent(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
+@app.route('/api/popular', methods=['GET', 'POST'])
+def popular():
+    videos_per_page = 10
+    request_data = request.get_json()
+    page_number = request_data['page']
+    database_videos = db.popular(int(videos_per_page), int(page_number))
+    return {'videos': database_videos}
+
 @app.route('/api/search', methods=['GET', 'POST'])
 def search():
     results_per_page = 10
@@ -37,8 +45,8 @@ def search():
         args['page_token'] = request_data['next']
     results = yt.search(**args)
     return {
-        'videos': results['videos'], 
-        'channels': results['channels'], 
+        'videos': results['videos'],
+        'channels': results['channels'],
         'next': results['next']}
 
 @app.route('/api/video/<videoId>', methods=['GET'])
