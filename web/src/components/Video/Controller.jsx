@@ -5,6 +5,7 @@ import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
+import Switch from '@material-ui/core/Switch';
 import LoadingCircle from '../../utils/LoadingCircle';
 
 const styles = (theme) => ({
@@ -27,11 +28,18 @@ const styles = (theme) => ({
         textAlign: 'right',
         margin: '-4px, 10px, 0px, 10px',
         width: '60px',
+    },
+    controls: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 })
 
-const Controller = ({commentsTotal, commentsAnalyzed, analyze, loading, classes}) => {
-    
+const Controller = ({commentsTotal, commentsAnalyzed, analyze,
+                     loading, sentimentOn, toggleSentiment, classes}) => {
+
     const [commentsTarget, setCommentsTarget] = useState(100)
     const updateTarget = (e) => {
         setCommentsTarget(e.target.value)
@@ -42,20 +50,27 @@ const Controller = ({commentsTotal, commentsAnalyzed, analyze, loading, classes}
             <Typography className={classes.counter}>
                 {commentsAnalyzed} Analyzed / {commentsTotal} Comments
             </Typography>
-            <div>
-                <TextField 
+            <div className={classes.controls}>
+                <TextField
                     className={classes.input}
                     onChange={updateTarget}
                     value={commentsTarget}
-                    inputProps={{min: 0 }} 
+                    inputProps={{min: 0 }}
                     color="secondary"
                 />
-                <Button 
-                    id="apiAnalyzeButton" 
-                    color='secondary' 
+                <Button
+                    id="apiAnalyzeButton"
+                    color='secondary'
                     onClick={() => analyze(commentsTarget)}
                     disabled={loading}
                 >Analyze</Button>
+                <div style={{width: '50px'}} />
+                <Switch
+                    checked={sentimentOn}
+                    onChange={toggleSentiment}
+                    color='secondary'
+                />
+                <Typography color='black'>Sentiment</Typography>
             </div>
         </Container>
     )

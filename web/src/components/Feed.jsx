@@ -36,14 +36,14 @@ const API_URLS = {
 
 const Feed = ({pageName, classes}) => {
     const key = useParams().key
-    
+
     const [isLoading, setIsLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
     const [isEnd, setIsEnd] = useState(false)
     const [feed, setFeed] = useState([])
     const [pageNumber, setPageNumber] = useState(0)
     const [nextPageToken, setNextPageToken] = useState(null)
-    
+
     const addToFeed = (items) => {
         let newItems = []
         if (Object.keys(items).includes('channels')) {
@@ -65,7 +65,7 @@ const Feed = ({pageName, classes}) => {
             setFeed(oldItems => [...oldItems, newItems])
         }
     }
-    
+
     const handleLoad = async () => {
         if (isEnd) {
             return
@@ -74,12 +74,11 @@ const Feed = ({pageName, classes}) => {
         try {
             let apiRef = (Object.keys(API_URLS).includes(pageName)) ? API_URLS[pageName] : null
             let data = {
-                key: (key) ? key : null, 
+                key: (key) ? key : null,
                 page: pageNumber,
                 next: (nextPageToken) ? nextPageToken: null
             }
             let newItems = await postData(apiRef, data)
-            console.log(newItems)
             addToFeed(newItems)
             setIsLoading(false)
         }
@@ -89,7 +88,7 @@ const Feed = ({pageName, classes}) => {
             setHasError(true)
         }
     }
-    
+
     useEffect(() => {
         if (pageNumber > 0) {
             handleLoad()

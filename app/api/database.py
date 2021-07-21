@@ -196,13 +196,14 @@ class Database():
   def video(self, videoId):
     self.refresh()
     sql = "SELECT * FROM videos WHERE id = %s"
-    self.cursor.execute(sql, (videoId, ))
-    # tuple
-    result = self.cursor.fetchall()
-    if len(result) == 0:
-      return None
-    else:
-      return result[0]
+    result = None
+    try:
+      self.cursor.execute(sql, (videoId, ))
+      results = self.cursor.fetchall()
+      if len(results) > 0:
+        result = results[0]
+    finally:
+      return result
 
   def topics(self, videoId, n=20, page=1):
     video_data = self.video(videoId)

@@ -48,7 +48,7 @@ class Clusterer():
         finally:
             self.db.add_video(self.video_data)
 
-def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):        
+def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
     # 1. Cluster comment topics
     clustered = {} # by token
     for c in comment_topics:
@@ -56,7 +56,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
             pass
         topics = json.loads(c['topics'])
         for token, start, end, label in topics:
-            edge = (c['id'], token, label, c['likes'], c['sentiment'])            
+            edge = (c['id'], token, label, c['likes'], c['sentiment'])
             if token in clustered.keys():
                 clustered[token].append(edge)
             else:
@@ -66,7 +66,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
     noun_chunks = []
     frequency = {}
     for token in clustered:# {...token: [...(id, label, likes, sentiment)]}
-        t = clustered[token] 
+        t = clustered[token]
         n = len(t)
         if label in user_labs:
             label = user_labs[label]
@@ -96,7 +96,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
         used = False
         if token in user_subs:
             repl = user_subs[token]
-            subs[token] = repl  
+            subs[token] = repl
             add(repl, label, edges)
             used = True
         elif label == 'PERSON':
@@ -112,7 +112,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
             used = True # Remove
         if used == False:
             add(token, label, edges)
-            
+
 
     # 3. Parse Noun Chunks
     ngrams = {}
@@ -122,12 +122,12 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
 
         # Search all permutations of words
         words = cleaned.split(" ")
-        local_ngrams = []            
+        local_ngrams = []
         max_n = 4
         for n in range(max(len(words), max_n)):
             local_ngrams += [list(x) for x in combinations(words, n)]
 
-        used = False    
+        used = False
         for n in local_ngrams:
             cleaned = " ".join(n).strip()
             if (cleaned not in subbed.keys()) & (cleaned not in user_subs) & (cleaned != ""):
@@ -138,7 +138,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
             if cleaned in subbed.keys():
                 add(cleaned, subbed[cleaned][0], element[2])
             else:
-                ngrams[cleaned] = [element]            
+                ngrams[cleaned] = [element]
     ngrams_by_length = sorted([(n, len(ngrams[n]), ngrams[n]) for n in ngrams], key=lambda i : len(i[0]), reverse=True)
 
     ng_clust = {}
@@ -176,15 +176,16 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
         all_likes = 0
         all_sentiment = {'pos': 0, 'neg': 0, 'neu': 0}
         for (commentId, tok, likes, sentiment) in edges:
-            commentIds.append(commentId)
-            toks.append(tok)
-            all_likes += int(likes)
-            if sentiment > 0: 
-                all_sentiment['pos'] += 1
-            elif sentiment < 0:
-                all_sentiment['neg'] += 1
-            else:
-                all_sentiment['neu'] += 1
+            if commentId not in commentIds:
+                commentIds.append(commentId)
+                toks.append(tok)
+                all_likes += int(likes)
+                if sentiment > 0:
+                    all_sentiment['pos'] += 1
+                elif sentiment < 0:
+                    all_sentiment['neg'] += 1
+                else:
+                    all_sentiment['neu'] += 1
         toks_reduced = list(set(toks))
         commentIds_reduced = list(set(commentIds))
         n = len(commentIds_reduced)

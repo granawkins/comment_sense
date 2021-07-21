@@ -55,7 +55,6 @@ const TopicCard = ({topic, max, classes}) => {
             setLabels([topic.type].map(label => <Attribute type='label' value={label} />))
         }
         if (topic.toks) {
-            console.log(topic.toks)
             setToks(topic.toks.map(tok => <Attribute type='tok' value={tok} />))
         }
     }, [topic])
@@ -73,7 +72,8 @@ const TopicCard = ({topic, max, classes}) => {
                 <TopicBar
                     token={topic.token}
                     score={topic.score}
-                    barRatio={topic.score/max}
+                    max={max}
+                    sentiment={topic.sentiment}
                 />
             </AccordionSummary>
             <AccordionDetails className={classes.accordian}>

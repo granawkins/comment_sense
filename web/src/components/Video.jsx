@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, createContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 import Grid from '@material-ui/core/Grid'
@@ -21,15 +21,21 @@ const styles = (theme) => ({
     },
 })
 
-const Video = ({classes}) => {
+const ControllerContext = createContext({sentimentOn: true})
+
+const VideoPage = ({classes}) => {
 
     const { videoId } = useParams()
     const [videoData, setVideoData] = useState(null)
     const [commentsAnalyzed, setCommentsAnalyzed] = useState(0)
     const [commentsTotal, setCommentsTotal] = useState("...")
     const [pageToken, setPageToken] = useState(null)
-    const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(false)
+
+    const [sentimentOn, setSentimentOn] = useState(true)
+    const toggleSentiment = () => {
+        setSentimentOn(!sentimentOn)
+    }
 
     useEffect(() => {
         fetch(`/api/video/${videoId}`)
@@ -43,7 +49,6 @@ const Video = ({classes}) => {
                     setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
                     setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)
                     setPageToken(fields.includes('next_page_token') ? data.video_data.next_page_token : null)
-                    setTopics(fields.includes('topics') ? data.video_data.topics : [])
                 }
             })
     }, [])
@@ -56,7 +61,6 @@ const Video = ({classes}) => {
         }).then(data => {
             setCommentsAnalyzed(data.video_data['n_analyzed'])
             setPageToken(data.video_data['next_page_token'])
-            setTopics(data.video_data['topics'])
             setLoading(false)
         })
     }
@@ -70,15 +74,22 @@ const Video = ({classes}) => {
                     commentsTotal={commentsTotal}
                     loading={loading}
                     analyze={analyze}
+                    sentimentOn={sentimentOn}
+                    toggleSentiment={toggleSentiment}
                 />
             </Card>
-            <Topics
-                videoId={videoId}
-                commentsAnalyzed={commentsAnalyzed}
-                loadingComments={loading}
-            />
+            <ControllerContext.Provider value={{sentimentOn: sentimentOn}}>
+                <Topics
+                    videoId={videoId}
+                    commentsAnalyzed={commentsAnalyzed}
+                    loadingComments={loading}
+                />
+            </ControllerContext.Provider>
         </Grid>
     )
 }
 
-export default withStyles(styles)(Video)
+const Video = withStyles(styles)(VideoPage)
+
+
+export {Video, ControllerContext}

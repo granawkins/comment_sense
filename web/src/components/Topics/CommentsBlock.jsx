@@ -13,7 +13,7 @@ const CommentsBlock = ({topicComments}) => {
                 setComments(data.comments)
             })
     }, [topicComments])
-    
+
     if (!comments) {
         return ( <LoadingCircle /> )
     } else {
