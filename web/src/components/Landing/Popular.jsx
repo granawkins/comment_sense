@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import { alpha, withStyles } from '@material-ui/core/styles'
 import { Link, withRouter } from 'react-router-dom';
 import Typography from '@material-ui/core/Typography'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import VideoCard from '../Feed/VideoCard'
+import FeedCard from '../Feed/FeedCard'
 import { postData } from '../../utils/helpers';
 
 const styles = (theme) => ({
@@ -35,7 +34,7 @@ const Popular = ({classes}) => {
         let feedItems = []
         if (Object.keys(data).includes('videos')) {
             data.videos.reverse().forEach(video => feedItems.push(
-                <VideoCard video={video} key={video.id} />
+                <FeedCard type='video' data={video} key={video.id} />
             ))
         }
         setFeed(feedItems)

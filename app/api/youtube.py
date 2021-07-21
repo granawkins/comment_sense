@@ -58,6 +58,7 @@ class YouTube():
             channelTitle = video['snippet']['channelTitle'][:100]
             thumbnail = video['snippet']['thumbnails']['medium']['url']
             publishedAt = pretty_date(video['snippet']['publishedAt'])
+            description = video['snippet']['description']
 
             output = {
                 "id": vid,
@@ -65,7 +66,8 @@ class YouTube():
                 "channelId": channelId,
                 "channelTitle": channelTitle,
                 "thumbnail": thumbnail,
-                'publishedAt': publishedAt
+                'published': publishedAt,
+                'description': description,
             }
             parsed_videos.append(output)
         return {'channels': parsed_channels, 'videos': parsed_videos, 'next': next_page_token}

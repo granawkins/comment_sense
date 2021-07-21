@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import VideoCard from "./Feed/VideoCard.jsx"
-import ChannelCard from "./Feed/ChannelCard.jsx"
+import FeedCard from "./Feed/FeedCard.jsx"
 import LoadingCircle from '../utils/LoadingCircle';
 import { postData } from '../utils/helpers.js';
 
@@ -48,12 +47,12 @@ const Feed = ({pageName, classes}) => {
         let newItems = []
         if (Object.keys(items).includes('channels')) {
             items.channels.reverse().forEach(channel => newItems.push(
-                <ChannelCard channel={channel} key={channel.channelId} />
+                <FeedCard type='channel' data={channel} key={channel.channelId} />
             ))
         }
         if (Object.keys(items).includes('videos')) {
             items.videos.reverse().forEach(video => newItems.push(
-                <VideoCard video={video} key={video.id} />
+                <FeedCard type='video' data={video} key={video.id} />
             ))
         }
         if (Object.keys(items).includes('next')) {

@@ -91,9 +91,9 @@ class Database():
       self.cursor.execute("SELECT * FROM videos WHERE id = %s", (video_data['id'], ))
       current = self.cursor.fetchall()
 
-      for field in ['views', 'likes', 'dislikes', 'comments']:
+      for field in ['views', 'likes', 'dislikes', 'comments', 'description']:
         if field in video_data.keys():
-          del video_data[field]
+          del video_data[field] 
 
       # Add new record
       if len(current) == 0:
@@ -186,7 +186,7 @@ class Database():
   def recent(self, n=10, page=1):
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
-    self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published FROM videos ORDER BY created DESC")
+    self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY created DESC")
     result = self.cursor.fetchall()
     result.reverse()
     start = min(len(result), int(n) * (int(page) - 1))
