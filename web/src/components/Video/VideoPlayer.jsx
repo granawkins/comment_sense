@@ -10,6 +10,10 @@ import LoadingCircle from '../../utils/LoadingCircle';
 const styles = (theme) => ({
     root: {
         width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         borderRadius: '0',
         [theme.breakpoints.up('sm')]: {
             width: '600px',
@@ -22,6 +26,9 @@ const styles = (theme) => ({
         width: '320px',
         height: '180px',
         border: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         [theme.breakpoints.up('sm')]: {
             width: '600px',
             height: '333px',
@@ -31,22 +38,21 @@ const styles = (theme) => ({
             height: '432px',
         },
     },
-    details: {
-        padding: '10px',
-        height: 'auto',
-    },
     videoBackground: {
         width: '100%',
         backgroundColor: 'black',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+    },
+    details: {
+        padding: '10px',
+        boxSizing: 'border-box',
+        height: 'auto',
+        width: '100%',
     },
     infoLine: {
         padding: '10px',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',        
+        justifyContent: 'space-between',
         [theme.breakpoints.up('sm')]: {
             flexDirection: 'row',
         },
@@ -56,33 +62,37 @@ const styles = (theme) => ({
 const VideoPlayer = ({videoData, classes}) => {
 
     const [video, setVideo] = useState(null)
-    
+    const [title, setTitle] = useState("")
+    const [channelTitle, setChannelTitle] = useState("")
+
     useEffect(() => {
         setVideo(videoData)
+        if (videoData) {
+            setTitle(videoData.title)
+            setChannelTitle(videoData.channelTitle)
+        }
     }, [videoData])
 
-    if (!video) {
-        return(
-            <LoadingCircle />
-        )
-    } else {
-        return(
-            <div className={classes.root}>
-                <div className={classes.videoBackground}>
-                    <CardMedia 
+    return(
+        <div className={classes.root}>
+            <div className={`${classes.video} ${classes.videoBackground}`}>
+                {!video
+                    ? <LoadingCircle />
+                    :  <CardMedia
                         component="iframe"
                         className={classes.video}
-                        image={"http://youtube.com/embed/" + video.id} 
+                        image={"http://youtube.com/embed/" + video.id}
                     />
-                </div>
-                <div className={classes.details} >
-                    <Typography variant="h6" style={{lineHeight: '1.1', marginBottom: '10px'}}>{video.title}</Typography>
-                    <Typography variant="body1" ><u>{video.channelTitle}</u></Typography>
-                    <Details videoData={videoData}></Details>
-                </div>
+                }
             </div>
-        )
-    }
+            <div className={classes.details} >
+                <Typography variant="h6" style={{lineHeight: '1.1', marginBottom: '10px'}}>{title}</Typography>
+                <Typography variant="body1" ><u>{channelTitle}</u></Typography>
+                <Details videoData={videoData}></Details>
+            </div>
+        </div>
+    )
+    // }
 }
 
 export default withStyles(styles)(VideoPlayer)
