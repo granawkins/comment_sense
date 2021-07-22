@@ -14,7 +14,6 @@ const styles = (theme) => ({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
     },
     feed: {
         display: 'flex',

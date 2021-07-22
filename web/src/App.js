@@ -18,7 +18,8 @@ const styles = (theme) => ({
     flexDirection: 'column',
     minHeight: '100vh',
     margin: 0,
-    padding: 0
+    padding: 0,
+    backgroundColor: '#f5f5f5',
   },
   body: {
     flexGrow: 1,

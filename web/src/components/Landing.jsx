@@ -14,7 +14,6 @@ const styles = (theme) => ({
         flexDirection: 'column',
         alignItems: 'center',
         flexWrap: 'nowrap',
-        backgroundColor: '#f5f5f5',
         margin: '0',
         paddingTop: '10px',
         width: '100%',
@@ -30,7 +29,7 @@ const styles = (theme) => ({
 })
 
 const Landing = ({classes}) => {
-    
+
     return(
         <div className={classes.root}>
             <Splash />

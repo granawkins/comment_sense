@@ -1,4 +1,6 @@
-import { Link, useRouteMatch, Switch, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+
+import { Link, useRouteMatch, useParams, Switch, Route } from 'react-router-dom';
 
 import Typography from '@material-ui/core/Typography'
 import Drawer from '@material-ui/core/Drawer'
@@ -34,6 +36,14 @@ const styles = (theme) => ({
     content: {
         flexGrow: 1,
         margin: '10px',
+    },
+    drawerLink: {
+        color: 'inherit',
+        textDecoration: 'none',
+        width: '100%',
+    },
+    drawerItem: {
+
     }
 })
 
@@ -41,6 +51,8 @@ const Admin = ({classes}) => {
 
     // A drawer with two tabs: quota and blog
     const { path, url } = useRouteMatch()
+    const params = useParams()
+    const activeTab = params.tab
 
     return(
         <div className={classes.root}>
@@ -54,8 +66,8 @@ const Admin = ({classes}) => {
                 <div className={classes.drawerContainer}>
                     <List>
                     {['Blog', 'Logs'].map((page) => (
-                        <ListItem button key={page}>
-                            <Link to={`/admin/${page}`}>
+                        <ListItem button key={page} selected={page === activeTab}>
+                            <Link to={`/admin/${page}`} className={classes.drawerLink}>
                                 <ListItemText primary={page} />
                             </Link>
                         </ListItem>

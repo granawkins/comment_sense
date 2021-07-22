@@ -82,6 +82,14 @@ const useStyles = makeStyles((theme) => ({
   },
   logo: {
     fontWeight: '400'
+  },
+  link: {
+    textDecoration: 'none',
+    color: 'inherit',
+  },
+  menuButton: {
+    width: '200px',
+    height: '30px',
   }
 }));
 
@@ -126,8 +134,8 @@ export default function Navbar() {
       onClose={handleMenuClose}
     //   zIndex="snackbar"
     >
-      <Router.Link to="/admin">
-        <MenuItem onClick={handleMenuClose}>Admin</MenuItem>
+      <Router.Link to="/admin" className={classes.link}>
+        <MenuItem onClick={handleMenuClose} className={classes.menuButton}>Admin</MenuItem>
       </Router.Link>
     </Menu>
   );
