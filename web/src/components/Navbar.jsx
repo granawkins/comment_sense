@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
     marginLeft: theme.spacing(3),
     width: 'auto',
-    
+
     display: 'none',
     [theme.breakpoints.up('sm')]: {
       display: 'flex',
@@ -126,8 +126,9 @@ export default function Navbar() {
       onClose={handleMenuClose}
     //   zIndex="snackbar"
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <Router.Link to="/admin">
+        <MenuItem onClick={handleMenuClose}>Admin</MenuItem>
+      </Router.Link>
     </Menu>
   );
 
@@ -153,7 +154,7 @@ export default function Navbar() {
                 onChange={setSearchValue}
                 placeholder='Search YouTube'
                 onRequestSearch={() => search()}
-            /> 
+            />
         </div>
     </Menu>
   )
@@ -173,7 +174,7 @@ export default function Navbar() {
           {/* Logo */}
           <Grid item xs display="inline">
             <Router.Link  to={"/"}>
-              <Link 
+              <Link
                   component="button"
                   underline="none"
                   color="textPrimary"
@@ -203,10 +204,10 @@ export default function Navbar() {
             </div>
           </Grid>
           <Grid container item xs direction="row" alignContent="flex-end" justifyContent="flex-end">
-            
+
             {/* Mobile Search Button */}
-            <IconButton 
-                aria-label="search" 
+            <IconButton
+                aria-label="search"
                 color="inherit"
                 onClick={handleSearchOpen}
                 className={classes.mobileSearchIcon}

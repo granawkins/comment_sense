@@ -18,6 +18,7 @@ const styles = (theme) => ({
         minHeight: '100px',
         padding: '10px 0',
         color: 'gray',
+        zIndex: '100',
     },
     links: {
         display: 'flex',
