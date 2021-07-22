@@ -74,6 +74,7 @@ const Blog = ({classes}) => {
     const [posts, setPosts] = useState([])
     const [maxId, setMaxId] = useState(0)
     const getPosts = async() => {
+        setPosts([])
         fetch(`/api/blogs`)
             .then(res => res.json())
             .then(data => {
@@ -89,6 +90,14 @@ const Blog = ({classes}) => {
     const uploadPost = async (post) => {
         const result = await postData('/api/add_blog', post)
         console.log(result)
+        return result.successful
+    }
+
+    const removePost = async (post) => {
+        const result = await postData('/api/remove_blog', post)
+        if (result.successful) {
+            getPosts()
+        }
         return result.successful
     }
 
@@ -130,10 +139,11 @@ const Blog = ({classes}) => {
                 </Tabs>
             </div>
             <TabPanel value={active} index={0}>
-                <BlogManager posts={posts} blog={blog} setBlog={setBlog} newPost={newPost}/>
+                <BlogManager posts={posts} blog={blog} setBlog={setBlog}
+                             newPost={newPost} removePost={removePost} />
             </TabPanel>
             <TabPanel value={active} index={1}>
-                <BlogEditor blog={blog} updateBlog={updateBlog} />
+                <BlogEditor blog={blog} setBlog={setBlog} updateBlog={updateBlog} />
             </TabPanel>
             <TabPanel value={active} index={2}>
                 <BlogPost blog={blog} />

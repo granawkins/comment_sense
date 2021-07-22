@@ -146,5 +146,22 @@ def add_blog():
     finally:
         return {'successful': successful}
 
+@app.route('/api/remove_blog', methods=['POST'])
+def remove_blog():
+    post = request.get_json()
+    id = post['id']
+    successful = False
+    if id:
+        try:
+            db.remove_blog_post(id)
+            successful = True
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        finally:
+            return {'successful': successful}
+    else:
+        return {'successful': successful}
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

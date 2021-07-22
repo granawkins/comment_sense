@@ -277,7 +277,6 @@ class Database():
     results = self.cursor.fetchall()
     return results
 
-
   def add_blog_post(self, data):
     print(data['content'])
     c = {
@@ -314,3 +313,7 @@ class Database():
     for result in results:
       result['content'] = json.loads(result['content'])
     return results
+
+  def remove_blog_post(self, id):
+    sql = "DELETE FROM blog WHERE id = %s"
+    self.cursor.execute(sql, (id, ))

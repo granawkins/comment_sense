@@ -25,6 +25,7 @@ const styles = (theme) => ({
     },
     buttonContainer: {
         marginTop: '30px',
+        width: '100%',
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'center',
@@ -37,7 +38,7 @@ const styles = (theme) => ({
     }
 })
 
-const BlogEditor = ({blog, updateBlog, classes}) => {
+const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
 
     // Manage active post data
     const [id, setId] = useState("")
@@ -54,7 +55,18 @@ const BlogEditor = ({blog, updateBlog, classes}) => {
         setExcerpt(blog.excerpt)
         setBlogContent(blog.content)
         setPostActive(blog.active)
-    }, [blog])
+    }, [])
+
+    useEffect(() => {
+        setBlog(prevBlog => ({
+            ...prevBlog,
+            title: title,
+            permalink: permalink,
+            excerpt: excerpt,
+            content: blogContent,
+            postActive: postActive
+        }))
+    }, [title, permalink, excerpt, blogContent, postActive])
 
     const saveChanges = () => {
         updateBlog({
