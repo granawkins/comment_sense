@@ -5,6 +5,18 @@ import ListItem from '@material-ui/core/ListItem'
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import Checkbox from '@material-ui/core/Checkbox';
+
+import LoadingCircle from '../../utils/LoadingCircle'
+import { Tab } from '@material-ui/core'
+
 const styles = (theme) => ({
     root: {
 
@@ -14,52 +26,67 @@ const styles = (theme) => ({
     },
     field: {
         padding: '0 5px',
-    }
+    },
+    table: {
+        minWidth: 650,
+    },
 })
 
 const BlogManager = ({posts, blog, setBlog, newPost, classes}) => {
 
     const [selected, setSelected] = useState(null)
-    const handleClick = (i) => {
-        if (i === selected) {
+    const handleClick = (post) => {
+        if (post.id === selected) {
             setSelected(null)
             setBlog(null)
         } else {
-            setSelected(i)
-            setBlog(posts[i])
+            setSelected(post.id)
+            setBlog(post)
         }
     }
 
-    // Make sure the active post is highlighted when switch to manager screen
     useEffect(() => {
+        // Set the selected Post
         if (blog) {
-            posts.forEach((post, i) => {
-                if (post.id === blog.id) {
-                    setSelected(i)
-                }
-            })
+            setSelected(blog.id)
         }
     }, [])
 
     return(
         <div id="root">
             <Typography variant='h5'>Blog Posts</Typography>
-            <List>
-                {posts.map((post, i) => {
-                    return (
-                        <ListItem
-                            key={post.id}
-                            className={i === selected ? classes.activeOption : ""}
-                            button
-                            dense
-                            onClick={() => handleClick(i)}
-                        >
-                            <Typography className={classes.field}>{post.id}</Typography>
-                            <Typography className={classes.field}>{post.title}</Typography>
-                        </ListItem>
-                    )
-                })}
-            </List>
+            {posts.length > 0
+                ? <TableContainer component={Paper}>
+                    <Table className={classes.table}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell></TableCell>
+                                <TableCell>ID</TableCell>
+                                <TableCell>Created</TableCell>
+                                <TableCell>Title</TableCell>
+                                <TableCell>Excerpt</TableCell>
+                                <TableCell>Active</TableCell>
+                                <TableCell>Delete</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {posts.map(post => {
+                                return (<TableRow hover key={post.id} onClick={() => handleClick(post)}
+                                                  role='checkbox' selected={selected === post.id}>
+                                    <TableCell><Checkbox checked={selected === post.id} /></TableCell>
+                                    <TableCell component="th" scope="row">{post.id}</TableCell>
+                                    <TableCell align="right">{post.created ? post.created.slice(5,22) : null}</TableCell>
+                                    <TableCell align="right">{post.title}</TableCell>
+                                    <TableCell align="right">{post.excerpt}</TableCell>
+                                    <TableCell align="right">{post.active}</TableCell>
+                                    <TableCell align="right">Erase</TableCell>
+                                </TableRow>)
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                : <LoadingCircle />
+            }
             <Button onClick={newPost}>New Post</Button>
         </div>
     )

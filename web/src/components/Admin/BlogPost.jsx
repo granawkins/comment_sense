@@ -25,8 +25,10 @@ const BlogPost = ({blog, classes}) => {
 
     return(
         <div id="root">
-            <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
-            <div dangerouslySetInnerHTML={{ __html: content}}></div>
+            <Typography>
+                <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
+                <div dangerouslySetInnerHTML={{ __html: content}}></div>
+            </Typography>
         </div>
     )
 }

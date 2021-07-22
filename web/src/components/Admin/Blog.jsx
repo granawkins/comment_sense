@@ -43,7 +43,7 @@ function TabPanel(props) {
         >
             {value === index && (
             <Box p={3}>
-                <Typography>{children}</Typography>
+                {children}
             </Box>
             )}
         </div>
@@ -65,6 +65,7 @@ const blankPost = (id) => {
         excerpt: "",
         content: "",
         active: false,
+        created: null,
     }
 }
 
@@ -76,16 +77,13 @@ const Blog = ({classes}) => {
         fetch(`/api/blogs`)
             .then(res => res.json())
             .then(data => {
-                console.log(data)
+                data.posts.forEach(post => {
+                    if (post.id > maxId) {
+                        setMaxId(post.id)
+                    }
+                })
                 setPosts(data.posts)
             })
-    }
-
-    const newPost = () => {
-        let newPost = blankPost(maxId + 1)
-        setMaxId(id => id + 1)
-        setPosts(oldPosts => [...oldPosts, newPost])
-        setBlog(newPost)
     }
 
     const uploadPost = async (post) => {
@@ -103,17 +101,23 @@ const Blog = ({classes}) => {
         setActive(newValue);
     };
 
+    const newPost = () => {
+        let newPost = blankPost(maxId + 1)
+        setMaxId(id => id + 1)
+        setPosts(oldPosts => [...oldPosts, newPost])
+        setBlog(newPost)
+        setActive(1)
+    }
+
     const [blog, setBlog] = useState(null)
     const updateBlog = async (newBlog) => {
         setBlog(newBlog)
-        uploadPost(newBlog)
-        setPosts(posts => posts.map(post => {
-            if (post.id === newBlog.id) {
-                return newBlog
-            } else {
-                return post
-            }
-        }))
+        let uploadSuccessful = await uploadPost(newBlog)
+        if (uploadSuccessful) {
+            getPosts()
+        } else {
+            console.log("upload unsuccessful")
+        }
     }
 
     return(

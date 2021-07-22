@@ -308,7 +308,7 @@ class Database():
 
   def get_blog_posts(self):
     self.refresh()
-    sql = "SELECT id, title, permalink, excerpt, content, active FROM blog"
+    sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog"
     self.cursor.execute(sql)
     results = self.cursor.fetchall()
     for result in results:
