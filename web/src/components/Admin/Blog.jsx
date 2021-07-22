@@ -58,8 +58,8 @@ function a11yProps(index) {
 
 const Blog = ({classes}) => {
 
-    const [blogContent, setBlogContent] = useState('')
-    const [value, setValue] = useState()
+    const [blog, setBlog] = useState('')
+    const [value, setValue] = useState(0)
     const handleChange = (event, newValue) => {
         setValue(newValue);
       };
@@ -73,10 +73,10 @@ const Blog = ({classes}) => {
                 </Tabs>
             </div>
             <TabPanel value={value} index={0}>
-                <BlogEditor blogContent={blogContent} setBlogContent={setBlogContent}/>
+                <BlogEditor setBlog={setBlog}/>
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <BlogPost content={blogContent} />
+                <BlogPost blog={blog} />
             </TabPanel>
         </div>
     )

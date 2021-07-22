@@ -1,6 +1,8 @@
 import { useState, useEffect, createContext } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import TextField from '@material-ui/core/TextField'
+import Button from '@material-ui/core/Button'
 
 import ReactQuill from 'react-quill'
 
@@ -13,9 +15,35 @@ const styles = (theme) => ({
         paddingTop: '10px',
         maxWidth: '768px',
     },
+    inputField: {
+        marginTop: '20px',
+    },
+    blogEditor: {
+        marginTop: '30px',
+    },
+    buttonContainer: {
+        marginTop: '30px',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
 })
 
-const BlogEditor = ({blogContent, setBlogContent, classes}) => {
+const BlogEditor = ({setBlog, classes}) => {
+
+    const [title, setTitle] = useState("")
+    const [permalink, setPermalink] = useState("")
+    const [excerpt, setExcerpt] = useState("")
+    const [blogContent, setBlogContent] = useState("")
+
+    useEffect(() => {
+        setBlog({
+            title: title,
+            permalink: permalink,
+            excert: excerpt,
+            content: blogContent,
+        })
+    }, [title, permalink, excerpt, blogContent])
 
     // Add default stylesheet (snow)
     function addCss(fileName) {
@@ -54,15 +82,47 @@ const BlogEditor = ({blogContent, setBlogContent, classes}) => {
     ]
 
     return(
-        <div id="blog-editor">
-            <ReactQuill
-                theme='snow'
-                onChange={setBlogContent}
-                value={blogContent}
-                modules={modules}
-                formats={formats}
-                placeholder='Write a blog'
+        <div className={classes.root}>
+            <Typography variant='h5'>Post Details</Typography>
+            <TextField
+                id="title"
+                className={classes.inputField}
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                helperText="The title of the blog post."
             />
+            <TextField
+                id="permalink"
+                className={classes.inputField}
+                label="Permalink"
+                value={permalink}
+                onChange={(e) => setPermalink(e.target.value)}
+                helperText="The url suffix"
+            />
+            <TextField
+                id="excerpt"
+                className={classes.inputField}
+                label="Excerpt"
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                helperText="Information that will be displayed in search results"
+            />
+            <div id='blog-editor' className={classes.blogEditor}>
+                <Typography variant='h5'>Post Content</Typography>
+                <ReactQuill
+                    theme='snow'
+                    onChange={setBlogContent}
+                    value={blogContent}
+                    modules={modules}
+                    formats={formats}
+                    placeholder='Write a blog'
+                />
+            </div>
+            <div className={classes.buttonContainer}>
+                <Button variant='contained' color='primary'>Save Draft</Button>
+                <Button variant='contained' color='secondary'>Submit</Button>
+            </div>
         </div>
     )
 }

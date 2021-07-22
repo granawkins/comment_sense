@@ -6,13 +6,27 @@ const styles = (theme) => ({
     root: {
 
     },
+    title: {
+        fontSize: '1.5em',
+        fontWeight: '400',
+    }
 })
 
-const BlogPost = ({content, classes}) => {
+const BlogPost = ({blog, classes}) => {
+
+    const [content, setContent] = useState("Content")
+    useEffect(() => {
+        if (blog.content !== '') {
+            setContent(blog.content)
+        } else {
+            setContent('<p>Content</p>')
+        }
+    }, [blog])
 
     return(
         <div id="root">
-            <div dangerouslySetInnerHTML={{ __html: content}} />
+            <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
+            <div dangerouslySetInnerHTML={{ __html: content}}></div>
         </div>
     )
 }
