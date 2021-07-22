@@ -22,12 +22,12 @@ def recent():
     database_videos = db.recent(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
-@app.route('/api/popular', methods=['GET', 'POST'])
-def popular():
+@app.route('/api/top', methods=['GET', 'POST'])
+def top():
     videos_per_page = 10
     request_data = request.get_json()
     page_number = request_data['page']
-    database_videos = db.popular(int(videos_per_page), int(page_number))
+    database_videos = db.top(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
 @app.route('/api/search', methods=['GET', 'POST'])

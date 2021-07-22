@@ -1,15 +1,18 @@
 import { useState, useEffect, createContext } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import { useParams } from 'react-router'
-
+import Paper from '@material-ui/core/Paper'
 import BlogPost from './BlogPost'
 import { postData } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle'
 
 const styles = (theme) => ({
     root: {
-
-    },
+        height: '100%',
+        width: '100%',
+        margin: 0,
+        padding: 0,
+    }
 })
 
 const BlogDisplay = ({classes}) => {
@@ -35,12 +38,11 @@ const BlogDisplay = ({classes}) => {
     }, [])
 
     return(
-        <div id="root">
+        <div className={classes.root}>
             {blog
                 ? <BlogPost blog={blog} />
                 : <LoadingCircle />
             }
-
         </div>
     )
 }

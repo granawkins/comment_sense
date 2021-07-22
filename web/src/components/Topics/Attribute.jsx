@@ -50,7 +50,7 @@ const Attribute = ({type, value, classes}) => {
                     variant='contained'
                     color={color}
                     classes={{root: classes.attribute}}
-                >{value}</Button>
+                ><span dangerouslySetInnerHTML={{__html: value}}></span></Button>
             }
         </>
     )

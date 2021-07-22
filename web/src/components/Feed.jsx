@@ -30,6 +30,7 @@ const styles = (theme) => ({
 
 const API_URLS = {
     recent: '/api/recent',
+    top: '/api/top',
     search: '/api/search',
 }
 
@@ -75,7 +76,7 @@ const Feed = ({pageName, classes}) => {
             let data = {
                 key: (key) ? key : null,
                 page: pageNumber,
-                next: (nextPageToken) ? nextPageToken: null
+                next: (nextPageToken) ? nextPageToken : null
             }
             let newItems = await postData(apiRef, data)
             addToFeed(newItems)

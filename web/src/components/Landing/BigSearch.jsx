@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { alpha, withStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
 import SearchIcon from '@material-ui/icons/Search';
 import InputBase from '@material-ui/core/InputBase';
 
@@ -11,7 +10,6 @@ const styles = (theme) => ({
         flexDirection: 'column',
         alignItems: 'center',
         flexWrap: 'nowrap',
-        backgroundColor: '#f5f5f5',
         margin: '0',
         width: '80%',
         [theme.breakpoints.up('sm')]: {
@@ -27,7 +25,7 @@ const styles = (theme) => ({
         borderRadius: theme.shape.borderRadius,
         border: '1px solid gray',
         backgroundColor: 'white',
-        width: '100%',        
+        width: '100%',
         display: 'flex',
     },
     searchIcon: {
@@ -51,11 +49,11 @@ const styles = (theme) => ({
         [theme.breakpoints.up('md')]: {
             width: '20ch',
         },
-    },    
+    },
 })
 
 const BigSearch = ({classes}) => {
-    
+
     const [searchValue, setSearchValue] = useState("")
 
     const search = () => {

@@ -1,11 +1,32 @@
 import { useState, useEffect, createContext } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import Paper from '@material-ui/core/Paper'
 import { useParams } from 'react-router'
 
 const styles = (theme) => ({
     root: {
-
+        width: '100%',
+        minHeight: '100%',
+        display: 'flex',
+        flexGrow: 1,
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        padding: '0',
+        margin: '30px 0',
+        boxSizing: 'border-box',
+    },
+    paper: {
+        width: '100%',
+        padding: '5%',
+        boxSizing: 'border-box',
+        [theme.breakpoints.up('sm')]: {
+            width: '480px',
+        },
+        [theme.breakpoints.up('md')]: {
+            width: '768px',
+        },
     },
     title: {
         fontSize: '1.5em',
@@ -25,11 +46,13 @@ const BlogPost = ({blog, classes}) => {
     }, [blog])
 
     return(
-        <div id="root">
-            <Typography>
-                <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
-                <div dangerouslySetInnerHTML={{ __html: content}}></div>
-            </Typography>
+        <div className={classes.root}>
+            <Paper className={classes.paper}>
+                <Typography>
+                    <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
+                    <div dangerouslySetInnerHTML={{ __html: content}}></div>
+                </Typography>
+            </Paper>
         </div>
     )
 }

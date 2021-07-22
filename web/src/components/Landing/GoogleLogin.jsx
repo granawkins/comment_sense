@@ -9,12 +9,12 @@ const styles = (theme) => ({
     root: {
         display: 'flex',
         flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
         flexWrap: 'nowrap',
-        backgroundColor: '#f5f5f5',
         margin: '0',
-        width: 'auto',
         padding: '20px',
+        width: '100%',
     },
     comingSoon: {
         color: 'gray',
@@ -28,17 +28,17 @@ const styles = (theme) => ({
 })
 
 const GoogleLogin = ({classes}) => {
-    
+
     const handleLogin = () => {
         console.log("Login with Google")
     }
 
     return(
         <div className={classes.root}>
-            <Button 
-                id="loginWithGoogle" 
+            <Button
+                id="loginWithGoogle"
                 variant='contained'
-                color='secondary' 
+                color='secondary'
                 disabled='true'
                 onClick={() => handleLogin()}
             >Login with Google</Button>

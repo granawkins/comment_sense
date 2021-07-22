@@ -40,6 +40,7 @@ const styles = (theme) => ({
 const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
 
     const [isLoading, setIsLoading] = useState(false)
+    const [updatingFeed, setUpdatingFeed] = useState(false)
     const [hasError, setHasError] = useState(false)
     const [isEnd, setIsEnd] = useState(false)
     const [topicsFeed, setTopicsFeed] = useState([])
@@ -48,18 +49,19 @@ const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
     const grayout = useRef(null)
 
     useEffect(() => {
-        if (!loadingComments) {
+        if (!loadingComments && !updatingFeed) {
             grayout.current.style.display = 'none'
         } else {
             grayout.current.style.display = 'block'
         }
-    }, [loadingComments])
+    }, [loadingComments, updatingFeed])
 
     const [maxScore, setMaxScore] = useState(0)
     const addToFeed = (items) =>  {
         let newItems = []
         if (items.length === 0) {
             setIsEnd(true)
+            setUpdatingFeed(false)
             return
         }
         let newMax = Math.max(maxScore, items[0].score)
@@ -67,6 +69,7 @@ const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
 
         newItems = items.map(t => <TopicCard topic={t} max={newMax} key={t.token} />)
         setTopicsFeed(oldItems => [...oldItems, newItems])
+        setUpdatingFeed(false)
     }
 
     const handleLoad = async () => {
@@ -112,6 +115,7 @@ const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
     useEffect(() => {
         if (commentsAnalyzed > 0) {
             // Empty current feed
+            setUpdatingFeed(true)
             setTopicsFeed([])
             setPageNumber(0)
 
@@ -135,7 +139,7 @@ const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
 
     return (
         <div className={classes.root}>
-            {loadingComments ?  <div className={classes.loading}><LoadingCircle /></div> : null}
+            {(loadingComments || updatingFeed) ? <div className={classes.loading}><LoadingCircle /></div> : null}
             <div ref={grayout} className={classes.grayout} />
             {topicsFeed}
             <div ref={loader} />

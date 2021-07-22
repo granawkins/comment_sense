@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
-import Typography from '@material-ui/core/Typography'
+import Paper from '@material-ui/core/Paper'
 
 import Splash from './Landing/Splash.jsx'
 import BigSearch from './Landing/BigSearch.jsx'
@@ -23,8 +23,16 @@ const styles = (theme) => ({
         fontWeight: '200',
         fontSize: '1.4rem',
         color: 'red',
-        marginTop: '100px',
+        marginTop: '20px',
         textAlign: 'center',
+    },
+    paper: {
+        padding: '30px',
+        boxSizing: 'border-box',
+    },
+    divider: {
+        height: '100px',
+        width: '100%',
     }
 })
 
@@ -33,13 +41,20 @@ const Landing = ({classes}) => {
     return(
         <div className={classes.root}>
             <Splash />
-            <div className={classes.subHeading}>Search by video, keyword or creator</div>
-            <BigSearch />
+            <div className={classes.divider}/>
+            <Paper className={classes.paper} elevation={6}>
+                <div className={classes.subHeading}>Search by video, keyword or creator</div>
+                <BigSearch />
+            </Paper>
+            <div className={classes.divider}/>
             <div className={classes.subHeading}>Browse popular videos</div>
             <Popular />
-            <div className={classes.subHeading}>Connect to see your history & recommendations</div>
-            <GoogleLogin />
-            <div style={{marginBottom: '100px'}} />
+            <div className={classes.divider}/>
+            <Paper className={classes.paper} elevation={6}>
+                <div className={classes.subHeading}>Connect to see your history & recommendations</div>
+                <GoogleLogin />
+            </Paper>
+            <div className={classes.divider}/>
         </div>
     )
 }

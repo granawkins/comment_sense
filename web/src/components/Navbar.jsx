@@ -14,6 +14,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import SearchBar from "material-ui-search-bar";
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
+import Button from '@material-ui/core/Button';
 
 const useStyles = makeStyles((theme) => ({
   grow: {
@@ -89,6 +90,16 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     width: '200px',
+    height: '30px',
+  },
+  buttonsPanel: {
+    display: 'none',
+    [theme.breakpoints.up('md')]: {
+      display: 'flex',
+    },
+  },
+  topLink: {
+    width: '90px',
     height: '30px',
   }
 }));
@@ -190,6 +201,15 @@ export default function Navbar() {
                   <Typography display="inline" variant="h6" className={classes.logo}>Comment</Typography>
                   <Typography display="inline" variant="h6" color="secondary" className={classes.logo}>Sense</Typography>
               </Link>
+            </Router.Link>
+          </Grid>
+
+          <Grid item sm className={classes.buttonsPanel}>
+            <Router.Link to={'/top'} className={classes.link}>
+              <Button className={classes.topLink}>Top</Button>
+            </Router.Link>
+            <Router.Link to={'/recent'} className={classes.link}>
+              <Button className={classes.topLink}>Recent</Button>
             </Router.Link>
           </Grid>
 

@@ -63,6 +63,7 @@ const App = ({classes}) => {
           <Switch>
             <Route path='/' exact component={() => <Landing />} />
             <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
+            <Route path='/top' exact component={() => <Feed pageName="top" />} />
             <Route path='/search/:key' exact component={() => <Feed pageName="search" />} />
             <Route path='/video/:videoId' exact component={() => <Video  />} />
             <Route path='/admin' exact component={() => <Admin />} />

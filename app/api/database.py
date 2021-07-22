@@ -4,6 +4,7 @@ from get_docker_secret import get_docker_secret
 
 class Database():
 
+
   def refresh(self):
     if not self.db.is_connected:
       self.db = mysql.connector.connect(
@@ -13,6 +14,7 @@ class Database():
         database=self.name,
       )
       self.cursor = self.db.cursor(dictionary=True)
+
 
   def __init__(self, env='desktop', name="comment_sense"):
     self.name = name
@@ -35,6 +37,7 @@ class Database():
     self.createTopicsTable()
     self.createBlogTable()
 
+
   def createVideosTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS videos ( "
@@ -51,6 +54,7 @@ class Database():
       "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
+
 
   def createCommentsTable(self):
     self.refresh()
@@ -70,6 +74,7 @@ class Database():
     ")")
     self.db.commit()
 
+
   def createTopicsTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS topics ( "
@@ -86,6 +91,7 @@ class Database():
     ")")
     self.db.commit()
 
+
   def createBlogTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS blog ( "
@@ -99,6 +105,7 @@ class Database():
       "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
+
 
   def add_video(self, video_data, overwrite=True):
     self.refresh()
@@ -130,11 +137,13 @@ class Database():
     except mysql.connector.Error as err:
       print("Error adding video: {}".format(err))
 
+
   def has_comment(self, commentId):
     self.refresh()
     self.cursor.execute("SELECT * FROM comments WHERE id = %s", (commentId, ))
     current = self.cursor.fetchall()
     return (len(current) > 0)
+
 
   def add_comment(self, c):
     if not self.has_comment(c['id']):
@@ -144,6 +153,7 @@ class Database():
       sql = "INSERT INTO comments ( %s ) VALUES ( %s )" % (columns, placeholders)
       self.cursor.execute(sql, list(c.values()))
       self.db.commit()
+
 
   def update_comment(self, c):
     self.refresh()
@@ -160,6 +170,7 @@ class Database():
     self.cursor.execute(sql, (likes, n_children, c['id']))
     self.db.commit()
 
+
   def comment_topics(self, videoId):
     self.refresh()
     sql = "SELECT id, likes, sentiment, topics FROM comments WHERE videoId = %s"
@@ -169,6 +180,7 @@ class Database():
       return []
     else:
       return results
+
 
   def add_topics(self, topics_data, overwrite=True):
     self.refresh()
@@ -198,6 +210,7 @@ class Database():
     except mysql.connector.Error as err:
       print("Error adding topic: {}".format(err))
 
+
   def recent(self, n=10, page=1):
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
@@ -208,15 +221,18 @@ class Database():
     finish = min(len(result), start + int(n))
     return result[start:finish]
 
-  def popular(self, n=10, page=1):
+
+  def top(self, n=10, page=1):
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY n_analyzed DESC")
     result = self.cursor.fetchall()
     result.reverse()
+    print(f'found {len(result)} results for top.')
     start = min(len(result), int(n) * (int(page) - 1))
     finish = min(len(result), start + int(n))
     return result[start:finish]
+
 
   def video(self, videoId):
     self.refresh()
@@ -230,6 +246,7 @@ class Database():
     finally:
       return result
 
+
   def topics(self, videoId, n=20, page=1):
     video_data = self.video(videoId)
     if not video_data:
@@ -241,6 +258,7 @@ class Database():
     finish = min(len(topics), start + int(n))
     return json.dumps(topics[start:finish])
 
+
   def n_analyzed(self, videoId):
     sql = "SELECT n_analyzed FROM videos WHERE id = %s"
     self.cursor.execute(sql, (videoId, ))
@@ -250,12 +268,14 @@ class Database():
     else:
       return result[0]
 
+
   def numComments(self, videoId):
     self.refresh()
     sql = "SELECT COUNT(*) FROM comments WHERE videoId = %s"
     self.cursor.execute(sql, (videoId, ))
     n = int(self.cursor.fetchall()[0]["COUNT(*)"])
     return n
+
 
   def comments(self, comment_ids, n=10):
     self.refresh()
@@ -270,12 +290,14 @@ class Database():
         comments_data.append(results[0])
     return comments_data
 
+
   def all_comments(self, videoId):
     self.refresh()
     sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE videoId = %s"
     self.cursor.execute(sql, (videoId, ))
     results = self.cursor.fetchall()
     return results
+
 
   def add_blog_post(self, data):
     print(data['content'])
@@ -305,6 +327,7 @@ class Database():
       self.cursor.execute(sql, (c['title'], c['permalink'], c['excerpt'], c['content'], c['active'], c['id']))
       self.db.commit()
 
+
   def get_blog_posts(self):
     self.refresh()
     sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog"
@@ -313,6 +336,7 @@ class Database():
     for result in results:
       result['content'] = json.loads(result['content'])
     return results
+
 
   def get_blog_post(self, data):
     if 'permalink' in data:

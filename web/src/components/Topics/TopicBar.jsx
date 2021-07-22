@@ -69,10 +69,14 @@ const TopicBar = ({token, score, max, sentiment, classes}) => {
         if (!sentiment) {
             return
         }
-        setXScore(Math.round((score/max)*100))
-        setXPos(Math.round((sentiment.pos/max)*100))
-        setXNeg(Math.round((sentiment.neg/max)*100))
-        setXNeu(Math.max(Math.round((sentiment.neu/max)*100), xScore - xPos - xNeg))
+        let fullWidth = Math.round((score/max)*100)
+        let posWidth = Math.round((sentiment.pos/max)*100)
+        let negWidth = Math.round(((sentiment.pos + sentiment.neg)/max)*100) - posWidth
+        let neuWidth = fullWidth - negWidth - posWidth
+        setXScore(fullWidth)
+        setXPos(posWidth)
+        setXNeg(negWidth)
+        setXNeu(neuWidth)
     }, [score, max, sentiment])
 
     let displayToken = (token.length > 25) ? token.slice(0, 25) + "..." : token
@@ -89,7 +93,7 @@ const TopicBar = ({token, score, max, sentiment, classes}) => {
                 : null
             }
             <div className={classes.label}>
-                <Typography variant='h6' className={classes.token}>{displayToken}</Typography>
+                <Typography variant='h6' className={classes.token} dangerouslySetInnerHTML={{__html: displayToken}}></Typography>
                 <Typography variant='h6' className={classes.score}>{score}</Typography>
             </div>
         </div>

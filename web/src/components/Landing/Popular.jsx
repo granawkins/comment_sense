@@ -42,7 +42,7 @@ const Popular = ({classes}) => {
 
     useEffect(() => {
         const getPopular = async (n = 10) => {
-            let url = '/api/popular'
+            let url = '/api/top'
             let data = {page: 1}
             let results = await postData(url, data)
             buildFeed(results)
@@ -53,7 +53,7 @@ const Popular = ({classes}) => {
     return(
         <div className={classes.root}>
             {feed}
-            <Link to={"../popular"} className={classes.more}>
+            <Link to={"../top"} className={classes.more}>
                 <Typography>more</Typography>
                 <ChevronRightIcon />
             </Link>
