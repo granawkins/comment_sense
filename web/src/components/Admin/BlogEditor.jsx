@@ -15,11 +15,11 @@ const styles = (theme) => ({
         paddingTop: '10px',
         maxWidth: '768px',
     },
-    inputField: {
-        marginTop: '20px',
-    },
     blogEditor: {
-        marginTop: '30px',
+        marginBottom: '20px',
+    },
+    inputField: {
+        marginBottom: '20px',
     },
     buttonContainer: {
         marginTop: '30px',
@@ -29,12 +29,21 @@ const styles = (theme) => ({
     },
 })
 
-const BlogEditor = ({setBlog, classes}) => {
+const BlogEditor = ({blog, setBlog, classes}) => {
 
     const [title, setTitle] = useState("")
     const [permalink, setPermalink] = useState("")
     const [excerpt, setExcerpt] = useState("")
     const [blogContent, setBlogContent] = useState("")
+
+    useEffect(() => {
+        if (blog) {
+            setTitle(blog.title)
+            setPermalink(blog.permalink)
+            setExcerpt(blog.excerpt)
+            setBlogContent(blog.content)
+        }
+    }, [])
 
     useEffect(() => {
         setBlog({
@@ -83,7 +92,6 @@ const BlogEditor = ({setBlog, classes}) => {
 
     return(
         <div className={classes.root}>
-            <Typography variant='h5'>Post Details</Typography>
             <TextField
                 id="title"
                 className={classes.inputField}
@@ -109,7 +117,6 @@ const BlogEditor = ({setBlog, classes}) => {
                 helperText="Information that will be displayed in search results"
             />
             <div id='blog-editor' className={classes.blogEditor}>
-                <Typography variant='h5'>Post Content</Typography>
                 <ReactQuill
                     theme='snow'
                     onChange={setBlogContent}

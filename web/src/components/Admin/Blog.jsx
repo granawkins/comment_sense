@@ -6,6 +6,7 @@ import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
 
 import { postData } from '../../utils/helpers'
+import BlogManager from './BlogManager'
 import BlogEditor from './BlogEditor'
 import BlogPost from './BlogPost'
 
@@ -58,7 +59,7 @@ function a11yProps(index) {
 
 const Blog = ({classes}) => {
 
-    const [blog, setBlog] = useState('')
+    const [blog, setBlog] = useState(null)
     const [value, setValue] = useState(0)
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -68,14 +69,18 @@ const Blog = ({classes}) => {
         <div className={classes.root}>
             <div className={classes.tabBar}>
                 <Tabs value={value} onChange={handleChange}>
-                    <Tab label="Editor" {...a11yProps(0)} />
-                    <Tab label="Preview" {...a11yProps(1)} />
+                    <Tab label="Manager" {...a11yProps(0)} />
+                    <Tab label="Editor" {...a11yProps(1)} />
+                    <Tab label="Preview" {...a11yProps(2)} />
                 </Tabs>
             </div>
             <TabPanel value={value} index={0}>
-                <BlogEditor setBlog={setBlog}/>
+                <BlogManager blog={blog} setBlog={setBlog}/>
             </TabPanel>
             <TabPanel value={value} index={1}>
+                <BlogEditor blog={blog} setBlog={setBlog}/>
+            </TabPanel>
+            <TabPanel value={value} index={2}>
                 <BlogPost blog={blog} />
             </TabPanel>
         </div>
