@@ -6,6 +6,8 @@ import Feed from "./components/Feed.jsx"
 import { Video } from "./components/Video.jsx"
 import Landing from "./components/Landing.jsx"
 import Admin from "./components/Admin.jsx"
+import BlogFeed from "./components/BlogFeed.jsx"
+import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
 import Placeholder from "./components/Placeholder.jsx"
 import Footer from "./components/Footer.jsx"
 import './App.css';
@@ -64,7 +66,8 @@ const App = ({classes}) => {
             <Route path='/video/:videoId' exact component={() => <Video  />} />
             <Route path='/admin' exact component={() => <Admin />} />
             <Route path='/admin/:tab' exact component={() => <Admin />} />
-            <Route path='/blog' exact component={() => <Placeholder pageName='Blog' />} />
+            <Route path='/blog' exact component={() => <BlogFeed />} />
+            <Route path='/blog/:permalink' exact component={() => <BlogDisplay />} />
             <Route path='/contact' exact component={() => <Placeholder pageName='Contact' />} />
             <Route path='/privacy' exact component={() => <Placeholder pageName='Privacy Policy' />} />
             <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} />

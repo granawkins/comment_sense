@@ -314,6 +314,14 @@ class Database():
       result['content'] = json.loads(result['content'])
     return results
 
+  def get_blog_post(self, data):
+    if 'permalink' in data:
+      sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog WHERE permalink = %s"
+      self.cursor.execute(sql, (data['permalink'], ))
+      results = self.cursor.fetchall()
+      return results[0]
+
+
   def remove_blog_post(self, id):
     sql = "DELETE FROM blog WHERE id = %s"
     self.cursor.execute(sql, (id, ))

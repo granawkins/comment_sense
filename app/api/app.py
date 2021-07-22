@@ -134,6 +134,17 @@ def blogs():
     db_data = db.get_blog_posts()
     return {'posts': db_data}
 
+@app.route('/api/get_blog_post/<permalink>', methods=['GET'])
+def get_blog_post(permalink):
+    print(permalink)
+    post = None
+    try:
+        post = db.get_blog_post({'permalink': permalink})
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+    finally:
+        return {'blog': post}
+
 @app.route('/api/add_blog', methods=['POST'])
 def add_blog():
     new_post = request.get_json()

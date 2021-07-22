@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+import { useParams } from 'react-router'
 
 const styles = (theme) => ({
     root: {

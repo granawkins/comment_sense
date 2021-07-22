@@ -91,6 +91,11 @@ const FeedCard = ({type, data, classes}) => {
                 setPageUrl("../video/" + data.id)
                 break
             }
+            case 'blog': {
+                setTitle(data.title)
+                setInfoFields([`${data.created}`, `${data.excerpt}`])
+                setPageUrl("../blog/" + data.permalink)
+            }
             default: break
         }
         if (Object.keys(data).includes("n_analyzed")) {
@@ -105,12 +110,15 @@ const FeedCard = ({type, data, classes}) => {
         <Link to={pageUrl} className={classes.link}>
             <Card className={classes.root}>
                 <div className={classes.cover}>
-                    <CardMedia
-                        className={type === 'channel' ? classes.channelImage : ""}
-                        component='img'
-                        src={data.thumbnail}
-                        title={title}
-                    />
+                    {data.thumbnail
+                        ? <CardMedia
+                            className={type === 'channel' ? classes.channelImage : ""}
+                            component='img'
+                            src={data.thumbnail}
+                            title={title}
+                        />
+                        : null
+                    }
                 </div>
                 <div className={classes.details}>
                     <CardActionArea className={classes.actionArea}>

@@ -69,7 +69,7 @@ const blankPost = (id) => {
     }
 }
 
-const Blog = ({classes}) => {
+const BlogAdmin = ({classes}) => {
 
     const [posts, setPosts] = useState([])
     const [maxId, setMaxId] = useState(0)
@@ -152,4 +152,4 @@ const Blog = ({classes}) => {
     )
 }
 
-export default withStyles(styles)(Blog)
+export default withStyles(styles)(BlogAdmin)

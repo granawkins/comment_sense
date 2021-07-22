@@ -8,8 +8,8 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
 import { withStyles } from '@material-ui/core/styles'
 
-import Blog from './Admin/Blog';
-import Logs from './Admin/Logs';
+import BlogAdmin from './Blog/BlogAdmin'
+import Placeholder from './Placeholder'
 
 const drawerWidth = 240
 
@@ -69,10 +69,10 @@ const Admin = ({classes}) => {
                         <Typography>Please select a section.</Typography>
                     </Route>
                     <Route exact path={`/admin/blog`}>
-                        <Blog />
+                        <BlogAdmin />
                     </Route>
                     <Route exact path={`/admin/logs`}>
-                        <Logs />
+                        <Placeholder pageName='Logs' />
                     </Route>
                 </Switch>
             </main>
