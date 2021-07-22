@@ -33,6 +33,7 @@ class Database():
     self.createVideosTable()
     self.createCommentsTable()
     self.createTopicsTable()
+    self.createBlogTable()
 
   def createVideosTable(self):
     self.refresh()
@@ -80,6 +81,20 @@ class Database():
       "n_comments INT, "
       "likes INT, "
       "sentiment FLOAT(4, 3), "
+      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "PRIMARY KEY (`id`) "
+    ")")
+    self.db.commit()
+
+  def createBlogTable(self):
+    self.refresh()
+    self.cursor.execute("CREATE TABLE IF NOT EXISTS blog ( "
+      "id INT(6) NOT NULL, "
+      "title VARCHAR(64), "
+      "permalink VARCHAR(64), "
+      "excerpt VARCHAR(1000), "
+      "content JSON, "
+      "active BOOL, "
       "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "PRIMARY KEY (`id`) "
     ")")
@@ -260,4 +275,42 @@ class Database():
     sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE videoId = %s"
     self.cursor.execute(sql, (videoId, ))
     results = self.cursor.fetchall()
+    return results
+
+
+  def add_blog_post(self, data):
+    print(data['content'])
+    c = {
+      'id': int(data['id']),
+      'title': str(data['title']),
+      'permalink': str(data['permalink']),
+      'excerpt': str(data['excerpt']),
+      'content': json.dumps(data['content']),
+      'active': bool(data['active']),
+    }
+    self.cursor.execute("SELECT * FROM blog WHERE id = %s", (c['id'], ))
+    current = self.cursor.fetchall()
+
+    # Add new
+    if len(current) == 0:
+      self.refresh()
+      placeholders = ", ".join(['%s'] * len(c))
+      columns = ", ".join(c.keys())
+      sql = "INSERT INTO blog ( %s ) VALUES ( %s )" % (columns, placeholders)
+      self.cursor.execute(sql, list(c.values()))
+      self.db.commit()
+
+    # Update existing
+    else:
+      sql = "UPDATE blog SET title = %s, permalink = %s, excerpt = %s, content = %s, active = %s WHERE id = %s"
+      self.cursor.execute(sql, (c['title'], c['permalink'], c['excerpt'], c['content'], c['active'], c['id']))
+      self.db.commit()
+
+  def get_blog_posts(self):
+    self.refresh()
+    sql = "SELECT id, title, permalink, excerpt, content, active FROM blog"
+    self.cursor.execute(sql)
+    results = self.cursor.fetchall()
+    for result in results:
+      result['content'] = json.loads(result['content'])
     return results

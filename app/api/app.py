@@ -129,5 +129,22 @@ def analyze():
     # Send results to frontend
     return {'video_data': video_data}
 
+@app.route('/api/blogs', methods=['GET'])
+def blogs():
+    db_data = db.get_blog_posts()
+    return {'posts': db_data}
+
+@app.route('/api/add_blog', methods=['POST'])
+def add_blog():
+    new_post = request.get_json()
+    successful = False
+    try:
+        db.add_blog_post(new_post)
+        successful = True
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+    finally:
+        return {'successful': successful}
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

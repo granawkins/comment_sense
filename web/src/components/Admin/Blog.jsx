@@ -73,13 +73,12 @@ const Blog = ({classes}) => {
     const [posts, setPosts] = useState([])
     const [maxId, setMaxId] = useState(0)
     const getPosts = async() => {
-        console.log("retrieving posts from server")
-        // fetch(`/api/blogs`)
-        //     .then(res => res.json())
-        //     .then(data => {
-        //         console.log(data)
-        //         setPosts(data.posts)
-        //     })
+        fetch(`/api/blogs`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                setPosts(data.posts)
+            })
     }
 
     const newPost = () => {
@@ -90,9 +89,9 @@ const Blog = ({classes}) => {
     }
 
     const uploadPost = async (post) => {
-        console.log("adding post to server")
-        // const result = await postData('/api/add_blog', post)
-        // return result.successful
+        const result = await postData('/api/add_blog', post)
+        console.log(result)
+        return result.successful
     }
 
     useEffect(() => {
@@ -105,7 +104,7 @@ const Blog = ({classes}) => {
     };
 
     const [blog, setBlog] = useState(null)
-    const updateBlog = (newBlog) => {
+    const updateBlog = async (newBlog) => {
         setBlog(newBlog)
         uploadPost(newBlog)
         setPosts(posts => posts.map(post => {
