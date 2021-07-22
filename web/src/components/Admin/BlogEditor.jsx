@@ -4,20 +4,18 @@ import Typography from '@material-ui/core/Typography'
 
 import ReactQuill from 'react-quill'
 
-import { postData } from '../../utils/helpers'
-
 const styles = (theme) => ({
     root: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'left',
-        backgroundColor: '#f5f5f5',
         margin: '0',
         paddingTop: '10px',
+        maxWidth: '768px',
     },
 })
 
-const BlogEditor = ({classes}) => {
+const BlogEditor = ({blogContent, setBlogContent, classes}) => {
 
     // Add default stylesheet (snow)
     function addCss(fileName) {
@@ -32,7 +30,6 @@ const BlogEditor = ({classes}) => {
         addCss('//cdn.quilljs.com/1.3.6/quill.snow.css')
     }, [])
 
-    const [blogContent, setBlogContent] = useState('')
     const modules = {
         toolbar: [
           [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
@@ -54,11 +51,10 @@ const BlogEditor = ({classes}) => {
         'bold', 'italic', 'underline', 'strike', 'blockquote',
         'list', 'bullet', 'indent',
         'link', 'image', 'video'
-      ]
+    ]
 
     return(
-        <div>
-            <Typography>Blog</Typography>
+        <div id="blog-editor">
             <ReactQuill
                 theme='snow'
                 onChange={setBlogContent}

@@ -8,7 +8,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
 import { withStyles } from '@material-ui/core/styles'
 
-import BlogEditor from './Admin/BlogEditor';
+import Blog from './Admin/Blog';
 import Logs from './Admin/Logs';
 
 const drawerWidth = 240
@@ -69,7 +69,7 @@ const Admin = ({classes}) => {
                         <Typography>Please select a section.</Typography>
                     </Route>
                     <Route exact path={`/admin/blog`}>
-                        <BlogEditor />
+                        <Blog />
                     </Route>
                     <Route exact path={`/admin/logs`}>
                         <Logs />
