@@ -1,8 +1,9 @@
-import { useState, useEffect, createContext } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
+import Switch from '@material-ui/core/Switch'
 
 import ReactQuill from 'react-quill'
 
@@ -16,10 +17,11 @@ const styles = (theme) => ({
         maxWidth: '768px',
     },
     blogEditor: {
-        marginBottom: '20px',
+        marginTop: '20px',
+        backgroundColor: '#f5f5f5',
     },
     inputField: {
-        marginBottom: '20px',
+        marginTop: '10px',
     },
     buttonContainer: {
         marginTop: '30px',
@@ -27,34 +29,45 @@ const styles = (theme) => ({
         flexDirection: 'row',
         justifyContent: 'center',
     },
+    publish: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+    }
 })
 
-const BlogEditor = ({blog, setBlog, classes}) => {
+const BlogEditor = ({blog, updateBlog, classes}) => {
 
+    // Manage active post data
+    const [id, setId] = useState("")
     const [title, setTitle] = useState("")
     const [permalink, setPermalink] = useState("")
     const [excerpt, setExcerpt] = useState("")
     const [blogContent, setBlogContent] = useState("")
+    const [postActive, setPostActive] = useState("")
 
     useEffect(() => {
-        if (blog) {
-            setTitle(blog.title)
-            setPermalink(blog.permalink)
-            setExcerpt(blog.excerpt)
-            setBlogContent(blog.content)
-        }
-    }, [])
+        setId(blog.id)
+        setTitle(blog.title)
+        setPermalink(blog.permalink)
+        setExcerpt(blog.excerpt)
+        setBlogContent(blog.content)
+        setPostActive(blog.active)
+    }, [blog])
 
-    useEffect(() => {
-        setBlog({
+    const saveChanges = () => {
+        updateBlog({
+            id: id,
             title: title,
             permalink: permalink,
-            excert: excerpt,
+            excerpt: excerpt,
             content: blogContent,
+            active: postActive,
         })
-    }, [title, permalink, excerpt, blogContent])
+    }
 
-    // Add default stylesheet (snow)
+    // Setup Quill Editor
     function addCss(fileName) {
         var head = document.head;
         var link = document.createElement("link");
@@ -66,7 +79,6 @@ const BlogEditor = ({blog, setBlog, classes}) => {
     useEffect(() => {
         addCss('//cdn.quilljs.com/1.3.6/quill.snow.css')
     }, [])
-
     const modules = {
         toolbar: [
           [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
@@ -82,7 +94,6 @@ const BlogEditor = ({blog, setBlog, classes}) => {
           matchVisual: false,
         }
     }
-
     const formats = [
         'header', 'font', 'size',
         'bold', 'italic', 'underline', 'strike', 'blockquote',
@@ -92,6 +103,7 @@ const BlogEditor = ({blog, setBlog, classes}) => {
 
     return(
         <div className={classes.root}>
+            <Typography>Post ID: {blog.id}</Typography>
             <TextField
                 id="title"
                 className={classes.inputField}
@@ -108,14 +120,6 @@ const BlogEditor = ({blog, setBlog, classes}) => {
                 onChange={(e) => setPermalink(e.target.value)}
                 helperText="The url suffix"
             />
-            <TextField
-                id="excerpt"
-                className={classes.inputField}
-                label="Excerpt"
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                helperText="Information that will be displayed in search results"
-            />
             <div id='blog-editor' className={classes.blogEditor}>
                 <ReactQuill
                     theme='snow'
@@ -126,9 +130,24 @@ const BlogEditor = ({blog, setBlog, classes}) => {
                     placeholder='Write a blog'
                 />
             </div>
+            <TextField
+                id="excerpt"
+                className={classes.inputField}
+                label="Excerpt"
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                helperText="Information that will be displayed in search results"
+            />
+            <div className={classes.publish}>
+                <Typography>Published: </Typography>
+                <Switch
+                    checked={postActive}
+                    onChange={(e) => setPostActive(e.target.checked)}
+                    name="Published"
+                />
+            </div>
             <div className={classes.buttonContainer}>
-                <Button variant='contained' color='primary'>Save Draft</Button>
-                <Button variant='contained' color='secondary'>Submit</Button>
+                <Button variant='contained' color='secondary' onClick={saveChanges}>Save Changes</Button>
             </div>
         </div>
     )

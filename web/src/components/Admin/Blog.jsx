@@ -50,37 +50,89 @@ function TabPanel(props) {
     );
 }
 
-function a11yProps(index) {
+const a11yProps = (index) => {
     return {
       id: `simple-tab-${index}`,
       'aria-controls': `simple-tabpanel-${index}`,
     };
   }
 
+const blankPost = (id) => {
+    return {
+        id: id,
+        title: "",
+        permalink: "",
+        excerpt: "",
+        content: "",
+        active: false,
+    }
+}
+
 const Blog = ({classes}) => {
 
-    const [blog, setBlog] = useState(null)
-    const [value, setValue] = useState(0)
+    const [posts, setPosts] = useState([])
+    const [maxId, setMaxId] = useState(0)
+    const getPosts = async() => {
+        console.log("retrieving posts from server")
+        // fetch(`/api/blogs`)
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         console.log(data)
+        //         setPosts(data.posts)
+        //     })
+    }
+
+    const newPost = () => {
+        let newPost = blankPost(maxId + 1)
+        setMaxId(id => id + 1)
+        setPosts(oldPosts => [...oldPosts, newPost])
+        setBlog(newPost)
+    }
+
+    const uploadPost = async (post) => {
+        console.log("adding post to server")
+        // const result = await postData('/api/add_blog', post)
+        // return result.successful
+    }
+
+    useEffect(() => {
+        getPosts()
+    }, [])
+
+    const [active, setActive] = useState(0)
     const handleChange = (event, newValue) => {
-        setValue(newValue);
-      };
+        setActive(newValue);
+    };
+
+    const [blog, setBlog] = useState(null)
+    const updateBlog = (newBlog) => {
+        setBlog(newBlog)
+        uploadPost(newBlog)
+        setPosts(posts => posts.map(post => {
+            if (post.id === newBlog.id) {
+                return newBlog
+            } else {
+                return post
+            }
+        }))
+    }
 
     return(
         <div className={classes.root}>
             <div className={classes.tabBar}>
-                <Tabs value={value} onChange={handleChange}>
+                <Tabs value={active} onChange={handleChange}>
                     <Tab label="Manager" {...a11yProps(0)} />
-                    <Tab label="Editor" {...a11yProps(1)} />
-                    <Tab label="Preview" {...a11yProps(2)} />
+                    <Tab label="Editor" {...a11yProps(1)} disabled={!blog} />
+                    <Tab label="Preview" {...a11yProps(2)} disabled={!blog} />
                 </Tabs>
             </div>
-            <TabPanel value={value} index={0}>
-                <BlogManager blog={blog} setBlog={setBlog}/>
+            <TabPanel value={active} index={0}>
+                <BlogManager posts={posts} blog={blog} setBlog={setBlog} newPost={newPost}/>
             </TabPanel>
-            <TabPanel value={value} index={1}>
-                <BlogEditor blog={blog} setBlog={setBlog}/>
+            <TabPanel value={active} index={1}>
+                <BlogEditor blog={blog} updateBlog={updateBlog} />
             </TabPanel>
-            <TabPanel value={value} index={2}>
+            <TabPanel value={active} index={2}>
                 <BlogPost blog={blog} />
             </TabPanel>
         </div>

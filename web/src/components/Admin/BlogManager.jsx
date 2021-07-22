@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/core/styles'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button'
 
 const styles = (theme) => ({
     root: {
@@ -16,30 +17,29 @@ const styles = (theme) => ({
     }
 })
 
-const BlogManager = ({blog, setBlog, classes}) => {
-
-    const [posts, setPosts] = useState([])
-    useEffect(() => {
-        const blankPost = (i) => {
-            return {
-                postId: `0000${i}`,
-                title: `Title ${i}`,
-                permalink: `permalink_${i}`,
-                excerpt: `Excerpt ${i}`,
-                content: `Content ${i}`,
-            }
-        }
-        for (let i = 0; i < 5; i++) {
-            let newPost = blankPost(i)
-            setPosts(oldPosts => [...oldPosts, newPost])
-        }
-    }, [])
+const BlogManager = ({posts, blog, setBlog, newPost, classes}) => {
 
     const [selected, setSelected] = useState(null)
     const handleClick = (i) => {
-        setSelected(i)
-        setBlog(posts[i])
+        if (i === selected) {
+            setSelected(null)
+            setBlog(null)
+        } else {
+            setSelected(i)
+            setBlog(posts[i])
+        }
     }
+
+    // Make sure the active post is highlighted when switch to manager screen
+    useEffect(() => {
+        if (blog) {
+            posts.forEach((post, i) => {
+                if (post.id === blog.id) {
+                    setSelected(i)
+                }
+            })
+        }
+    }, [])
 
     return(
         <div id="root">
@@ -48,18 +48,19 @@ const BlogManager = ({blog, setBlog, classes}) => {
                 {posts.map((post, i) => {
                     return (
                         <ListItem
-                            key={post.permalink}
+                            key={post.id}
                             className={i === selected ? classes.activeOption : ""}
                             button
                             dense
                             onClick={() => handleClick(i)}
                         >
-                            <Typography className={classes.field}>{post.postId}</Typography>
+                            <Typography className={classes.field}>{post.id}</Typography>
                             <Typography className={classes.field}>{post.title}</Typography>
                         </ListItem>
                     )
                 })}
             </List>
+            <Button onClick={newPost}>New Post</Button>
         </div>
     )
 }
