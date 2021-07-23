@@ -58,9 +58,9 @@ const VideoPage = ({classes}) => {
             videoData: {...videoData, 'next_page_token': pageToken},
             nComments: commentsTarget
         }).then(data => {
+            setLoading(false)
             setCommentsAnalyzed(data.video_data['n_analyzed'])
             setPageToken(data.video_data['next_page_token'])
-            setLoading(false)
         })
     }
 
