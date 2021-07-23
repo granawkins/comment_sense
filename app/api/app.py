@@ -140,6 +140,7 @@ def get_blog_post(permalink):
     post = None
     try:
         post = db.get_blog_post({'permalink': permalink})
+        print(post)
     except:
         print("Unexpected error:", sys.exc_info()[0])
     finally:

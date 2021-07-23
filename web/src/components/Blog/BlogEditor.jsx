@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/core/styles'
+import _ from 'lodash'
+
 import Typography from '@material-ui/core/Typography'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import Switch from '@material-ui/core/Switch'
 
-import ReactQuill from 'react-quill'
+import ReactQuill, { Quill } from 'react-quill'
+import ImageUploader from "quill-image-uploader"
+Quill.register("modules/imageUploader", ImageUploader)
 
 const styles = (theme) => ({
     root: {
@@ -88,30 +92,53 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
         link.href = fileName;
         head.appendChild(link);
     }
+    const [modules, setModules] = useState(null)
+    const [formats, setFormats] = useState(null)
     useEffect(() => {
         addCss('//cdn.quilljs.com/1.3.6/quill.snow.css')
+        setModules({
+            toolbar: [
+              [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+              [{size: []}],
+              ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+              [{'list': 'ordered'}, {'list': 'bullet'},
+               {'indent': '-1'}, {'indent': '+1'}],
+              ['link', 'image', 'video'],
+              ['clean']
+            ],
+            clipboard: {
+              // toggle to add extra line breaks when pasting HTML:
+              matchVisual: false,
+            },
+            // ref: https://codesandbox.io/s/react-quill-demo-qr8xd?file=/src/editor.js:517-1216
+            imageUploader: {
+                upload: file => {
+                    return new Promise((resolve, reject) => {
+                        const formData = new FormData()
+                        formData.append("image", file)
+
+                        fetch("https://api.imgbb.com/1/upload?key=d36eb6591370ae7f9089d85875e56b22",
+                              {method: "POST", body: formData})
+                            .then(response => response.json())
+                            .then(result => {
+                                console.log(result)
+                                resolve(result.data.url)
+                            })
+                        .catch(error => {
+                            reject("Upload failed")
+                            console.error("Error:", error)
+                        })
+                    })
+                }
+            }
+        })
+        setFormats([
+            'header', 'font', 'size',
+            'bold', 'italic', 'underline', 'strike', 'blockquote',
+            'list', 'bullet', 'indent',
+            'link', 'image', 'video',
+        ])
     }, [])
-    const modules = {
-        toolbar: [
-          [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-          [{size: []}],
-          ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-          [{'list': 'ordered'}, {'list': 'bullet'},
-           {'indent': '-1'}, {'indent': '+1'}],
-          ['link', 'image', 'video'],
-          ['clean']
-        ],
-        clipboard: {
-          // toggle to add extra line breaks when pasting HTML:
-          matchVisual: false,
-        }
-    }
-    const formats = [
-        'header', 'font', 'size',
-        'bold', 'italic', 'underline', 'strike', 'blockquote',
-        'list', 'bullet', 'indent',
-        'link', 'image', 'video'
-    ]
 
     return(
         <div className={classes.root}>
@@ -133,14 +160,18 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
                 helperText="The url suffix"
             />
             <div id='blog-editor' className={classes.blogEditor}>
-                <ReactQuill
-                    theme='snow'
-                    onChange={setBlogContent}
-                    value={blogContent}
-                    modules={modules}
-                    formats={formats}
-                    placeholder='Write a blog'
-                />
+                {(modules && formats)
+                    ? <ReactQuill
+                        theme='snow'
+                        onChange={setBlogContent}
+                        value={blogContent}
+                        modules={modules}
+                        formats={formats}
+                        placeholder='Write a blog'
+                    />
+                    : null
+                }
+
             </div>
             <TextField
                 id="excerpt"

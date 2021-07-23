@@ -343,6 +343,8 @@ class Database():
       sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog WHERE permalink = %s"
       self.cursor.execute(sql, (data['permalink'], ))
       results = self.cursor.fetchall()
+      for result in results:
+        result['content'] = json.loads(result['content'])
       return results[0]
 
 

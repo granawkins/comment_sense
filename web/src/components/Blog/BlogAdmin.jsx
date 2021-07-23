@@ -88,6 +88,7 @@ const BlogAdmin = ({classes}) => {
     }
 
     const uploadPost = async (post) => {
+        console.log(post)
         const result = await postData('/api/add_blog', post)
         console.log(result)
         return result.successful
