@@ -36,6 +36,7 @@ class Database():
     self.createCommentsTable()
     self.createTopicsTable()
     self.createBlogTable()
+    self.createFeedbackTable()
 
 
   def createVideosTable(self):
@@ -98,6 +99,7 @@ class Database():
       "id INT(6) NOT NULL, "
       "title VARCHAR(64), "
       "permalink VARCHAR(64), "
+      "thumbnail JSON, "
       "excerpt VARCHAR(1000), "
       "content JSON, "
       "active BOOL, "
@@ -106,6 +108,17 @@ class Database():
     ")")
     self.db.commit()
 
+  def createFeedbackTable(self):
+    self.refresh()
+    self.cursor.execute("CREATE TABLE IF NOT EXISTS feedback ( "
+      "id INT NOT NULL AUTO_INCREMENT, "
+      "message JSON, "
+      "email JSON, "
+      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "active BOOL, "
+      'PRIMARY KEY (`id`) '
+    ")")
+    self.db.commit()
 
   def add_video(self, video_data, overwrite=True):
     self.refresh()
@@ -228,7 +241,6 @@ class Database():
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY n_analyzed DESC")
     result = self.cursor.fetchall()
     result.reverse()
-    print(f'found {len(result)} results for top.')
     start = min(len(result), int(n) * (int(page) - 1))
     finish = min(len(result), start + int(n))
     return result[start:finish]
@@ -280,7 +292,6 @@ class Database():
   def comments(self, comment_ids, n=10):
     self.refresh()
     comments_data = []
-    print(comment_ids[0])
     # parsed_ids = json.loads(comment_ids)
     for c in comment_ids:
       sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE id = %s"
@@ -300,11 +311,11 @@ class Database():
 
 
   def add_blog_post(self, data):
-    print(data['content'])
     c = {
       'id': int(data['id']),
       'title': str(data['title']),
       'permalink': str(data['permalink']),
+      'thumbnail': json.dumps(data['thumbnail']),
       'excerpt': str(data['excerpt']),
       'content': json.dumps(data['content']),
       'active': bool(data['active']),
@@ -323,27 +334,29 @@ class Database():
 
     # Update existing
     else:
-      sql = "UPDATE blog SET title = %s, permalink = %s, excerpt = %s, content = %s, active = %s WHERE id = %s"
-      self.cursor.execute(sql, (c['title'], c['permalink'], c['excerpt'], c['content'], c['active'], c['id']))
+      sql = "UPDATE blog SET title = %s, permalink = %s, thumbnail = %s, excerpt = %s, content = %s, active = %s WHERE id = %s"
+      self.cursor.execute(sql, (c['title'], c['permalink'], c['thumbnail'], c['excerpt'], c['content'], c['active'], c['id']))
       self.db.commit()
 
 
   def get_blog_posts(self):
     self.refresh()
-    sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog"
+    sql = "SELECT id, title, permalink, thumbnail, excerpt, content, active, created FROM blog"
     self.cursor.execute(sql)
     results = self.cursor.fetchall()
     for result in results:
+      result['thumbnail'] = json.loads(result['thumbnail'])
       result['content'] = json.loads(result['content'])
     return results
 
 
   def get_blog_post(self, data):
     if 'permalink' in data:
-      sql = "SELECT id, title, permalink, excerpt, content, active, created FROM blog WHERE permalink = %s"
+      sql = "SELECT id, title, permalink, thumbnail, excerpt, content, active, created FROM blog WHERE permalink = %s"
       self.cursor.execute(sql, (data['permalink'], ))
       results = self.cursor.fetchall()
       for result in results:
+        result['thumbnail'] = json.loads(result['thumbnail'])
         result['content'] = json.loads(result['content'])
       return results[0]
 
@@ -351,3 +364,29 @@ class Database():
   def remove_blog_post(self, id):
     sql = "DELETE FROM blog WHERE id = %s"
     self.cursor.execute(sql, (id, ))
+
+  def add_feedback(self, data):
+    c = {
+      'email': json.dumps(data['email']),
+      'message': json.dumps(data['message']),
+      'active': True,
+    }
+    if ('id' in data):
+      print('already have feedback of this id')
+    else:
+      self.refresh()
+      placeholders = ", ".join(['%s'] * len(c))
+      columns = ", ".join(c.keys())
+      sql = "INSERT INTO feedback ( %s ) VALUES ( %s )" % (columns, placeholders)
+      self.cursor.execute(sql, list(c.values()))
+      self.db.commit()
+
+  def get_feedback(self):
+    self.refresh()
+    sql = "SELECT * FROM feedback"
+    self.cursor.execute(sql)
+    results = self.cursor.fetchall()
+    for result in results:
+      result['email'] = json.loads(result['email'])
+      result['message'] = json.loads(result['message'])
+    return results

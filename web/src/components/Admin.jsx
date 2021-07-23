@@ -11,6 +11,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import { withStyles } from '@material-ui/core/styles'
 
 import BlogAdmin from './Blog/BlogAdmin'
+import Feedback from './Admin/Feedback'
 import Placeholder from './Placeholder'
 
 const drawerWidth = 240
@@ -65,7 +66,7 @@ const Admin = ({classes}) => {
                 <Toolbar />
                 <div className={classes.drawerContainer}>
                     <List>
-                    {['Blog', 'Logs'].map((page) => (
+                    {['Blog', 'Logs', 'Feedback'].map((page) => (
                         <ListItem button key={page} selected={page === activeTab}>
                             <Link to={`/admin/${page}`} className={classes.drawerLink}>
                                 <ListItemText primary={page} />
@@ -85,6 +86,9 @@ const Admin = ({classes}) => {
                     </Route>
                     <Route exact path={`/admin/logs`}>
                         <Placeholder pageName='Logs' />
+                    </Route>
+                    <Route exact path={`/admin/feedback`}>
+                        <Feedback />
                     </Route>
                 </Switch>
             </main>

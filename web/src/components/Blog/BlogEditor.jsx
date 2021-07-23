@@ -9,6 +9,9 @@ import Switch from '@material-ui/core/Switch'
 
 import ReactQuill, { Quill } from 'react-quill'
 import ImageUploader from "quill-image-uploader"
+
+import LoadingCircle from '../../utils/LoadingCircle'
+
 Quill.register("modules/imageUploader", ImageUploader)
 
 const styles = (theme) => ({
@@ -41,13 +44,17 @@ const styles = (theme) => ({
         alignItems: 'center',
     },
     thumbnailSection: {
-        border: '1px solid gray',
+        // border: '1px solid gray',
         padding: '10px',
         marginTop: '15px',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'flex-start',
-        alignItems: 'bottom',
+        alignItems: 'left',
+        "& img": {
+            width: '300px',
+            height: 'auto',
+        }
     }
 })
 
@@ -57,6 +64,7 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
     const [id, setId] = useState("")
     const [title, setTitle] = useState("")
     const [permalink, setPermalink] = useState("")
+    const [thumbnail, setThumbnail] = useState(null)
     const [excerpt, setExcerpt] = useState("")
     const [blogContent, setBlogContent] = useState("")
     const [postActive, setPostActive] = useState("")
@@ -65,6 +73,7 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
         setId(blog.id)
         setTitle(blog.title)
         setPermalink(blog.permalink)
+        setThumbnail(blog.thumbnail)
         setExcerpt(blog.excerpt)
         setBlogContent(blog.content)
         setPostActive(blog.active)
@@ -75,34 +84,38 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
             ...prevBlog,
             title: title,
             permalink: permalink,
+            thumbnail: thumbnail,
             excerpt: excerpt,
             content: blogContent,
             postActive: postActive
         }))
-    }, [title, permalink, excerpt, blogContent, postActive])
+    }, [title, permalink, thumbnail, excerpt, blogContent, postActive])
 
     const saveChanges = () => {
         updateBlog({
             id: id,
             title: title,
             permalink: permalink,
+            thumbnail: thumbnail,
             excerpt: excerpt,
             content: blogContent,
             active: postActive,
         })
     }
 
-    const [thumbnail, setThumbnail] = useState(null)
+    const [thumbnailLoading, setThumbnailLoading] = useState(null)
     const handleThumbnail = async (e) => {
+        setThumbnailLoading(true)
+        setThumbnail(null)
         let file = e.target.files[0];
         const formData = new FormData()
         formData.append("image", file)
-        console.log(formData)
 
         fetch("https://api.imgbb.com/1/upload?key=d36eb6591370ae7f9089d85875e56b22",
               {method: "POST", body: formData})
             .then(response => response.json())
             .then(result => {
+                setThumbnailLoading(null)
                 setThumbnail(result.data.url)
             })
     }
@@ -188,10 +201,8 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
                     Upload Thumbnail
                     <input type="file" hidden onChange={e => handleThumbnail(e)}/>
                 </Button>
-                {thumbnail
-                    ? <img src={thumbnail}></img>
-                    : null
-                }
+                {thumbnailLoading ? <LoadingCircle /> : null}
+                {thumbnail ? <img src={thumbnail}></img> : null}
             </div>
             <div id='blog-editor' className={classes.blogEditor}>
                 {(modules && formats)

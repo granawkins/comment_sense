@@ -31,6 +31,11 @@ const styles = (theme) => ({
     title: {
         fontSize: '1.5em',
         fontWeight: '400',
+    },
+    content: {
+        "& img": {
+            width: '100%',
+        }
     }
 })
 
@@ -50,7 +55,7 @@ const BlogPost = ({blog, classes}) => {
             <Paper className={classes.paper}>
                 <Typography>
                     <div className={classes.title}>{blog.title ? blog.title : 'Title'}</div>
-                    <div dangerouslySetInnerHTML={{ __html: content}}></div>
+                    <div className={classes.content} dangerouslySetInnerHTML={{ __html: content}}></div>
                 </Typography>
             </Paper>
         </div>

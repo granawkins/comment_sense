@@ -73,7 +73,7 @@ const BlogManager = ({posts, blog, setBlog, newPost, removePost, classes}) => {
     return(
         <div id="root">
             <Typography variant='h5'>Blog Posts</Typography>
-            {posts.length > 0
+            {posts
                 ? <TableContainer component={Paper}>
                     <Table className={classes.table}>
                         <TableHead>

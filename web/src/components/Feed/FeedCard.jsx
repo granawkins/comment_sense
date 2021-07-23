@@ -72,7 +72,7 @@ const styles = (theme) => ({
     }
 })
 
-const FeedCard = ({type, data, classes}) => {
+const FeedCard = ({type, data, inactive, classes}) => {
 
     const [pageUrl, setPageUrl] = useState("#")
     const [title, setTitle] = useState("")
@@ -107,7 +107,7 @@ const FeedCard = ({type, data, classes}) => {
     // Get info from database
 
     return (
-        <Link to={pageUrl} className={classes.link}>
+        <Link to={inactive ? '#' : pageUrl} className={classes.link}>
             <Card className={classes.root}>
                 <div className={classes.cover}>
                     {data.thumbnail

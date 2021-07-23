@@ -8,6 +8,7 @@ import Landing from "./components/Landing.jsx"
 import Admin from "./components/Admin.jsx"
 import BlogFeed from "./components/BlogFeed.jsx"
 import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
+import Contact from "./components/Contact.jsx"
 import Placeholder from "./components/Placeholder.jsx"
 import Footer from "./components/Footer.jsx"
 import './App.css';
@@ -70,7 +71,7 @@ const App = ({classes}) => {
             <Route path='/admin/:tab' exact component={() => <Admin />} />
             <Route path='/blog' exact component={() => <BlogFeed />} />
             <Route path='/blog/:permalink' exact component={() => <BlogDisplay />} />
-            <Route path='/contact' exact component={() => <Placeholder pageName='Contact' />} />
+            <Route path='/contact' exact component={() => <Contact />} />
             <Route path='/privacy' exact component={() => <Placeholder pageName='Privacy Policy' />} />
             <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} />
           </Switch>

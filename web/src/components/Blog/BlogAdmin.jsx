@@ -4,10 +4,12 @@ import Typography from '@material-ui/core/Typography'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
+import Divider from '@material-ui/core/Divider';
 
 import { postData } from '../../utils/helpers'
 import BlogManager from './BlogManager'
 import BlogEditor from './BlogEditor'
+import FeedCard from '../Feed/FeedCard'
 import BlogPost from './BlogPost'
 
 // This component is based on the first example ('Simple tabs') here:
@@ -62,6 +64,7 @@ const blankPost = (id) => {
         id: id,
         title: "",
         permalink: "",
+        thumbnail: null,
         excerpt: "",
         content: "",
         active: false,
@@ -71,10 +74,10 @@ const blankPost = (id) => {
 
 const BlogAdmin = ({classes}) => {
 
-    const [posts, setPosts] = useState([])
+    const [posts, setPosts] = useState(null)
     const [maxId, setMaxId] = useState(0)
     const getPosts = async() => {
-        setPosts([])
+        setPosts(null)
         fetch(`/api/blogs`)
             .then(res => res.json())
             .then(data => {
@@ -147,6 +150,7 @@ const BlogAdmin = ({classes}) => {
                 <BlogEditor blog={blog} setBlog={setBlog} updateBlog={updateBlog} />
             </TabPanel>
             <TabPanel value={active} index={2}>
+                <FeedCard type="blog" data={blog} inactive={true}/>
                 <BlogPost blog={blog} />
             </TabPanel>
         </div>

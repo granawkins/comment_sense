@@ -136,13 +136,11 @@ def blogs():
 
 @app.route('/api/get_blog_post/<permalink>', methods=['GET'])
 def get_blog_post(permalink):
-    print(permalink)
     post = None
     try:
         post = db.get_blog_post({'permalink': permalink})
-        print(post)
     except:
-        print("Unexpected error:", sys.exc_info()[0])
+        print("Unexpected error retrieving blog post:", sys.exc_info()[0])
     finally:
         return {'blog': post}
 
@@ -173,6 +171,32 @@ def remove_blog():
             return {'successful': successful}
     else:
         return {'successful': successful}
+
+
+@app.route('/api/add_feedback', methods=['POST'])
+def add_feedback():
+    feedback = request.get_json()
+    successful = False
+    try:
+        db.add_feedback(feedback)
+        successful = True
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+    finally:
+        return {'successful': successful}
+
+
+@app.route('/api/get_feedback', methods=['GET'])
+def get_feedback():
+    try:
+        all_feedback = db.get_feedback()
+        feedback = sorted(all_feedback, key=lambda k: k['created'], reverse=True)
+
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        feedback = None
+    finally:
+        return {'feedback': feedback}
 
 
 if __name__ == "__main__":
