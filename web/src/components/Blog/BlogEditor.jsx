@@ -22,7 +22,7 @@ const styles = (theme) => ({
     },
     blogEditor: {
         marginTop: '20px',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: 'white',
     },
     inputField: {
         marginTop: '10px',
@@ -39,6 +39,15 @@ const styles = (theme) => ({
         flexDirection: 'row',
         justifyContent: 'flex-start',
         alignItems: 'center',
+    },
+    thumbnailSection: {
+        border: '1px solid gray',
+        padding: '10px',
+        marginTop: '15px',
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'bottom',
     }
 })
 
@@ -83,6 +92,21 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
         })
     }
 
+    const [thumbnail, setThumbnail] = useState(null)
+    const handleThumbnail = async (e) => {
+        let file = e.target.files[0];
+        const formData = new FormData()
+        formData.append("image", file)
+        console.log(formData)
+
+        fetch("https://api.imgbb.com/1/upload?key=d36eb6591370ae7f9089d85875e56b22",
+              {method: "POST", body: formData})
+            .then(response => response.json())
+            .then(result => {
+                setThumbnail(result.data.url)
+            })
+    }
+
     // Setup Quill Editor
     function addCss(fileName) {
         var head = document.head;
@@ -121,7 +145,7 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
                               {method: "POST", body: formData})
                             .then(response => response.json())
                             .then(result => {
-                                console.log(result)
+                                console.log(formData)
                                 resolve(result.data.url)
                             })
                         .catch(error => {
@@ -159,6 +183,16 @@ const BlogEditor = ({blog, setBlog, updateBlog, classes}) => {
                 onChange={(e) => setPermalink(e.target.value)}
                 helperText="The url suffix"
             />
+            <div className={classes.thumbnailSection}>
+                <Button variant='contained' component='label'>
+                    Upload Thumbnail
+                    <input type="file" hidden onChange={e => handleThumbnail(e)}/>
+                </Button>
+                {thumbnail
+                    ? <img src={thumbnail}></img>
+                    : null
+                }
+            </div>
             <div id='blog-editor' className={classes.blogEditor}>
                 {(modules && formats)
                     ? <ReactQuill
