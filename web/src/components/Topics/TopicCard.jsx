@@ -46,7 +46,7 @@ const styles = (theme) => ({
     },
 })
 
-const TopicCard = ({topic, max, classes}) => {
+const TopicCard = ({videoId, topic, max, classes}) => {
 
     const [labels, setLabels] = useState(null)
     const [toks, setToks] = useState(null)
@@ -62,7 +62,7 @@ const TopicCard = ({topic, max, classes}) => {
     const [comments, setComments] = useState(null)
     const getComments = () => {
         if (!comments) {
-            setComments(<CommentsBlock topicComments={topic.comments} />)
+            setComments(<CommentsBlock videoId={videoId} topic={topic.token} topicComments={topic.comments} />)
         }
     }
 

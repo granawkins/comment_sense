@@ -1,10 +1,21 @@
 import json, time, queue, sys
+import logging
 from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
 from database import Database
 from analyzer import Analyzer
 from clusterer import Clusterer, cluster
 from id_hash import hash
+
+# Initialize Logger
+logger = logging.getLogger('cs_api')
+logger.setLevel(logging.DEBUG)
+# Set custom logger for all comment_sense calls
+cs = logging.FileHandler('api/logs/cs_logs.log')
+cs.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+cs.setFormatter(formatter)
+logger.addHandler(cs)
 
 env='desktop'
 db_name = 'comment_sense_6'
@@ -19,6 +30,7 @@ def recent():
     videos_per_page = 10
     request_data = request.get_json()
     page_number = request_data['page']
+    logger.info(f"recent - page {page_number}")
     database_videos = db.recent(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
@@ -27,6 +39,7 @@ def top():
     videos_per_page = 10
     request_data = request.get_json()
     page_number = request_data['page']
+    logger.info(f"top - page {page_number}")
     database_videos = db.top(int(videos_per_page), int(page_number))
     return {'videos': database_videos}
 
@@ -43,6 +56,7 @@ def search():
     }
     if 'next' in request_data.keys():
         args['page_token'] = request_data['next']
+    logger.info(f"search - {args}")
     results = yt.search(**args)
     return {
         'videos': results['videos'],
@@ -51,6 +65,7 @@ def search():
 
 @app.route('/api/video/<videoId>', methods=['GET'])
 def video(videoId):
+    logger.info(f"video - {videoId}")
     video_data = yt.video(videoId)
     db_data = db.video(videoId)
     video_data['topics'] = [] if not db_data else db_data['topics']
@@ -70,6 +85,7 @@ def topics():
     }
     if 'page' in request_data:
         args['page'] = request_data['page']
+    logger.info(f"topics - {args}")
     db_data = db.topics(**args)
     return {'topics': db_data}
 
@@ -77,6 +93,7 @@ def topics():
 def comments():
     request_data = request.get_json()
     comment_ids = request_data['comments']
+    logger.info(f"comments - {request_data}")
     comments = db.comments(comment_ids)
     return {'comments': comments}
 
@@ -95,10 +112,12 @@ def analyze():
         old_analyzed = []
 
     # Get comments from YouTube API
+    logger.info(f"youtube_comments - {videoId}, {n_target}, {page_token}")
     comment_data, next_page_token = yt.comments(videoId, n_target, page_token)
     # -> [[id, videoId, text, author, parent, likes, published], ...]
 
     # Get analyzed comments and add to database
+    logger.info(f"analyze - {videoId}, {len(comment_data)}")
     new_analyzed = an.analyze(comment_data)
     # -> [[id, likes, sentiment, topics], ...]
 
@@ -110,6 +129,7 @@ def analyze():
     n_topics = 200
     subs = []
     user_labs = []
+    logger.info(f"cluster - {videoId}, {len(analyzed)}")
     topics_raw = cluster(analyzed, n_topics, subs, user_labs)
     # -> [[token, toks, label, n, likes, sentiment, commentIds], ...]
 
@@ -198,6 +218,20 @@ def get_feedback():
     finally:
         return {'feedback': feedback}
 
+
+@app.route('/api/get_logs', methods=['POST'])
+def get_logs():
+    params = request.get_json()
+    print(params)
+    # results = {p: [] for p in params}
+    # with open("api/logs/cs_logs.log" 'r') as f:
+    #     for line in f:
+    #         for p in params:
+    #             if p in line:
+    #                 results[p].append(line)
+    # return results
+
+    # name, levelname, api
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

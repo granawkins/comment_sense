@@ -11,7 +11,7 @@ const styles = (theme) => ({
     },
 })
 
-const CommentsBlock = ({topicComments, classes}) => {
+const CommentsBlock = ({videoId, topic, topicComments, classes}) => {
 
     const COMMENTS_PER_PAGE = 10
 
@@ -41,6 +41,8 @@ const CommentsBlock = ({topicComments, classes}) => {
         try {
             let apiRef = '/api/comments'
             let data = {
+                videoId: videoId,
+                topic: topic,
                 comments: topicComments.slice(lastLoaded, lastLoaded + COMMENTS_PER_PAGE)
             }
             let result = await postData(apiRef, data)

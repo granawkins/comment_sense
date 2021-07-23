@@ -67,7 +67,7 @@ const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
         let newMax = Math.max(maxScore, items[0].score)
         setMaxScore(newMax)
 
-        newItems = items.map(t => <TopicCard topic={t} max={newMax} key={t.token} />)
+        newItems = items.map(t => <TopicCard videoId={videoId} topic={t} max={newMax} key={t.token} />)
         setTopicsFeed(oldItems => [...oldItems, newItems])
         setUpdatingFeed(false)
     }
