@@ -8,10 +8,10 @@ import { postData } from '../utils/helpers.js';
 
 const styles = (theme) => ({
     root: {
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        flexWrap: 'nowrap',
         backgroundColor: '#f5f5f5',
         margin: '0',
         padding: '10px 0',
@@ -47,12 +47,12 @@ const Feed = ({pageName, classes}) => {
     const addToFeed = (items) => {
         let newItems = []
         if (Object.keys(items).includes('channels')) {
-            items.channels.reverse().forEach(channel => newItems.push(
+            items.channels.forEach(channel => newItems.push(
                 <FeedCard type='channel' data={channel} key={channel.channelId} />
             ))
         }
         if (Object.keys(items).includes('videos')) {
-            items.videos.reverse().forEach(video => newItems.push(
+            items.videos.forEach(video => newItems.push(
                 <FeedCard type='video' data={video} key={video.id} />
             ))
         }
@@ -114,7 +114,7 @@ const Feed = ({pageName, classes}) => {
     }, [])
 
     return (
-        <div>
+        <div className={classes.root}>
             {feed}
             <div ref={loader} />
             {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}

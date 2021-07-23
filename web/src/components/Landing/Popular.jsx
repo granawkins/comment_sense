@@ -33,7 +33,7 @@ const Popular = ({classes}) => {
     const buildFeed = (data) => {
         let feedItems = []
         if (Object.keys(data).includes('videos')) {
-            data.videos.reverse().forEach(video => feedItems.push(
+            data.videos.forEach(video => feedItems.push(
                 <FeedCard type='video' data={video} key={video.id} />
             ))
         }

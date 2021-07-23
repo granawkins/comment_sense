@@ -229,7 +229,6 @@ class Database():
     # Doesn't accept datetime object, so have to exclude created.
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY created DESC")
     result = self.cursor.fetchall()
-    result.reverse()
     start = min(len(result), int(n) * (int(page) - 1))
     finish = min(len(result), start + int(n))
     return result[start:finish]
@@ -240,7 +239,6 @@ class Database():
     # Doesn't accept datetime object, so have to exclude created.
     self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY n_analyzed DESC")
     result = self.cursor.fetchall()
-    result.reverse()
     start = min(len(result), int(n) * (int(page) - 1))
     finish = min(len(result), start + int(n))
     return result[start:finish]

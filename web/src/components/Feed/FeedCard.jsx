@@ -12,15 +12,10 @@ import { postData } from '../../utils/helpers';
 const styles = (theme) => ({
     root: {
         height: '100%',
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        width: '100%',
-        borderRadius: '0',
         padding: '0',
         margin: '10px 0 0 0',
         boxSizing: 'border-box',
+        width: '100%',
         [theme.breakpoints.up('sm')]: {
             width: '480px',
         },
@@ -29,16 +24,20 @@ const styles = (theme) => ({
         },
     },
     link: {
-        display: 'flex',
         width: '100%',
         height: '100%',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        textDecoration: 'none',
         color: 'inherit',
+        textDecoration: 'none',
+        // flexDirection: 'row',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        // display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr',
+        gridAutoRows: '1fr',
     },
     cover: {
-        width: '40%',
+        gridColumn: '1',
         height: 'auto',
         marginBottom: '0',
         display: 'flex',
@@ -48,12 +47,12 @@ const styles = (theme) => ({
     },
     details: {
         height: '100%',
-        width: '60%',
+        gridColumn: '2 / span 2',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-evenly',
-        top: '0',
-        padding: '8px',
+        justifyContent: 'space-between',
+        padding: '8px 16px',
+        boxSizing: 'border-box',
     },
     actionArea: {
         alignItems: 'flex-start',
@@ -68,6 +67,7 @@ const styles = (theme) => ({
     channelImage: {
         borderRadius: '50%',
         maxHeight: '90px',
+        margin: '5%',
         width: 'auto',
     }
 })
@@ -99,7 +99,7 @@ const FeedCard = ({type, data, inactive, classes}) => {
             default: break
         }
         if (Object.keys(data).includes("n_analyzed")) {
-            setDbInfo(<Typography color='secondary'>{data.n_analyzed} comments analyzed</Typography>)
+            setDbInfo(<Typography variant='body1' color='secondary'>{data.n_analyzed} comments analyzed</Typography>)
         }
     }, [])
     // Compile data fields into flexbox
@@ -107,28 +107,28 @@ const FeedCard = ({type, data, inactive, classes}) => {
     // Get info from database
 
     return (
-        <Link to={inactive ? '#' : pageUrl} className={classes.link}>
-            <Card className={classes.root}>
-                <div className={classes.cover}>
-                    {data.thumbnail
-                        ? <CardMedia
-                            className={type === 'channel' ? classes.channelImage : ""}
-                            component='img'
-                            src={data.thumbnail}
-                            title={title}
-                        />
-                        : null
-                    }
-                </div>
-                <div className={classes.details}>
-                    <CardActionArea className={classes.actionArea}>
-                        <Typography variant='body1'>{title}</Typography>
+        <Card className={classes.root}>
+            <CardActionArea className={classes.actionArea}>
+                <Link to={inactive ? '#' : pageUrl} className={classes.link}>
+                    <div className={classes.cover}>
+                        {data.thumbnail
+                            ? <CardMedia
+                                className={type === 'channel' ? classes.channelImage : ""}
+                                component='img'
+                                src={data.thumbnail}
+                                title={title}
+                            />
+                            : null
+                        }
+                    </div>
+                    <div className={classes.details}>
+                        <Typography variant='body1' style={{fontWeight: '400', fontSize: '1.2em'}}>{title}</Typography>
                         {infoFields.map(field => <Typography variant='caption'>{field}</Typography>)}
                         {dbInfo}
-                    </CardActionArea>
-                </div>
-            </Card>
-        </Link>
+                    </div>
+                </Link>
+            </CardActionArea>
+        </Card>
     )
 }
 
