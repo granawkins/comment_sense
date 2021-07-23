@@ -12,6 +12,7 @@ import { withStyles } from '@material-ui/core/styles'
 
 import BlogAdmin from './Blog/BlogAdmin'
 import Feedback from './Admin/Feedback'
+import Logs from './Admin/Logs'
 import Placeholder from './Placeholder'
 
 const drawerWidth = 240
@@ -85,7 +86,7 @@ const Admin = ({classes}) => {
                         <BlogAdmin />
                     </Route>
                     <Route exact path={`/admin/logs`}>
-                        <Placeholder pageName='Logs' />
+                        <Logs />
                     </Route>
                     <Route exact path={`/admin/feedback`}>
                         <Feedback />

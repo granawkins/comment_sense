@@ -1,4 +1,4 @@
-import json, time, queue, sys
+import json, time, queue, sys, os
 import logging
 from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
@@ -54,9 +54,9 @@ def search():
         'key': key,
         'n': results_per_page
     }
+    logger.info(f"search - {json.dumps(args)}")
     if 'next' in request_data.keys():
         args['page_token'] = request_data['next']
-    logger.info(f"search - {args}")
     results = yt.search(**args)
     return {
         'videos': results['videos'],
@@ -85,7 +85,7 @@ def topics():
     }
     if 'page' in request_data:
         args['page'] = request_data['page']
-    logger.info(f"topics - {args}")
+    logger.info(f"topics - {json.dumps(args)}")
     db_data = db.topics(**args)
     return {'topics': db_data}
 
@@ -93,7 +93,7 @@ def topics():
 def comments():
     request_data = request.get_json()
     comment_ids = request_data['comments']
-    logger.info(f"comments - {request_data}")
+    logger.info(f"comments - {request_data['videoId']}, {request_data['topic']}")
     comments = db.comments(comment_ids)
     return {'comments': comments}
 
@@ -112,7 +112,7 @@ def analyze():
         old_analyzed = []
 
     # Get comments from YouTube API
-    logger.info(f"youtube_comments - {videoId}, {n_target}, {page_token}")
+    logger.info(f"youtube_comments - {videoId}, {n_target}")
     comment_data, next_page_token = yt.comments(videoId, n_target, page_token)
     # -> [[id, videoId, text, author, parent, likes, published], ...]
 
@@ -158,6 +158,7 @@ def blogs():
 def get_blog_post(permalink):
     post = None
     try:
+        logger.info(f"blog - {permalink}")
         post = db.get_blog_post({'permalink': permalink})
     except:
         print("Unexpected error retrieving blog post:", sys.exc_info()[0])
@@ -221,17 +222,14 @@ def get_feedback():
 
 @app.route('/api/get_logs', methods=['POST'])
 def get_logs():
-    params = request.get_json()
-    print(params)
-    # results = {p: [] for p in params}
-    # with open("api/logs/cs_logs.log" 'r') as f:
-    #     for line in f:
-    #         for p in params:
-    #             if p in line:
-    #                 results[p].append(line)
-    # return results
-
-    # name, levelname, api
+    params = request.get_json() # ignore for now
+    results = []
+    script_dir = os.path.dirname(__file__)
+    file_path = os.path.join(script_dir, 'logs/cs_logs.log')
+    with open(file_path) as f:
+        for line in f:
+            results.append(line)
+    return {'logs': results}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
