@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 
-import Navbar from './Landing/Navbar'
-import Footer from './Landing/Footer'
-import Splash from './Landing/Splash'
-import Pricing from './Landing/Pricing'
+import Navbar from './landing/Navbar'
+import Footer from './landing/Footer'
+import Splash from './landing/Splash'
+import Pricing from './landing/Pricing'
 
 const styles = (theme) => ({
     root: {

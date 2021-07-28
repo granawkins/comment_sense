@@ -193,3 +193,44 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
     all_sorted = sorted(all_parsed, key=lambda e: e[3], reverse=True)
 
     return all_sorted[:n_topics]
+
+def cluster_topics(videos):
+    all_topics = {}
+    def add_topic(topic, videoId):
+        token = topic['token']
+        if token in all_topics.keys():
+            t = all_topics[token].copy()
+            for tok in topic['toks']:
+                if tok not in t['toks']:
+                    t['toks'].append(tok)
+            if topic['type'] not in t['type']:
+                t['type'].append(topic['type'])
+            t['likes'] += topic['likes']
+            t['score'] += topic['score']
+            t['sentiment'] = {
+                'pos': t['sentiment']['pos'] + topic['sentiment']['pos'],
+                'neg': t['sentiment']['neg'] + topic['sentiment']['neg'],
+                'neu': t['sentiment']['neu'] + topic['sentiment']['neu'],
+            }
+            t['videos'].append((videoId, topic['comments']))
+            all_topics[token] = t
+        else:
+            new_topic = {
+                'token': topic['token'],
+                'toks': topic['toks'],
+                'type': [topic['type']],
+                'likes': topic['likes'],
+                'score': topic['score'],
+                'sentiment': topic['sentiment'],
+                'videos': [(videoId, topic['comments'])]
+            }
+            all_topics[token] = new_topic
+
+    for video in videos:
+        topics = json.loads(video['topics'])
+        for topic in topics:
+            add_topic(topic, video['id'])
+
+    topics_list = [all_topics[t] for t in all_topics]
+    topics_list_sorted = sorted(topics_list, key=lambda e: e['score'], reverse=True)
+    return topics_list_sorted

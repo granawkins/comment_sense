@@ -234,6 +234,19 @@ class Database():
     return result[start:finish]
 
 
+  def videos(self, channelId, search, sort, n=10, page=1):
+    sql = """SELECT id, title, thumbnail, published, n_analyzed, channelTitle
+             FROM videos
+             WHERE channelId = %s
+             ORDER BY published DESC"""
+    self.cursor.execute(sql, (channelId, ))
+    result = self.cursor.fetchall()
+    start = min(len(result), int(n) * (int(page) - 1))
+    finish = min(len(result), start + int(n))
+    return {'videos': result[start:finish]}
+
+
+
   def top(self, n=10, page=1):
     self.refresh()
     # Doesn't accept datetime object, so have to exclude created.
@@ -257,16 +270,11 @@ class Database():
       return result
 
 
-  def topics(self, videoId, n=20, page=1):
-    video_data = self.video(videoId)
-    if not video_data:
-      return None
-    if 'topics' not in video_data.keys():
-      return None
-    topics = json.loads(video_data['topics'])
-    start = min(len(topics), int(n) * (int(page) - 1))
-    finish = min(len(topics), start + int(n))
-    return json.dumps(topics[start:finish])
+  def topics(self, channelId, videoId=None, search=None, sort=None, n=10, page=1):
+    sql = "SELECT id, topics FROM videos WHERE channelId = %s"
+    self.cursor.execute(sql, (channelId, ))
+    result = self.cursor.fetchall()
+    return {'videos': result}
 
 
   def n_analyzed(self, videoId):
@@ -307,6 +315,7 @@ class Database():
     results = self.cursor.fetchall()
     return results
 
+# ADMIN
 
   def add_blog_post(self, data):
     c = {

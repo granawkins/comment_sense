@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
 from database import Database
 from analyzer import Analyzer
-from clusterer import Clusterer, cluster
+from clusterer import Clusterer, cluster, cluster_topics
 from id_hash import hash
 
 # Initialize Logger
@@ -25,43 +25,47 @@ yt = YouTube()
 db = Database(env, name=db_name)
 an = Analyzer(env, db)
 
-@app.route('/api/recent', methods=['GET', 'POST'])
-def recent():
-    videos_per_page = 10
-    request_data = request.get_json()
-    page_number = request_data['page']
-    logger.info(f"recent - page {page_number}")
-    database_videos = db.recent(int(videos_per_page), int(page_number))
-    return {'videos': database_videos}
+# USER
 
-@app.route('/api/top', methods=['GET', 'POST'])
-def top():
-    videos_per_page = 10
+@app.route('/api/videos', methods=['POST'])
+def videos():
     request_data = request.get_json()
-    page_number = request_data['page']
-    logger.info(f"top - page {page_number}")
-    database_videos = db.top(int(videos_per_page), int(page_number))
-    return {'videos': database_videos}
-
-@app.route('/api/search', methods=['GET', 'POST'])
-def search():
-    results_per_page = 10
-    request_data = request.get_json()
-    key = request_data['key']
-    if not key:
-        return {'videos': []}
+    user = request_data['user']
+    if 'channelId' not in user.keys():
+        return
     args = {
-        'key': key,
-        'n': results_per_page
+        'channelId': user['channelId'],
+        'search': request_data['search'],
+        'sort': request_data['sort'],
+        'n': request_data['pageSize'],
+        'page': request_data['pageNumber'],
     }
-    logger.info(f"search - {json.dumps(args)}")
-    if 'next' in request_data.keys():
-        args['page_token'] = request_data['next']
-    results = yt.search(**args)
-    return {
-        'videos': results['videos'],
-        'channels': results['channels'],
-        'next': results['next']}
+    logger.info(f"videos - {json.dumps(args)}")
+    db_data = db.videos(**args)
+    videos = db_data['videos']
+    return {'items': videos}
+
+@app.route('/api/topics', methods=['POST'])
+def topics():
+    request_data = request.get_json()
+    user = request_data['user']
+    if 'channelId' not in user.keys():
+        return
+    args = {
+        'channelId': user['channelId'],
+        'videoId': request_data['videoId'],
+        'search': request_data['search'],
+        'sort': request_data['sort'],
+    }
+    logger.info(f"videos - {json.dumps(args)}")
+    db_data = db.topics(**args)
+    topics = cluster_topics(db_data['videos'])
+    n = int(request_data['pageSize'])
+    page = int(request_data['pageNumber'])
+    start = min(len(topics), int(n) * (int(page) - 1))
+    finish = min(len(topics), start + int(n))
+    return {'items': topics[start:finish]}
+
 
 @app.route('/api/video/<videoId>', methods=['GET'])
 def video(videoId):
@@ -72,22 +76,6 @@ def video(videoId):
     video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
     video_data['next_page_token'] = None if not db_data else db_data['next_page_token']
     return {'video_data': video_data}
-
-@app.route('/api/topics', methods=['POST'])
-def topics():
-    topics_per_page = 20
-    request_data = request.get_json()
-    videoId = request_data['videoId']
-    page_number = request_data['page']
-    args = {
-        'videoId': videoId,
-        'n': topics_per_page,
-    }
-    if 'page' in request_data:
-        args['page'] = request_data['page']
-    logger.info(f"topics - {json.dumps(args)}")
-    db_data = db.topics(**args)
-    return {'topics': db_data}
 
 @app.route('/api/comments', methods=['POST'])
 def comments():
@@ -149,6 +137,9 @@ def analyze():
     # Send results to frontend
     return {'video_data': video_data}
 
+
+# ADMIN
+
 @app.route('/api/blogs', methods=['GET'])
 def blogs():
     db_data = db.get_blog_posts()
@@ -193,7 +184,6 @@ def remove_blog():
     else:
         return {'successful': successful}
 
-
 @app.route('/api/add_feedback', methods=['POST'])
 def add_feedback():
     feedback = request.get_json()
@@ -206,7 +196,6 @@ def add_feedback():
     finally:
         return {'successful': successful}
 
-
 @app.route('/api/get_feedback', methods=['GET'])
 def get_feedback():
     try:
@@ -218,7 +207,6 @@ def get_feedback():
         feedback = None
     finally:
         return {'feedback': feedback}
-
 
 @app.route('/api/get_logs', methods=['POST'])
 def get_logs():

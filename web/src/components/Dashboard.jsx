@@ -13,7 +13,8 @@ import Toolbar from '@material-ui/core/Toolbar'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 
-import Footer from './Landing/Footer'
+import Footer from './landing/Footer'
+import Feed from './dashboard/Feed'
 
 const drawerWidth = '240px'
 
@@ -86,6 +87,10 @@ const styles = (theme) => ({
 
 const Dashboard = ({classes}) => {
 
+    const user = {
+        channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ'
+    }
+
     const [mobileOpen, setMobileOpen] = useState(false)
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen)
@@ -108,7 +113,7 @@ const Dashboard = ({classes}) => {
             </Link>
             <List>
                 {drawerItems.map((text, index) => (
-                    <Link to={`./${text}`} className={classes.link}>
+                    <Link to={`./${text}`} className={classes.link} key={text}>
                         <ListItem button key={text} selected={text === activePage}>
                             <Typography classes={{root: classes.h6}}>
                                 {capitalize(text)}
@@ -169,10 +174,14 @@ const Dashboard = ({classes}) => {
             <div className={classes.content}>
                 <Switch>
                     <Route exact path={`/dashboard/videos`}>
-                        Videos
+                        <Feed user={user} type='videos' key='videos'/>
                     </Route>
                     <Route exact path={`/dashboard/topics`}>
-                        Topics
+                        <Feed user={user} type='topics' key='topics' />
+                    </Route>
+                    <Route exact path={`/video/:videoId`}>
+                        {/* <VideoPlayer user={user} /> */}
+                        <Feed user={user} type='topics' />
                     </Route>
                     <Route exact path={`/dashboard/settings`}>
                         Settings

@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
-import Navbar from './components/Landing/Navbar.jsx'
+import Navbar from './components/landing/Navbar.jsx'
 import Feed from "./components/Feed.jsx"
 import { Video } from "./components/Video.jsx"
 import Landing from "./components/Landing.jsx"
@@ -10,7 +10,7 @@ import BlogFeed from "./components/BlogFeed.jsx"
 import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
 import Contact from "./components/Contact.jsx"
 import Placeholder from "./components/Placeholder.jsx"
-import Footer from "./components/Landing/Footer.jsx"
+import Footer from "./components/landing/Footer.jsx"
 import Dashboard from "./components/Dashboard.jsx"
 import './App.css';
 
