@@ -21,12 +21,34 @@ const styles = (theme) => ({
         alignItems: 'center',
         justifyContent: 'space-evenly',
         flexWrap: 'nowrap',
-        marginTop: '60px',
-        margin: '10px',
+        marginTop: theme.spacing(16),
+        margin: theme.spacing(2),
         maxWidth: '100%',
         [theme.breakpoints.up('sm')]: {
             width: '600px',
         },
+    },
+    textBlock: {
+        width: '60%',
+    },
+    red: {
+        color: theme.palette.csRed.main,
+    },
+    benefit: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        padding: '2px',
+        fontSize: '1em',
+        fontWeight: '200',
+        [theme.breakpoints.up('sm')]: {
+            fontSize: '1.2em',
+            padding: '4px'
+        },
+    },
+    checkGap: {
+        width: '10px',
     },
     imageBlock: {
         position: 'relative',
@@ -54,104 +76,115 @@ const styles = (theme) => ({
             width: '84%',
         },
     },
-    textBlock: {
-        width: '60%',
+    link: {
+        color: 'inherit',
+        textDecoration: 'none',
     },
-    leadLine: {
-        fontFamily: 'Roboto',
-        fontSize: '40px',
-        lineHeight: '1',
-        fontWeight: '800',
+    ctaDesktop: {
+        display: 'none',
         [theme.breakpoints.up('sm')]: {
-            fontSize: '60px',
-        },
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            marginTop: theme.spacing(2)
+        }
     },
-    csRed: {
-        backgroundColor: theme.palette.csRed.main,
-        color: 'white',
-    },
-    benefit: {
+    ctaMobile: {
         display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        padding: '2px',
-        fontSize: '1em',
-        fontWeight: '200',
-        [theme.breakpoints.up('md')]: {
-            fontSize: '1.2em',
-            padding: '4px'
+        flexDirection: 'column',
+        [theme.breakpoints.up('sm')]: {
+            display: 'none',
         },
-    },
-    checkGap: {
-        width: '10px',
-    },
-    cta: {
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        paddingTop: '20px',
     },
     ctaButton: {
-        [theme.breakpoints.up('xs')]: {
-            minWidth: '120px',
+        fontSize: '1em',
+        width: '200px',
+        height: '50px',
+        margin: theme.spacing(2),
+        [theme.breakpoints.up('sm')]: {
+            width: '160px',
+            height: '40px',
+            margin: '0',
         },
-    }
+    },
+    ctaRed: {
+        backgroundColor: theme.palette.csRed.main,
+        color: 'white',
+        '&:hover': {
+            backgroundColor: theme.palette.csRed.dark,
+        },
+    },
+    ctaDark: {
+        backgroundColor: theme.palette.secondary.dark,
+        color: 'white',
+        '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+        },
+    },
 })
 
 const Splash = ({classes}) => {
+
+    const ctaButtons = (
+        <>
+            <Router.Link to={'/dashboard'} className={classes.link}>
+                <Button
+                    id="demo"
+                    variant='contained'
+                    className={`${classes.ctaButton} ${classes.ctaRed}`}
+                    onClick={() => {}}
+                >DEMO</Button>
+            </Router.Link>
+            <Button
+                id="freeTrial"
+                variant='contained'
+                className={`${classes.ctaButton} ${classes.ctaDark}`}
+                onClick={() => {}}
+            >FREE TRIAL</Button>
+        </>
+    )
+
     return(
         <div className={classes.root}>
-        <div className={classes.content}>
-            <div className={classes.textBlock}>
-                <Typography className={classes.leadLine}>
-                    Your{<br/>}YouTube{<br/>}comments,{<br/>}<span className={classes.red}>sorted.</span>
-                </Typography>
-                {<br/>}
-                <Typography className={classes.benefit}>
-                    <CheckIcon style={{fontSize: '1.5em'}} />
-                    <div className={classes.checkGap}></div>
-                    Scan hundreds of comments in seconds
-                </Typography>
-                <Typography className={classes.benefit}>
-                    <CheckIcon style={{fontSize: '1.5em'}} />
-                    <div className={classes.checkGap}></div>
-                    Cluster by topic
-                </Typography>
-                <Typography className={classes.benefit}>
-                    <CheckIcon style={{fontSize: '1.5em'}} />
-                    <div className={classes.checkGap}></div>
-                    AI-powered sentiment analysis
-                </Typography>
-                <Typography className={classes.benefit} style={{fontWeight: '600'}}>
-                    <CheckIcon style={{fontSize: '1.5em'}} />
-                    <div className={classes.checkGap}></div>
-                    Get the full story
-                </Typography>
-                <div className={classes.cta}>
-                    <Router.Link to={'/dashboard'} className={classes.link}>
-                        <Button
-                            id="demo"
-                            variant='contained'
-                            className={classes.ctaButton, classes.csRed}
-                            onClick={() => {}}
-                        >DEMO</Button>
-                    </Router.Link>
-                    <Button
-                        id="freeTrial"
-                        variant='contained'
-                        color='dark'
-                        className={classes.ctaButton}
-                        onClick={() => {}}
-                    >FREE TRIAL</Button>
+            <div className={classes.content}>
+                <div className={classes.textBlock}>
+                    <Typography variant='h1' style={{fontFamily: 'Roboto'}}>
+                        Your{<br/>}YouTube{<br/>}comments,{<br/>}<span className={classes.red}>sorted.</span>
+                    </Typography>
+                    {<br/>}
+                    <Typography className={classes.benefit}>
+                        <CheckIcon style={{fontSize: '1.5em'}} />
+                        <div className={classes.checkGap}></div>
+                        Scan hundreds of comments in seconds
+                    </Typography>
+                    <Typography className={classes.benefit}>
+                        <CheckIcon style={{fontSize: '1.5em'}} />
+                        <div className={classes.checkGap}></div>
+                        Cluster by topic
+                    </Typography>
+                    <Typography className={classes.benefit}>
+                        <CheckIcon style={{fontSize: '1.5em'}} />
+                        <div className={classes.checkGap}></div>
+                        AI-powered sentiment analysis
+                    </Typography>
+                    <Typography className={classes.benefit} style={{fontWeight: '600'}}>
+                        <CheckIcon style={{fontSize: '1.5em'}} />
+                        <div className={classes.checkGap}></div>
+                        Get the full story
+                    </Typography>
+                    <div className={classes.ctaDesktop}>
+                        {ctaButtons}
+                    </div>
+                </div>
+                <div className={classes.imageBlock}>
+                    <img src={iPhoneFrame} className={classes.iPhoneFrame}></img>
+                    <img src={demoGif} className={classes.demoGif}></img>
                 </div>
             </div>
-            <div className={classes.imageBlock}>
-                <img src={iPhoneFrame} className={classes.iPhoneFrame}></img>
-                <img src={demoGif} className={classes.demoGif}></img>
+            <div className={classes.ctaMobile}>
+                {ctaButtons}
             </div>
-        </div>
         </div>
     )
 }

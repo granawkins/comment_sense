@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
-import Navbar from './components/Navbar.jsx'
+import Navbar from './components/Landing/Navbar.jsx'
 import Feed from "./components/Feed.jsx"
 import { Video } from "./components/Video.jsx"
 import Landing from "./components/Landing.jsx"
@@ -10,45 +10,49 @@ import BlogFeed from "./components/BlogFeed.jsx"
 import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
 import Contact from "./components/Contact.jsx"
 import Placeholder from "./components/Placeholder.jsx"
-import Footer from "./components/Footer.jsx"
+import Footer from "./components/Landing/Footer.jsx"
 import Dashboard from "./components/Dashboard.jsx"
 import './App.css';
 
 const csRed = '#B70000'
 const lightWeight = '200'
-const boldWeight = '400'
+const boldWeight = '600'
 
 const theme = createTheme({
   typography: {
     fontFamily: ['Roboto'],
     h1: {
-      fontSize: '30pt',
+      fontSize: '2.5em',
       fontWeight: '800',
       lineHeight: '1',
-      // [theme.breakpoints.up('sm')]: {
-      //   fontSize: '60px',
-      // },
     },
     h3: {
-      fontSize: '28pt',
+      fontSize: '2em',
       fontWeight: boldWeight,
     },
     h4: {
-      fontSize: '28pt',
+      fontSize: '2em',
       fontWeight: lightWeight,
       color: csRed,
     },
     h5: {
-      fontSize: '18',
+      fontSize: '1.2em',
       fontWeight: boldWeight,
     },
     h6: {
-      fontSize: '18',
+      fontSize: '1.2em',
       fontWeight: lightWeight,
     },
     body1: {
-      fontSize: '14',
+      fontSize: '1em',
       fontWeight: lightWeight,
+    },
+  },
+  overrides: {
+    MuiCssBaseline: {
+      '@global': {
+        '@font-face': 'Roboto',
+      },
     },
   },
   palette: {
@@ -60,8 +64,13 @@ const theme = createTheme({
       main: '#FFFFFF',
       dark: '#252526',
     },
+    error: {
+      main: '#B70000',
+      dark: '#FFFFFF',
+    },
     csRed: {
       main: csRed,
+      dark: '#8B0000',
     },
     faded: {
       main: '#7D7D7D',
@@ -76,6 +85,12 @@ const theme = createTheme({
   }
 })
 
+theme.typography.h1 = {
+  [theme.breakpoints.up('sm')]: {
+    fontSize: '3.5em',
+  },
+}
+
 const styles = (theme) => ({
   root: {
     display: 'flex',
@@ -83,7 +98,6 @@ const styles = (theme) => ({
     minHeight: '100vh',
     margin: 0,
     padding: 0,
-    backgroundColor: '#f5f5f5',
   },
   body: {
     flexGrow: 1,
@@ -98,13 +112,16 @@ const styles = (theme) => ({
 
 const App = ({classes}) => {
   return (
-    <div className={classes.root}>
-      <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
+      <div className={classes.root} style={{backgroundColor: theme.palette.primary.main}}>
         <Router>
           <Switch>
             <Route path='/' exact component={() => <Landing />} />
-            <Route path='/dashboard' exact component={() => <Dashboard />} />
-            <Route path='/:page' exact component={() => <Placeholder pageName="placeholder" />} />
+            <Route exact path='/dashboard'>
+              <Redirect to='/dashboard/videos' />
+            </Route>
+            <Route path='/dashboard/:tab' exact component={() => <Dashboard />} />
+            <Route path='/:page' exact component={() => <Placeholder />} />
             {/* <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
             <Route path='/top' exact component={() => <Feed pageName="top" />} />
             <Route path='/search/:key' exact component={() => <Feed pageName="search" />} />
@@ -118,8 +135,8 @@ const App = ({classes}) => {
             <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} /> */}
           </Switch>
         </Router>
-      </ThemeProvider>
-    </div>
+      </div>
+    </ThemeProvider>
   )
 }
 
