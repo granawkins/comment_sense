@@ -100,7 +100,7 @@ const styles = (theme) => ({
     }
 })
 
-const Splash = ({classes}) => {
+const Pricing = ({classes}) => {
     return(
         <div className={classes.root}>
         <div className={classes.content}>
@@ -156,5 +156,5 @@ const Splash = ({classes}) => {
     )
 }
 
-export default withStyles(styles)(Splash)
+export default withStyles(styles)(Pricing)
 

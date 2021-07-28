@@ -84,24 +84,17 @@ const useStyles = makeStyles((theme) => ({
   logo: {
     fontWeight: '400'
   },
+  logoText: {
+    fontSize: '24px',
+    fontWeight: '300',
+  },
+  csRed: {
+    color: theme.palette.csRed
+  },
   link: {
     textDecoration: 'none',
     color: 'inherit',
   },
-  menuButton: {
-    width: '200px',
-    height: '30px',
-  },
-  buttonsPanel: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'flex',
-    },
-  },
-  topLink: {
-    width: '90px',
-    height: '30px',
-  }
 }));
 
 export default function Navbar() {
@@ -185,82 +178,20 @@ export default function Navbar() {
   }
 
   return (
-    <div>
-      <AppBar id="navbar" position="absolute" className={classes.menuBar}>
-        <Toolbar variant="dense" className={classes.toolbarClass}>
-        <Grid container spacing={3} alignItems="center">
-
-          {/* Logo */}
-          <Grid item xs display="inline">
-            <Router.Link  to={"/"}>
-              <Link
-                  component="button"
-                  underline="none"
-                  color="textPrimary"
-              >
-                  <Typography display="inline" variant="h6" className={classes.logo}>Comment</Typography>
-                  <Typography display="inline" variant="h6" color="secondary" className={classes.logo}>Sense</Typography>
-              </Link>
-            </Router.Link>
-          </Grid>
-
-          <Grid item sm className={classes.buttonsPanel}>
-            <Router.Link to={'/top'} className={classes.link}>
-              <Button className={classes.topLink}>Top</Button>
-            </Router.Link>
-            <Router.Link to={'/recent'} className={classes.link}>
-              <Button className={classes.topLink}>Recent</Button>
-            </Router.Link>
-          </Grid>
-
-          {/* Desktop Search Bar */}
-          <Grid item sm>
-            <div className={classes.search}>
-                <div className={classes.searchIcon}>
-                <SearchIcon />
-                </div>
-                <InputBase
-                  placeholder="Search YouTube"
-                  classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
-                  }}
-                  inputProps={{ 'aria-label': 'search' }}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  onKeyDown={handleEnter}
-                />
-            </div>
-          </Grid>
-          <Grid container item xs direction="row" alignContent="flex-end" justifyContent="flex-end">
-
-            {/* Mobile Search Button */}
-            <IconButton
-                aria-label="search"
-                color="inherit"
-                onClick={handleSearchOpen}
-                className={classes.mobileSearchIcon}
-            >
-                <SearchIcon />
-            </IconButton>
-
-            {/* Menu Button */}
-            <IconButton
-                edge="end"
-                aria-label="account of current user"
-                aria-controls={menuId}
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                >
-                <AccountCircle />
-            </IconButton>
-          </Grid>
-        </Grid>
-        {renderSearch}
-        {renderMenu}
-        </Toolbar>
-      </AppBar>
-      <Toolbar className={classes.toolbarClass}/>
+    <div className={classes.root}>
+      <div className={classes.logo}>
+        <Router.Link  to={"/"}>
+          <Link className={classes.link}>
+              <Typography variant='h4' className={classes.logoText}>Comment</Typography>
+              <Typography className={`${classes.logoText} ${classes.csRed}`}>Sense</Typography>
+          </Link>
+        </Router.Link>
+      </div>
+      <div className={classes.enter}>
+        <Button className={classes.enterButton}>Signup</Button>
+        {` / `}
+        <Button className={classes.enterButton}>Login</Button>
+      </div>
     </div>
   );
 }

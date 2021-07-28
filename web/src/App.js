@@ -11,7 +11,70 @@ import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
 import Contact from "./components/Contact.jsx"
 import Placeholder from "./components/Placeholder.jsx"
 import Footer from "./components/Footer.jsx"
+import Dashboard from "./components/Dashboard.jsx"
 import './App.css';
+
+const csRed = '#B70000'
+const lightWeight = '200'
+const boldWeight = '400'
+
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Roboto'],
+    h1: {
+      fontSize: '30pt',
+      fontWeight: '800',
+      lineHeight: '1',
+      // [theme.breakpoints.up('sm')]: {
+      //   fontSize: '60px',
+      // },
+    },
+    h3: {
+      fontSize: '28pt',
+      fontWeight: boldWeight,
+    },
+    h4: {
+      fontSize: '28pt',
+      fontWeight: lightWeight,
+      color: csRed,
+    },
+    h5: {
+      fontSize: '18',
+      fontWeight: boldWeight,
+    },
+    h6: {
+      fontSize: '18',
+      fontWeight: lightWeight,
+    },
+    body1: {
+      fontSize: '14',
+      fontWeight: lightWeight,
+    },
+  },
+  palette: {
+    primary: {
+      main: '#F5F5F5',
+      dark: '#1E1E1E',
+    },
+    secondary: {
+      main: '#FFFFFF',
+      dark: '#252526',
+    },
+    csRed: {
+      main: csRed,
+    },
+    faded: {
+      main: '#7D7D7D',
+    },
+  },
+  components: {
+    MuiButton: {
+      variants: [
+
+      ]
+    }
+  }
+})
 
 const styles = (theme) => ({
   root: {
@@ -34,36 +97,15 @@ const styles = (theme) => ({
 })
 
 const App = ({classes}) => {
-
-  let theme = createTheme({
-    palette: {
-      primary: {
-        main: '#fafafa',
-      },
-      secondary: {
-        main: '#b71c1c',
-      },
-      dark: {
-        main: '#424242',
-      },
-      info: {
-        light: '#bdbdbd',
-        main: '#bdbdbd',
-        dark: '#bdbdbd',
-        contrastText: '#bdbdbd',
-      }
-    }
-  })
-
   return (
     <div className={classes.root}>
       <ThemeProvider theme={theme}>
         <Router>
-          <Navbar className={classes.navBar} />
-          <div className={classes.body}>
           <Switch>
             <Route path='/' exact component={() => <Landing />} />
-            <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
+            <Route path='/dashboard' exact component={() => <Dashboard />} />
+            <Route path='/:page' exact component={() => <Placeholder pageName="placeholder" />} />
+            {/* <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
             <Route path='/top' exact component={() => <Feed pageName="top" />} />
             <Route path='/search/:key' exact component={() => <Feed pageName="search" />} />
             <Route path='/video/:videoId' exact component={() => <Video  />} />
@@ -73,14 +115,12 @@ const App = ({classes}) => {
             <Route path='/blog/:permalink' exact component={() => <BlogDisplay />} />
             <Route path='/contact' exact component={() => <Contact />} />
             <Route path='/privacy' exact component={() => <Placeholder pageName='Privacy Policy' />} />
-            <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} />
+            <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} /> */}
           </Switch>
-          </div>
-          <Footer className={classes.footer} />
         </Router>
       </ThemeProvider>
     </div>
-  );
+  )
 }
 
 export default withStyles(styles)(App);
