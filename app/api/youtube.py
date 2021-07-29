@@ -22,6 +22,35 @@ class YouTube():
         self.youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
+    def get_channel_videos(self, channel_id, max_results=50,
+                       published_after=None, next_page=None):
+        args = {
+            'part': ['snippet'],
+            'channelId': channel_id,
+            'maxResults': int(max_results),
+            'order': 'date',
+        }
+        if published_after:
+            args['publishedAfter'] = published_after
+        if next_page:
+            args['pageToken'] = next_page
+        search_request = self.youtube.search().list(**args)
+        response = search_request.execute()
+        videos = []
+        for item in response['items']:
+            videos.append({
+                'videoId': item['id']['videoId'],
+                'publishedAt': item['snippet']['publishedAt'],
+                'title': item['snippet']['title'],
+                'thumbnail': item['snippet']['thumbnails']['medium']['url']
+            })
+        results = {
+            'next_page': response['nextPageToken'],
+            'total_videos': response['pageInfo']['totalResults'],
+            'videos': videos,
+        }
+        return results
+
     def search(self, key, n=25, page_token=None):
         args = {
             'part': 'snippet',

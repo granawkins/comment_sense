@@ -34,7 +34,7 @@ class Database():
     self.cursor.execute(f"USE {name}")
     self.createVideosTable()
     self.createCommentsTable()
-    self.createTopicsTable()
+    self.createChannelsTable()
     self.createBlogTable()
     self.createFeedbackTable()
 
@@ -76,18 +76,12 @@ class Database():
     self.db.commit()
 
 
-  def createTopicsTable(self):
+  def createChannelsTable(self):
     self.refresh()
-    self.cursor.execute("CREATE TABLE IF NOT EXISTS topics ( "
+    self.cursor.execute("CREATE TABLE IF NOT EXISTS channels ( "
       "id VARCHAR(32) NOT NULL, "
-      "token VARCHAR(64) NOT NULL, "
-      "label VARCHAR(16), "
-      "subs JSON, "
-      "videoIds VARCHAR(32) NOT NULL, "
-      "n_comments INT, "
-      "likes INT, "
-      "sentiment FLOAT(4, 3), "
-      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "topics JSON, "
+      "joined TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
       "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
@@ -271,8 +265,13 @@ class Database():
 
 
   def topics(self, channelId, videoId=None, search=None, sort=None, n=10, page=1):
-    sql = "SELECT id, topics FROM videos WHERE channelId = %s"
-    self.cursor.execute(sql, (channelId, ))
+    if videoId:
+      sql = 'SELECT topics FROM videos WHERE id = %s'
+      ref = videoId
+    else:
+      sql = "SELECT id, topics FROM videos WHERE channelId = %s"
+      ref = channelId
+    self.cursor.execute(sql, (ref, ))
     result = self.cursor.fetchall()
     return {'videos': result}
 

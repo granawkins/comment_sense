@@ -121,7 +121,7 @@ const App = ({classes}) => {
               <Redirect to='/dashboard/videos' />
             </Route>
             <Route path='/dashboard/:tab' exact component={() => <Dashboard />} />
-            <Route path='/:page' exact component={() => <Placeholder />} />
+            <Route path='/dashboard/:tab/:videoId' exact component={() => <Dashboard />} />
             {/* <Route path='/recent' exact component={() => <Feed pageName="recent" />} />
             <Route path='/top' exact component={() => <Feed pageName="top" />} />
             <Route path='/search/:key' exact component={() => <Feed pageName="search" />} />
@@ -132,7 +132,8 @@ const App = ({classes}) => {
             <Route path='/blog/:permalink' exact component={() => <BlogDisplay />} />
             <Route path='/contact' exact component={() => <Contact />} />
             <Route path='/privacy' exact component={() => <Placeholder pageName='Privacy Policy' />} />
-            <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} /> */}
+          <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} /> */}
+          <Route path='/:page' exact component={() => <Placeholder />} />
           </Switch>
         </Router>
       </div>

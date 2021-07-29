@@ -113,7 +113,7 @@ const Dashboard = ({classes}) => {
             </Link>
             <List>
                 {drawerItems.map((text, index) => (
-                    <Link to={`./${text}`} className={classes.link} key={text}>
+                    <Link to={`/dashboard/${text}`} className={classes.link} key={text}>
                         <ListItem button key={text} selected={text === activePage}>
                             <Typography classes={{root: classes.h6}}>
                                 {capitalize(text)}
@@ -179,9 +179,8 @@ const Dashboard = ({classes}) => {
                     <Route exact path={`/dashboard/topics`}>
                         <Feed user={user} type='topics' key='topics' />
                     </Route>
-                    <Route exact path={`/video/:videoId`}>
-                        {/* <VideoPlayer user={user} /> */}
-                        <Feed user={user} type='topics' />
+                    <Route exact path={`/dashboard/video/:videoId`}>
+                        <Feed user={user} type='topics' key='video' />
                     </Route>
                     <Route exact path={`/dashboard/settings`}>
                         Settings

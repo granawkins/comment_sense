@@ -88,7 +88,7 @@ const FeedCard = ({type, data, inactive, classes}) => {
             case 'video': {
                 setTitle(data.title)
                 setInfoFields([`${data.channelTitle} | ${data.published}`, data.description])
-                setPageUrl("../video/" + data.id)
+                setPageUrl("../dashboard/video/" + data.id)
                 break
             }
             case 'blog': {

@@ -27,6 +27,59 @@ an = Analyzer(env, db)
 
 # USER
 
+
+@app.route('/api/get_youtube_videos', methods=['POST'])
+def get_youtube_videos():
+    # Parse the request
+    request_data = request.get_json()
+    user = request_data['user']
+    if 'channelId' not in user.keys():
+        return
+    channel_id = user['channelId']
+    published_after = None if not 'publishedAfter' in request_data.keys() else request_data['publishedAfter']
+    max_videos = None if not 'maxVideos' in request_data.keys() else int(request_data['maxVideos'])
+
+    # Working variables
+    all_ids = [] # Get from database by channelId
+    all_videos = []
+    total_videos = None
+    next_page = None
+    end = False
+    error = False
+    while not end and not error:
+        try:
+            # Send request
+            args = {'channel_id': channel_id}
+            if published_after:
+                args['published_after'] = published_after
+            if next_page:
+                args['next_page'] = next_page
+            response = yt.get_channel_videos(**args)
+            # Parse response
+            resp_videos = response['videos']
+            new_videos = [v for v in resp_videos if v['videoId'] not in all_ids]
+            # Evaluate loop status
+            if len(new_videos) == 0:
+                end = "No videos returned"
+            else:
+                all_videos.extend(new_videos)
+                all_ids.extend([v['videoId'] for v in new_videos])
+                if not total_videos:
+                    total_videos = int(response['total_videos'])
+                if (len(all_videos) >= max_videos) | (len(all_videos) == total_videos):
+                    end = "Reached target number of videos"
+                next_page = response['next_page']
+        except:
+            error = "Error getting results from YouTube"
+
+    with open('casey_videos.json', 'w') as f:
+        print(f'dumping {len(all_videos)} out of {total_videos} videos to json.')
+        json.dump(all_videos, f)
+
+    # save to database: all_videos, total_videos, next_page, last_scan (date)
+    return {'all_videos': all_videos, 'total_videos': total_videos,
+            'next_page': next_page, 'end': end, 'error': error}
+
 @app.route('/api/videos', methods=['POST'])
 def videos():
     request_data = request.get_json()
@@ -49,17 +102,27 @@ def videos():
 def topics():
     request_data = request.get_json()
     user = request_data['user']
+    request_type = 'video' if (request_data['videoId']) else 'channel'
     if 'channelId' not in user.keys():
         return
     args = {
         'channelId': user['channelId'],
-        'videoId': request_data['videoId'],
         'search': request_data['search'],
         'sort': request_data['sort'],
     }
+    if request_type == 'video':
+        args['videoId'] = request_data['videoId']
+
     logger.info(f"videos - {json.dumps(args)}")
     db_data = db.topics(**args)
-    topics = cluster_topics(db_data['videos'])
+    if request_type == 'video':
+        topics = json.loads(db_data['videos'][0]['topics'])
+    else:
+        topics = cluster_topics(db_data['videos'])
+
+    with open('casey_topics.json', 'w') as f:
+        json.dump(topics, f)
+
     n = int(request_data['pageSize'])
     page = int(request_data['pageNumber'])
     start = min(len(topics), int(n) * (int(page) - 1))

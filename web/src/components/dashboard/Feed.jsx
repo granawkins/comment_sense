@@ -35,10 +35,13 @@ const styles = (theme) => ({
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
         backgroundColor: '#f5f5f5',
         margin: '0',
         padding: '10px 0',
+        alignItems: 'center',
+        [theme.breakpoints.up('md')]: {
+            alignItems: 'start',
+        },
     },
     loading: {
         margin: '20px 0',
@@ -62,6 +65,7 @@ const Feed = ({user, type, classes}) => {
 
     const [feed, setFeed] = useState([])
     const [maxScore, setMaxScore] = useState(0)
+    const [labels, setLabels] = useState(0)
     const addToFeed = async (items) => {
         if (type === 'videos') {
             setFeed(feed => [...feed, items.map(video => {
@@ -95,10 +99,10 @@ const Feed = ({user, type, classes}) => {
             let data = queryTemplate({
                 ...control,
                 user,
-                pageSize: PAGE_SIZE[type],
                 pageNumber,
+                pageSize: PAGE_SIZE[type],
+                videoId: (videoId) ? videoId : null,
             })
-            console.log(data)
             let result = await postData(apiRef, data)
             if (result.items.length === 0) {
                 setIsEnd(true)
