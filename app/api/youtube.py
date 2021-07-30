@@ -22,6 +22,28 @@ class YouTube():
         self.youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
+    def channel(self, channel_id):
+        request = self.youtube.channels().list(
+            part = "snippet,statistics",
+            id = channel_id,
+        )
+        try:
+            response = request.execute()
+            if len(response['items']) == 0:
+                return {'error': 'Channel not found'}
+            c = response['items'][0]
+            channel = {
+                'channel_title': c['snippet']['title'],
+                'thumbnail': c['snippet']['thumbnails']['medium']['url'],
+                'views': int(c['statistics']['viewCount']),
+                'subscribers': int(c['statistics']['subscriberCount']),
+                'n_total': None if (c['statistics']['hiddenSubscriberCount']) else int(c['statistics']['videoCount'])
+            }
+            # Add channel to database with empty fields
+            return channel
+        except:
+            return {'error': "Couldn't load channel"}
+
     def get_channel_videos(self, channel_id, max_results=50,
                        published_after=None, next_page=None):
         args = {
@@ -39,8 +61,8 @@ class YouTube():
         videos = []
         for item in response['items']:
             videos.append({
-                'videoId': item['id']['videoId'],
-                'publishedAt': item['snippet']['publishedAt'],
+                'id': item['id']['videoId'],
+                'published': item['snippet']['publishedAt'],
                 'title': item['snippet']['title'],
                 'thumbnail': item['snippet']['thumbnails']['medium']['url']
             })

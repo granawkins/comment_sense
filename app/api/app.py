@@ -1,4 +1,4 @@
-import json, time, queue, sys, os
+import json, time, queue, sys, os, datetime
 import logging
 from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
@@ -18,7 +18,7 @@ cs.setFormatter(formatter)
 logger.addHandler(cs)
 
 env='desktop'
-db_name = 'comment_sense_6'
+db_name = 'comment_sense_7'
 
 app = Flask(__name__)
 yt = YouTube()
@@ -27,6 +27,28 @@ an = Analyzer(env, db)
 
 # USER
 
+@app.route('/api/channel', methods=['POST'])
+def channel():
+    request_data = request.get_json()
+    if 'channelId' not in request_data.keys():
+        return {'error': 'No channel specified'}
+    try:
+        channelId = request_data['channelId']
+        data = db.channel(channelId)
+        if 'channel' not in data.keys():
+            logger.info(f"youtube_channel - {channelId}")
+            channel = yt.channel(channelId)
+            if 'error' in channel.keys():
+                return {'error': channel['error']}
+            channel['id'] = channelId
+            channel['videos'] = []
+            channel['topics'] = []
+            db.add_channel(channel)
+        else:
+            channel = data['channel']
+        return {'channel': channel}
+    except:
+        return {'error': 'Unknown error loading channel.'}
 
 @app.route('/api/get_youtube_videos', methods=['POST'])
 def get_youtube_videos():
@@ -38,12 +60,19 @@ def get_youtube_videos():
     channel_id = user['channelId']
     published_after = None if not 'publishedAfter' in request_data.keys() else request_data['publishedAfter']
     max_videos = None if not 'maxVideos' in request_data.keys() else int(request_data['maxVideos'])
+    from_most_recent = None if not 'fromMostRecent' in request_data.keys() else int(request_data['fromMostRecent'])
+
+    # Get existing channel data
+    db_data = db.channel(channel_id)
+    if 'channel' not in db_data:
+        return {'error': 'Channel not found'}
+    channel = db_data['channel']
+    next_page_token = None if 'next_page_token' not in channel.keys() else channel['next_page_token']
+    next_page = None if ((not next_page_token) | (from_most_recent)) else next_page_token
 
     # Working variables
-    all_ids = [] # Get from database by channelId
-    all_videos = []
-    total_videos = None
-    next_page = None
+    all_ids = channel['videos']
+    total_videos = None # Current YT channel uploaded amount
     end = False
     error = False
     while not end and not error:
@@ -54,31 +83,36 @@ def get_youtube_videos():
                 args['published_after'] = published_after
             if next_page:
                 args['next_page'] = next_page
+            logger.info(f"youtube_videos - {json.dumps(args)}")
             response = yt.get_channel_videos(**args)
             # Parse response
             resp_videos = response['videos']
-            new_videos = [v for v in resp_videos if v['videoId'] not in all_ids]
+            next_page = response['next_page']
+            new_videos = [v for v in resp_videos if v['id'] not in all_ids]
             # Evaluate loop status
             if len(new_videos) == 0:
                 end = "No videos returned"
             else:
-                all_videos.extend(new_videos)
-                all_ids.extend([v['videoId'] for v in new_videos])
+                all_ids.extend([v['id'] for v in new_videos])
+                for video in new_videos:
+                    video['channelId'] = channel_id
+                    db.add_video(video)
                 if not total_videos:
                     total_videos = int(response['total_videos'])
-                if (len(all_videos) >= max_videos) | (len(all_videos) == total_videos):
+                if (len(all_ids) >= max_videos) | (len(all_ids) == total_videos):
                     end = "Reached target number of videos"
-                next_page = response['next_page']
         except:
             error = "Error getting results from YouTube"
 
-    with open('casey_videos.json', 'w') as f:
-        print(f'dumping {len(all_videos)} out of {total_videos} videos to json.')
-        json.dump(all_videos, f)
 
     # save to database: all_videos, total_videos, next_page, last_scan (date)
-    return {'all_videos': all_videos, 'total_videos': total_videos,
-            'next_page': next_page, 'end': end, 'error': error}
+    channel['n_total'] = total_videos
+    channel['videos'] = json.dumps(all_ids)
+    channel['next_page_token'] = next_page
+    channel['last_scanned'] = datetime.datetime.now()
+    db.add_channel(channel)
+
+    return {'n_scanned': len(all_ids), 'n_total': total_videos, 'end': end, 'error': error}
 
 @app.route('/api/videos', methods=['POST'])
 def videos():

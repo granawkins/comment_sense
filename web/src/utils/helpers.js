@@ -1,4 +1,4 @@
-// ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch 
+// ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 const postData = async (url, data) => {
     const response = await fetch(url, {
         method: 'POST',
@@ -25,4 +25,8 @@ const thousands_separator = (num) => {
     }
 }
 
-export {postData, thousands_separator}
+const capitalize = (text) => {
+    return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+export {postData, thousands_separator, capitalize}

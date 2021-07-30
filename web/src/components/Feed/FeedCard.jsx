@@ -123,7 +123,7 @@ const FeedCard = ({type, data, inactive, classes}) => {
                     </div>
                     <div className={classes.details}>
                         <Typography variant='body1' style={{fontWeight: '400', fontSize: '1.2em'}}>{title}</Typography>
-                        {infoFields.map(field => <Typography variant='caption'>{field}</Typography>)}
+                        {infoFields.map(field => <Typography variant='caption' key={field}>{field}</Typography>)}
                         {dbInfo}
                     </div>
                 </Link>
