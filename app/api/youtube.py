@@ -1,10 +1,10 @@
 import os, math
 import googleapiclient.discovery
-import datetime
+from datetime import datetime
 from id_hash import hash
 
 def pretty_date(str):
-    d1 = datetime.datetime.strptime(str,"%Y-%m-%dT%H:%M:%SZ")
+    d1 = datetime.strptime(str,"%Y-%m-%dT%H:%M:%SZ")
     new_format = "%d %B, %Y"
     return d1.strftime(new_format)
 
@@ -29,22 +29,20 @@ class YouTube():
         )
         try:
             response = request.execute()
-            if len(response['items']) == 0:
-                return {'error': 'Channel not found'}
-            c = response['items'][0]
-            channel = {
-                'channel_title': c['snippet']['title'],
-                'thumbnail': c['snippet']['thumbnails']['medium']['url'],
-                'views': int(c['statistics']['viewCount']),
-                'subscribers': int(c['statistics']['subscriberCount']),
-                'n_total': None if (c['statistics']['hiddenSubscriberCount']) else int(c['statistics']['videoCount'])
-            }
-            # Add channel to database with empty fields
-            return channel
-        except:
-            return {'error': "Couldn't load channel"}
+        except Exception as e:
+            return {'error': f"Couldn't load channel: {e}"}
+        if len(response['items']) == 0:
+            return {'error': 'Channel not found'}
+        c = response['items'][0]
+        channel = {
+            'id': channel_id,
+            'title': c['snippet']['title'],
+            'thumbnail': c['snippet']['thumbnails']['medium']['url'],
+            'total_videos': None if 'videoCount' not in c['statistics'] else int(c['statistics']['videoCount'])
+        }
+        return channel
 
-    def get_channel_videos(self, channel_id, max_results=50,
+    def videos(self, channel_id, max_results=50,
                        published_after=None, next_page=None):
         args = {
             'part': ['snippet'],
@@ -56,109 +54,55 @@ class YouTube():
             args['publishedAfter'] = published_after
         if next_page:
             args['pageToken'] = next_page
-        search_request = self.youtube.search().list(**args)
-        response = search_request.execute()
+        try:
+            search_request = self.youtube.search().list(**args)
+            response = search_request.execute()
+        except Exception as e:
+            raise RuntimeError(f"Error getting channel videos from YouTube: {e}.")
         videos = []
         for item in response['items']:
             videos.append({
                 'id': item['id']['videoId'],
-                'published': item['snippet']['publishedAt'],
                 'title': item['snippet']['title'],
-                'thumbnail': item['snippet']['thumbnails']['medium']['url']
+                'thumbnail': item['snippet']['thumbnails']['medium']['url'],
+                'channel_id': channel_id,
+                'published': item['snippet']['publishedAt'],
             })
         results = {
-            'next_page': response['nextPageToken'],
+            'next_page_token': response['nextPageToken'],
             'total_videos': response['pageInfo']['totalResults'],
             'videos': videos,
         }
         return results
 
-    def search(self, key, n=25, page_token=None):
-        args = {
-            'part': 'snippet',
-            'maxResults': n,
-            'q': key,
-        }
-        if page_token:
-            args['pageToken'] = page_token
-        search_request = self.youtube.search().list(**args)
-        results = search_request.execute()
-        next_page_token = results['nextPageToken']
-
-        channels = filter(lambda item: (item['id']['kind'] == 'youtube#channel'), results['items'])
-        parsed_channels = []
-        for channel in channels:
-            channelId = channel['snippet']['channelId'][:100]
-            channelTitle = channel['snippet']['channelTitle'][:100]
-            description = channel['snippet']['description'][:500]
-            thumbnail = channel['snippet']['thumbnails']['medium']['url']
-            output = {
-                'channelId': channelId,
-                'channelTitle': channelTitle,
-                'description': description,
-                'thumbnail': thumbnail,
-            }
-            parsed_channels.append(output)
-
-        videos = filter(lambda item: (item['id']['kind'] == 'youtube#video'), results['items'])
-        parsed_videos = []
-        for video in videos:
-            vid = video['id']['videoId']
-            title = video['snippet']['title'][:300]
-            channelId = video['snippet']['channelId'][:100]
-            channelTitle = video['snippet']['channelTitle'][:100]
-            thumbnail = video['snippet']['thumbnails']['medium']['url']
-            publishedAt = pretty_date(video['snippet']['publishedAt'])
-            description = video['snippet']['description']
-
-            output = {
-                "id": vid,
-                "title": title,
-                "channelId": channelId,
-                "channelTitle": channelTitle,
-                "thumbnail": thumbnail,
-                'published': publishedAt,
-                'description': description,
-            }
-            parsed_videos.append(output)
-        return {'channels': parsed_channels, 'videos': parsed_videos, 'next': next_page_token}
-
-    def video(self, videoId):
-        video_request = self.youtube.videos().list(
-            part="snippet,contentDetails,statistics",
-            id=videoId
-        )
-        video = video_request.execute()
-        if len(video['items']) == 0:
-            return "Missing"
-        else:
-            sn = video['items'][0]['snippet']
-            st = video['items'][0]['statistics']
-            parsed = {
-                "id": video['items'][0]['id'],
-                "title": sn['title'][:300],
-                "thumbnail": sn['thumbnails']['medium']['url'],
-                "channelId": sn['channelId'][:100],
-                "channelTitle": sn['channelTitle'][:100],
-                "published": pretty_date(sn['publishedAt']),
-                "views": 0 if 'viewCount' not in st.keys() else st['viewCount'],
-                "likes": 0 if 'likeCount' not in st.keys() else st['likeCount'],
-                "dislikes": 0 if 'dislikeCount' not in st.keys() else st['dislikeCount'],
-                "comments": 0 if 'commentCount' not in st.keys() else st['commentCount'],
-            }
-            return parsed
-
-    def comments(self, videoId, n=100, next_page_token=None):
+    def comments(self, channel_id, video_id, n=100, next_page_token=None):
         max_results = 1000
         n_results = min(int(n), max_results)
-
         max_per_loop = 100
         n_loops = math.ceil(n_results / max_per_loop)
-        topics = []
+        all_comments = []
+
+        # Convert YT's format into CS's format
+        def parse_comment(comment, parent=None, n_children=None):
+            sn = comment['snippet']
+            output = {
+                "id": comment['id'],
+                "video_id": sn['videoId'],
+                "channel_id": channel_id,
+                "author": sn['authorDisplayName'][:32],
+                "published": sn['publishedAt'],
+                "text": sn['textDisplay'][:1000],
+                "likes": sn['likeCount'],
+                "parent": parent,
+                "n_children": n_children,
+                "last_scan": str(datetime.now()),
+            }
+            return output
+
         for i in range(n_loops):
             # Get comments
             args = {
-                'videoId': videoId,
+                'videoId': video_id,
                 'part': 'id, snippet, replies',
                 'maxResults': n_results,
                 'order': 'relevance',
@@ -173,33 +117,41 @@ class YouTube():
                 break
             next_page_token = None if 'nextPageToken' not in comments.keys() else comments['nextPageToken']
             for thread in comments['items']:
-                # Flatten comments/replies, add 'level' field
+
+                # Flatten comments/replies, add parent_id or n_children
                 n_children = 0 if 'totalReplyCount' not in thread['snippet'].keys() else thread['snippet']["totalReplyCount"]
-                topics.append(parse_comment(thread['snippet']['topLevelComment'], None, n_children))
-                parent_id = topics[-1]['id']
+                all_comments.append(parse_comment(thread['snippet']['topLevelComment'], None, n_children))
+                parent_id = all_comments[-1]['id']
                 if 'replies' in thread:
                     for reply in thread['replies']['comments']:
-                        topics.append(parse_comment(reply, parent_id, 0))
-        return topics, next_page_token
+                        all_comments.append(parse_comment(reply, parent_id, 0))
 
-def parse_comment(comment, parent, n_children=None):
+        return {'comments': all_comments, 'next_page_token': next_page_token}
 
-    videoId = comment['snippet']['videoId']
-    author = comment['snippet']['authorDisplayName']
-    text = comment['snippet']['textDisplay']
-    commentId = hash(videoId, author, text)
-
-    output = {
-        "id": commentId,
-        "videoId": videoId,
-        "text": text[:1000],
-        "author": author[:32],
-        "parent": parent,
-        "likes": comment['snippet']['likeCount'],
-        "published": comment['snippet']['publishedAt']
-    }
-
-    if n_children:
-        output['n_children'] = n_children
-
-    return output
+    def video(self, video_id):
+        video_request = self.youtube.videos().list(
+            part="snippet,contentDetails,statistics",
+            id=video_id
+        )
+        try:
+            video = video_request.execute()
+        except Exception as e:
+            raise RuntimeError(f"Error getting video data from YouTube: {e}")
+        if len(video['items']) == 0:
+            return "Missing"
+        else:
+            sn = video['items'][0]['snippet']
+            st = video['items'][0]['statistics']
+            parsed = {
+                "id": video_id,
+                "title": sn['title'][:300],
+                "thumbnail": sn['thumbnails']['medium']['url'],
+                "channel_id": sn['channelId'][:100],
+                "channel_title": sn['channelTitle'][:100],
+                "published": pretty_date(sn['publishedAt']),
+                "views": 0 if 'viewCount' not in st.keys() else st['viewCount'],
+                "likes": 0 if 'likeCount' not in st.keys() else st['likeCount'],
+                "dislikes": 0 if 'dislikeCount' not in st.keys() else st['dislikeCount'],
+                "total_comments": 0 if 'commentCount' not in st.keys() else st['commentCount'],
+            }
+            return parsed

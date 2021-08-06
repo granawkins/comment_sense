@@ -69,7 +69,7 @@ const Controller = ({type, control, setControl, classes}) => {
         switch(type) {
             case 'videos': {
                 recentFunction = 'published'
-                topFunction = 'n_analyzed'
+                topFunction = 'db_comments'
                 break
             }
             case 'topics': {
@@ -80,7 +80,8 @@ const Controller = ({type, control, setControl, classes}) => {
             default: break
         }
         setSortOptions([
-            <MenuItem value={'published'} active>Recent</MenuItem>,
+            <MenuItem value={'recent'} active>Recent</MenuItem>,
+            <MenuItem value={'oldest'} active>Oldest</MenuItem>,
             <MenuItem value={topFunction}>Top</MenuItem>
         ])
         setSort(recentFunction)

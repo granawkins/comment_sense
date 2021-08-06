@@ -4,17 +4,7 @@ from get_docker_secret import get_docker_secret
 
 class Database():
 
-
-  def refresh(self):
-    if not self.db.is_connected:
-      self.db = mysql.connector.connect(
-        host="localhost" if self.env == 'desktop' else 'db',
-        user="root",
-        password='CaseyNeistat' if self.env == 'desktop' else self.pw,
-        database=self.name,
-      )
-      self.cursor = self.db.cursor(dictionary=True)
-
+# SETUP
 
   def __init__(self, env='desktop', name="comment_sense"):
     self.name = name
@@ -32,427 +22,412 @@ class Database():
     # Setup Database
     self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
     self.cursor.execute(f"USE {name}")
-    self.createVideosTable()
-    self.createCommentsTable()
-    self.createChannelsTable()
-    # self.createBlogTable()
-    # self.createFeedbackTable()
 
+    self.createChannelsTable()
+    self.channel_fields = [
+      "id", "title", "thumbnail", "created", "total_videos", "db_videos",
+      "last_scan", "next_page_token", "db_comments", "topics", "last_refresh",
+      "subs_list", "labels_list", "ignore_list"]
+    self.channel_json_fields = ['topics', 'subs_list', 'labels_list', 'ignore_list']
+
+    self.createVideosTable()
+    self.video_fields = [
+      "id", "title", "thumbnail", "channel_id", "published", "created", "total_comments",
+      "db_comments", "next_page_token", "last_scan", "topics" "last_refresh"]
+    self.video_json_fields = ['topics', 'next_page_token']
+
+    self.createCommentsTable()
+    self.comment_fields = [
+        "id", "video_id", "channel_id", "author", "published", "created",
+        "text", "likes", "parent", "n_children", "last_scan", "topics",
+        "sentiment", "last_refresh"]
+    self.comment_json_fields = ['topics']
+
+
+  def refresh(self):
+    if not self.db.is_connected:
+      self.db = mysql.connector.connect(
+        host="localhost" if self.env == 'desktop' else 'db',
+        user="root",
+        password='CaseyNeistat' if self.env == 'desktop' else self.pw,
+        database=self.name,
+      )
+      self.cursor = self.db.cursor(dictionary=True)
+
+# CHANNELS
 
   def createChannelsTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS channels ( "
       "id VARCHAR(32) NOT NULL, "
-      "channel_title VARCHAR(32), "
-      "thumbnail VARCHAR(128), "
-      "views BIGINT(32), "
-      "subscribers BIGINT(16), "
-      "n_total INT(8), "
-      "videos JSON, "
+      "title VARCHAR(32) NOT NULL, "
+      "thumbnail VARCHAR(128) NOT NULL, "
+      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+
+      # Updated with app/scan_videos()
+      "total_videos INT, "
+      "db_videos INT, "
+      "last_scan VARCHAR(32), "
       "next_page_token VARCHAR(32), "
-      "last_scanned VARCHAR(32), "
+
+      # Updated with app/refresh_channel()
+      "db_comments INT, "
       "topics JSON, "
-      "joined TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "last_refresh VARCHAR(32), "
+
+      # TODO
+      "subs_list JSON, "
+      "labels_list JSON, "
+      "ignore_list JSON, "
+
       "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
 
+
+  def set_channel(self, id, user_data):
+    """Create or update a channel record
+
+    If channel doesn't exist, add it with the data provided.
+    If channel does exist, update with data provided.
+    """
+    # Validate input fields
+    data = {}
+    for field in user_data:
+      if field in self.channel_json_fields:
+        data[field] = json.dumps(user_data[field])
+      elif field in self.channel_fields:
+        data[field] = user_data[field]
+    if len(data) < 1:
+      raise NameError(f"No usable data provided to set {id}")
+
+    # Check if record exists
+    try:
+      self.refresh()
+      self.cursor.execute("SELECT * FROM channels WHERE id = %s", (id, ))
+      current = self.cursor.fetchall()
+    except Exception as e:
+      raise RuntimeError(f"Error fetching channel data from database.")
+
+    # Add new record
+    if len(current) == 0:
+      if 'id' not in data:
+        data['id'] = id
+      placeholders = ", ".join(['%s'] * len(data))
+      columns = ", ".join(data.keys())
+      sql = "INSERT INTO channels ( %s ) VALUES ( %s )" % (columns, placeholders)
+      try:
+        self.cursor.execute(sql, list(data.values()))
+        self.db.commit()
+        return {'status': 'Added new channel to database'}
+      except Exception as e:
+        raise RuntimeError(f"Error writing new channel data to database: {e}")
+
+    # Update existing record
+    elif len(current) == 1:
+      sql = "UPDATE channels SET "
+      args = []
+      for field in data:
+        if data[field] == None:
+          sql += f"{field} = NULL, "
+        else:
+
+          sql += f"{field} = %s, "
+          args.append(data[field])
+      sql = sql[:-2]
+      sql += " WHERE id = %s"
+      try:
+        injected = list(args) + [id] if len(args) > 0 else (id, )
+        self.cursor.execute(sql, injected)
+        self.db.commit()
+        return {'status': 'Updated channel successfully.'}
+      except Exception as e:
+        raise RuntimeError(f"Error updating channel data in database: {e}")
+
+
+  def get_channel(self, id):
+    """Return all channel data from database
+
+    """
+    self.refresh()
+    try:
+      self.cursor.execute("SELECT * FROM channels WHERE id = %s", (id, ))
+      response = self.cursor.fetchall()
+    except:
+      raise RuntimeError(f"Error fetching channel data from database.")
+    if len(response) == 0:
+      return {'status': 'Channel not found'}
+    else:
+      channel = response[0]
+      for field in self.channel_json_fields:
+        if field in channel and channel[field] is not None:
+          channel[field] = json.loads(channel[field])
+      return {'status': 'Fetched channel data successfully.', 'channel': channel}
+
+# VIDEOS
 
   def createVideosTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS videos ( "
       "id VARCHAR(32) NOT NULL, "
-      "title VARCHAR(300), "
-      "thumbnail VARCHAR(50), "
-      "channelId VARCHAR(32), "
-      "channelTitle VARCHAR(32), "
-      "published VARCHAR(32), "
-      "topics JSON, "
-      "n_analyzed INT, "
-      "next_page_token JSON, "
+      "title VARCHAR(300) NOT NULL, "
+      "thumbnail VARCHAR(50) NOT NULL, "
+      "channel_id VARCHAR(32) NOT NULL, "
+      "published VARCHAR(32) NOT NULL, "
       "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+
+      # Update on open video
+      "total_comments BIGINT, "
+
+      # Update on analyze
+      "db_comments INT, "
+      "next_page_token JSON, "
+      "last_scan VARCHAR(32), "
+
+      # Update on analyze and refresh
+      "topics JSON, "
+      "last_refresh VARCHAR(32), "
+
       "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
 
 
+  def set_video(self, id, user_data):
+    """Create or update a video record
+
+    If video doesn't exist, add it with the data provided.
+    If video does exist, update with data provided.
+    """
+    # Validate input fields
+    data = {}
+    for field in user_data:
+      if field in self.video_json_fields:
+        data[field] = json.dumps(user_data[field])
+      elif field in self.video_fields:
+        data[field] = user_data[field]
+    if len(data) < 1:
+      raise NameError(f"No usable data provided to set {id}")
+
+    # Check if record exists
+    try:
+      self.refresh()
+      self.cursor.execute("SELECT * FROM videos WHERE id = %s", (id, ))
+      current = self.cursor.fetchall()
+    except Exception as e:
+      raise RuntimeError(f"Error fetching video data from database.")
+
+    # Add new record
+    if len(current) == 0:
+      data['db_comments'] = 0
+      if 'id' not in data:
+        data['id'] = id
+      placeholders = ", ".join(['%s'] * len(data))
+      columns = ", ".join(data.keys())
+      sql = "INSERT INTO videos ( %s ) VALUES ( %s )" % (columns, placeholders)
+      try:
+        self.cursor.execute(sql, list(data.values()))
+        self.db.commit()
+        return {'status': 'Added new video to database'}
+      except Exception as e:
+        raise RuntimeError(f"Error writing new video data to database: {e}")
+
+    # Update existing record
+    elif len(current) == 1:
+      sql = "UPDATE videos SET "
+      args = []
+      for field in data:
+        if data[field] == None:
+          sql += f"{field} = NULL, "
+        else:
+          sql += f"{field} = %s, "
+          args.append(data[field])
+      sql = sql[:-2]
+      sql += " WHERE id = %s"
+      try:
+        injected = list(args) + [id] if len(args) > 0 else (id, )
+        self.cursor.execute(sql, injected)
+        self.db.commit()
+        return {'status': 'Updated video successfully.'}
+      except Exception as e:
+        raise RuntimeError(f"Error updating video data in database: {e}")
+
+
+  def get_video(self, id):
+    """Return all video data from database
+
+    """
+    self.refresh()
+    try:
+      self.cursor.execute("SELECT * FROM videos WHERE id = %s", (id, ))
+      response = self.cursor.fetchall()
+    except:
+      raise RuntimeError(f"Error fetching video data from database.")
+    if len(response) == 0:
+      return {'status': 'Video not found'}
+    else:
+      video = response[0]
+      for field in self.video_json_fields:
+        if field in video and video[field] is not None:
+          video[field] = json.loads(video[field])
+      return {'status': 'Fetched video data successfully.', 'video': video}
+
+
+  def get_videos(self, channel_id, search=None, sort=None, n=10, page=1):
+    if search:
+      sql = """SELECT id, title, thumbnail, published, db_comments
+               FROM videos
+               WHERE channel_id = %s AND title LIKE CONCAT('%', %s, '%')
+            """
+      args = (channel_id, search, )
+    else:
+      sql = """SELECT id, title, thumbnail, published, db_comments
+               FROM videos
+               WHERE channel_id = %s
+               ORDER BY published DESC"""
+      args = (channel_id, )
+    try:
+      self.refresh()
+      self.cursor.execute(sql, args)
+      result = self.cursor.fetchall()
+    except Exception as e:
+      raise RuntimeError(f"Error fetching videos list from database.")
+
+    if sort == 'oldest':
+      result.reverse()
+    if sort == 'top':
+      result = sorted(result, key=lambda v: v['db_comments'], reverse=True)
+    n = int(n)
+    page = int(page)
+    start = min(len(result), n * (page - 1))
+    finish = min(len(result), start + n)
+    return {'videos': result[start:finish]}
+
+# COMMENTS
+
   def createCommentsTable(self):
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS comments ( "
-        "id VARCHAR(16) NOT NULL, "
-        "videoId VARCHAR(32) NOT NULL, "
-        "author VARCHAR(32), "
+        "id VARCHAR(255) NOT NULL, "
+        "video_id VARCHAR(32) NOT NULL, "
+        "channel_id VARCHAR(32) NOT NULL, "
+        "author VARCHAR(32) NOT NULL, "
+        "published VARCHAR(32) NOT NULL, "
+        "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+
         "text VARCHAR(1024), "
         "likes INT UNSIGNED, "
-        "published VARCHAR(32), "
-        "parent VARCHAR(16) DEFAULT '', "
+        "parent VARCHAR(255) DEFAULT '', "
         "n_children INT, "
+        "last_scan VARCHAR(32), "
+
         "topics JSON, "
         "sentiment FLOAT(4,3), "
-        "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "last_refresh VARCHAR(32), "
+
         "PRIMARY KEY (`id`) "
     ")")
     self.db.commit()
 
 
-  def add_channel(self, channel_data, overwrite=True):
+  def set_comment(self, id, user_data):
+    """Create or update a comment record
+
+    If comment doesn't exist, add it with the data provided.
+    If comment does exist, update with data provided.
+    """
+    # Validate input fields
+    data = {}
+    for field in user_data:
+      if field in self.comment_json_fields:
+        data[field] = json.dumps(user_data[field])
+      elif field in self.comment_fields:
+        data[field] = user_data[field]
+    if len(data) < 1:
+      raise NameError(f"No usable data provided to set comment {id}")
+
+    # Check if record exists
+    try:
+      self.refresh()
+      self.cursor.execute("SELECT * FROM comments WHERE id = %s", (id, ))
+      current = self.cursor.fetchall()
+    except Exception as e:
+      raise RuntimeError(f"Error fetching comment data from database.")
+
+    # Add new record
+    if len(current) == 0:
+      if 'id' not in data:
+        data['id'] = id
+      placeholders = ", ".join(['%s'] * len(data))
+      columns = ", ".join(data.keys())
+      sql = "INSERT INTO comments ( %s ) VALUES ( %s )" % (columns, placeholders)
+      try:
+        self.cursor.execute(sql, list(data.values()))
+        self.db.commit()
+        return {'status': 'Added new comment to database'}
+      except Exception as e:
+        raise RuntimeError(f"Error writing new comment data to database: {e}")
+
+    # Update existing record
+    elif len(current) == 1:
+      sql = "UPDATE comments SET "
+      args = []
+      for field in data:
+        if data[field] == None:
+          sql += f"{field} = NULL, "
+        else:
+          sql += f"{field} = %s, "
+          args.append(data[field])
+      sql = sql[:-2]
+      sql += " WHERE id = %s"
+      try:
+        injected = list(args) + [id] if len(args) > 0 else (id, )
+        self.cursor.execute(sql, injected)
+        self.db.commit()
+        return {'status': 'Updated comment successfully.'}
+      except Exception as e:
+        raise RuntimeError(f"Error updating comment data in database: {e}")
+
+
+  def get_comment(self, id):
+    """Return all comment data from database
+
+    """
     self.refresh()
     try:
-      self.cursor.execute("SELECT * FROM channels WHERE id = %s", (channel_data['id'], ))
-      current = self.cursor.fetchall()
-
-      # Add new record
-      if len(current) == 0:
-        for section in ['videos', 'topics']:
-          channel_data[section] = json.dumps(channel_data[section])
-        placeholders = ", ".join(['%s'] * len(channel_data))
-        columns = ", ".join(channel_data.keys())
-        sql = "INSERT INTO channels ( %s ) VALUES ( %s )" % (columns, placeholders)
-        self.cursor.execute(sql, list(channel_data.values()))
-        self.db.commit()
-
-      # Update existing record
-      else:
-        old_channel = current[0]
-        if len(old_channel['videos']) != len(channel_data['videos']):
-          sql = """UPDATE channels SET n_total = %s, videos = %s, next_page_token = %s,
-                   last_scanned = %s WHERE id = %s"""
-          self.cursor.execute(sql, (channel_data['n_total'], channel_data['videos'],
-                                    channel_data['next_page_token'], channel_data['last_scanned'],
-                                    channel_data['id']))
-          self.db.commit()
-
-    except mysql.connector.Error as err:
-      print("Error adding channel: {}".format(err))
-
-
-  def channel(self, channelId):
-    self.refresh()
-    self.cursor.execute("SELECT * FROM channels WHERE id = %s", (channelId, ))
-    response = self.cursor.fetchall()
+      self.cursor.execute("SELECT * FROM comments WHERE id = %s", (id, ))
+      response = self.cursor.fetchall()
+    except:
+      raise RuntimeError(f"Error fetching comment data from database.")
     if len(response) == 0:
-      return {'error': 'Channel not found'}
+      return {'status': 'comment not found'}
     else:
-      channel = response[0]
-      for section in ['videos', 'topics']:
-        channel[section] = json.loads(channel[section])
-      return {'channel': channel}
+      comment = response[0]
+      for field in self.comment_json_fields:
+        if field in comment and comment[field] is not None:
+          comment[field] = json.loads(comment[field])
+      return {'status': 'Fetched comment data successfully.', 'comment': comment}
 
 
-  def add_video(self, video_data, overwrite=True):
-    self.refresh()
+  def get_comments(self, comment_ids):
+    comments = []
     try:
-      self.cursor.execute("SELECT * FROM videos WHERE id = %s", (video_data['id'], ))
-      current = self.cursor.fetchall()
-
-      # Add new record
-      if len(current) == 0:
-        if 'topics' not in video_data.keys():
-          video_data['topics'] = json.dumps([])
-          video_data['n_analyzed'] = 0
-        placeholders = ", ".join(['%s'] * len(video_data))
-        columns = ", ".join(video_data.keys())
-        sql = "INSERT INTO videos ( %s ) VALUES ( %s )" % (columns, placeholders)
-        self.cursor.execute(sql, list(video_data.values()))
-        self.db.commit()
-
-      # Update existing
-      elif (video_data['n_analyzed'] != current[0]['n_analyzed']) & (overwrite == True):
-        sql = "UPDATE videos SET topics = %s, n_analyzed = %s WHERE id = %s"
-        self.cursor.execute(sql,  (video_data['topics'], video_data['n_analyzed'], video_data['id']))
-        self.db.commit()
-
-    except mysql.connector.Error as err:
-      print("Error adding video: {}".format(err))
+      for id in comment_ids:
+        comments.append(self.get_comment(id))
+    except Exception as e:
+        raise RuntimeError(f"Error getting comments from database: {e}.")
+    return {"comments": comments}
 
 
-  def video(self, videoId):
-    self.refresh()
-    sql = "SELECT * FROM videos WHERE id = %s"
-    result = None
-    try:
-      self.cursor.execute(sql, (videoId, ))
-      results = self.cursor.fetchall()
-      if len(results) > 0:
-        result = results[0]
-    finally:
-      return result
+# TOPICS
 
-
-  def videos(self, channelId, search, sort, n=10, page=1):
-    if search:
-      print(f'searching for {channelId} videos with {search} in title')
-      sql = """SELECT id, title, thumbnail, published, n_analyzed
-               FROM videos
-               WHERE channelId = %s AND title LIKE CONCAT('%', %s, '%')
-            """
-      args = (channelId, search, )
-    else:
-      sql = """SELECT id, title, thumbnail, published, n_analyzed
-               FROM videos
-               WHERE channelId = %s
-               ORDER BY published DESC"""
-      args = (channelId, )
-    self.cursor.execute(sql, args)
-    result = self.cursor.fetchall()
-    start = min(len(result), int(n) * (int(page) - 1))
-    finish = min(len(result), start + int(n))
-    return {'videos': result[start:finish]}
-
-
-  def add_topics(self, topics_data, overwrite=True):
-    self.refresh()
-    try:
-      for topic in topics_data:
-        self.cursor.execute("SELECT * FROM topics WHERE id = %s", (topic['id'], ))
-        current = self.cursor.fetchall()
-
-        # Add new record
-        if len(current) == 0:
-          placeholders = ", ".join(['%s'] * len(topic))
-          columns = ", ".join(topic.keys())
-          sql = "INSERT INTO videos ( %s ) VALUES ( %s )" % (columns, placeholders)
-          self.cursor.execute(sql, list(topic.values()))
-          self.db.commit()
-
-        # Update existing
-        elif overwrite == True:
-          new_subs = list(set((current['subs'] + topic['subs'])))
-          new_n_comments = current['n_comments'] + topic['n_comments']
-          new_likes = current['likes'] + topic['likes']
-          new_sentiment = []
-          for s in topic['sentiment']:
-            new_sentiment.append(current['sentiment'][s] + topic['sentiment'][s])
-          sql = "UPDATE topics SET subs = %s, n_comments = %s, likes = %s, sentiment = %s WHERE id = %s"
-          self.cursor.execute(sql, (new_subs, new_n_comments, new_likes, new_sentiment, topic['id']))
-    except mysql.connector.Error as err:
-      print("Error adding topic: {}".format(err))
-
-
-  def topics(self, channelId, videoId=None, search=None, sort=None, n=10, page=1):
+  def topics(self, channel_id, videoId=None, search=None, sort=None, n=10, page=1):
     if videoId:
       sql = 'SELECT topics FROM videos WHERE id = %s'
       ref = videoId
     else:
-      sql = "SELECT id, topics FROM videos WHERE channelId = %s"
-      ref = channelId
+      sql = "SELECT id, topics FROM videos WHERE channel_id = %s"
+      ref = channel_id
     self.cursor.execute(sql, (ref, ))
     result = self.cursor.fetchall()
     return {'videos': result}
-
-
-  def has_comment(self, commentId):
-    self.refresh()
-    self.cursor.execute("SELECT * FROM comments WHERE id = %s", (commentId, ))
-    current = self.cursor.fetchall()
-    return (len(current) > 0)
-
-
-  def add_comment(self, c):
-    if not self.has_comment(c['id']):
-      self.refresh()
-      placeholders = ", ".join(['%s'] * len(c))
-      columns = ", ".join(c.keys())
-      sql = "INSERT INTO comments ( %s ) VALUES ( %s )" % (columns, placeholders)
-      self.cursor.execute(sql, list(c.values()))
-      self.db.commit()
-
-
-  def comments(self, comment_ids, n=10):
-    self.refresh()
-    comments_data = []
-    # parsed_ids = json.loads(comment_ids)
-    for c in comment_ids:
-      sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE id = %s"
-      self.cursor.execute(sql, (c, ))
-      results = self.cursor.fetchall()
-      if len(results) > 0:
-        comments_data.append(results[0])
-    return comments_data
-
-
-  def update_comment(self, c):
-    self.refresh()
-    self.cursor.execute("SELECT * FROM comments WHERE id = %s", (c['id'], ))
-    current = self.cursor.fetchall()
-    likes = c['likes'] if c['likes'] else current[0]['likes']
-    if 'n_children' in c.keys():
-      n_children = n_children = c['n_children']
-    elif 'n_children' in current[0].keys():
-      n_children = current[0]['n_children']
-    else:
-      n_children = 0
-    sql = "UPDATE comments SET likes = %s, n_children = %s WHERE id = %s"
-    self.cursor.execute(sql, (likes, n_children, c['id']))
-    self.db.commit()
-
-
-  def comment_topics(self, videoId):
-    self.refresh()
-    sql = "SELECT id, likes, sentiment, topics FROM comments WHERE videoId = %s"
-    self.cursor.execute(sql, (videoId, ))
-    results = self.cursor.fetchall()
-    if len(results) == 0:
-      return []
-    else:
-      return results
-
-
-  def n_analyzed(self, videoId):
-    sql = "SELECT n_analyzed FROM videos WHERE id = %s"
-    self.cursor.execute(sql, (videoId, ))
-    result = self.cursor.fetchall()
-    if len(result) == 0:
-      return 0
-    else:
-      return result[0]
-
-
-  def numComments(self, videoId):
-    self.refresh()
-    sql = "SELECT COUNT(*) FROM comments WHERE videoId = %s"
-    self.cursor.execute(sql, (videoId, ))
-    n = int(self.cursor.fetchall()[0]["COUNT(*)"])
-    return n
-
-
-  def all_comments(self, videoId):
-    self.refresh()
-    sql = "SELECT id, text, author, likes, sentiment, topics, published FROM comments WHERE videoId = %s"
-    self.cursor.execute(sql, (videoId, ))
-    results = self.cursor.fetchall()
-    return results
-
-
-  # UNUSED
-
-  # def recent(self, n=10, page=1):
-  #   self.refresh()
-  #   # Doesn't accept datetime object, so have to exclude created.
-  #   self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY created DESC")
-  #   result = self.cursor.fetchall()
-  #   start = min(len(result), int(n) * (int(page) - 1))
-  #   finish = min(len(result), start + int(n))
-  #   return result[start:finish]
-
-
-  # def top(self, n=10, page=1):
-  #   self.refresh()
-  #   # Doesn't accept datetime object, so have to exclude created.
-  #   self.cursor.execute("SELECT id, title, thumbnail, channelTitle, published, n_analyzed FROM videos ORDER BY n_analyzed DESC")
-  #   result = self.cursor.fetchall()
-  #   start = min(len(result), int(n) * (int(page) - 1))
-  #   finish = min(len(result), start + int(n))
-  #   return result[start:finish]
-
-
-# ADMIN
-
-  # def createBlogTable(self):
-  #   self.refresh()
-  #   self.cursor.execute("CREATE TABLE IF NOT EXISTS blog ( "
-  #     "id INT(6) NOT NULL, "
-  #     "title VARCHAR(64), "
-  #     "permalink VARCHAR(64), "
-  #     "thumbnail JSON, "
-  #     "excerpt VARCHAR(1000), "
-  #     "content JSON, "
-  #     "active BOOL, "
-  #     "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-  #     "PRIMARY KEY (`id`) "
-  #   ")")
-  #   self.db.commit()
-
-  # def createFeedbackTable(self):
-  #   self.refresh()
-  #   self.cursor.execute("CREATE TABLE IF NOT EXISTS feedback ( "
-  #     "id INT NOT NULL AUTO_INCREMENT, "
-  #     "message JSON, "
-  #     "email JSON, "
-  #     "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-  #     "active BOOL, "
-  #     'PRIMARY KEY (`id`) '
-  #   ")")
-  #   self.db.commit()
-
-
-  # def add_blog_post(self, data):
-  #   c = {
-  #     'id': int(data['id']),
-  #     'title': str(data['title']),
-  #     'permalink': str(data['permalink']),
-  #     'thumbnail': json.dumps(data['thumbnail']),
-  #     'excerpt': str(data['excerpt']),
-  #     'content': json.dumps(data['content']),
-  #     'active': bool(data['active']),
-  #   }
-  #   self.cursor.execute("SELECT * FROM blog WHERE id = %s", (c['id'], ))
-  #   current = self.cursor.fetchall()
-
-  #   # Add new
-  #   if len(current) == 0:
-  #     self.refresh()
-  #     placeholders = ", ".join(['%s'] * len(c))
-  #     columns = ", ".join(c.keys())
-  #     sql = "INSERT INTO blog ( %s ) VALUES ( %s )" % (columns, placeholders)
-  #     self.cursor.execute(sql, list(c.values()))
-  #     self.db.commit()
-
-  #   # Update existing
-  #   else:
-  #     sql = "UPDATE blog SET title = %s, permalink = %s, thumbnail = %s, excerpt = %s, content = %s, active = %s WHERE id = %s"
-  #     self.cursor.execute(sql, (c['title'], c['permalink'], c['thumbnail'], c['excerpt'], c['content'], c['active'], c['id']))
-  #     self.db.commit()
-
-
-  # def get_blog_posts(self):
-  #   self.refresh()
-  #   sql = "SELECT id, title, permalink, thumbnail, excerpt, content, active, created FROM blog"
-  #   self.cursor.execute(sql)
-  #   results = self.cursor.fetchall()
-  #   for result in results:
-  #     result['thumbnail'] = json.loads(result['thumbnail'])
-  #     result['content'] = json.loads(result['content'])
-  #   return results
-
-
-  # def get_blog_post(self, data):
-  #   if 'permalink' in data:
-  #     sql = "SELECT id, title, permalink, thumbnail, excerpt, content, active, created FROM blog WHERE permalink = %s"
-  #     self.cursor.execute(sql, (data['permalink'], ))
-  #     results = self.cursor.fetchall()
-  #     for result in results:
-  #       result['thumbnail'] = json.loads(result['thumbnail'])
-  #       result['content'] = json.loads(result['content'])
-  #     return results[0]
-
-
-  # def remove_blog_post(self, id):
-  #   sql = "DELETE FROM blog WHERE id = %s"
-  #   self.cursor.execute(sql, (id, ))
-
-  # def add_feedback(self, data):
-  #   c = {
-  #     'email': json.dumps(data['email']),
-  #     'message': json.dumps(data['message']),
-  #     'active': True,
-  #   }
-  #   if ('id' in data):
-  #     print('already have feedback of this id')
-  #   else:
-  #     self.refresh()
-  #     placeholders = ", ".join(['%s'] * len(c))
-  #     columns = ", ".join(c.keys())
-  #     sql = "INSERT INTO feedback ( %s ) VALUES ( %s )" % (columns, placeholders)
-  #     self.cursor.execute(sql, list(c.values()))
-  #     self.db.commit()
-
-  # def get_feedback(self):
-  #   self.refresh()
-  #   sql = "SELECT * FROM feedback"
-  #   self.cursor.execute(sql)
-  #   results = self.cursor.fetchall()
-  #   for result in results:
-  #     result['email'] = json.loads(result['email'])
-  #     result['message'] = json.loads(result['message'])
-  #   return results
