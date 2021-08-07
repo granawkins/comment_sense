@@ -22,28 +22,42 @@ class YouTube():
         self.youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
-    def channel(self, channel_id):
-        request = self.youtube.channels().list(
-            part = "snippet,statistics",
-            id = channel_id,
-        )
+    def get_id(self, username):
+        args = {'part': 'id', 'forUsername': username}
+        request = self.youtube.channels().list(**args)
         try:
             response = request.execute()
         except Exception as e:
-            return {'error': f"Couldn't load channel: {e}"}
+            raise RuntimeError(f"Error fetching channelId for username: {e}")
+        if len(response['items']) == 0:
+            raise RuntimeError(f"No channelId found for username.")
+        id = response['items'][0]['id']
+        return id
+
+    def channel(self, key, index="id"):
+        args = {'part': 'snippet,statistics'}
+        if index == 'id':
+            args['id'] = key
+        elif index == 'user':
+            args['forUsername'] = key
+        request = self.youtube.channels().list(**args)
+        try:
+            response = request.execute()
+        except Exception as e:
+            raise RuntimeError(f"Error fetching channel data from Youtube.")
         if len(response['items']) == 0:
             return {'error': 'Channel not found'}
         c = response['items'][0]
         channel = {
-            'id': channel_id,
+            'id': c['id'],
             'title': c['snippet']['title'],
             'thumbnail': c['snippet']['thumbnails']['medium']['url'],
             'total_videos': None if 'videoCount' not in c['statistics'] else int(c['statistics']['videoCount'])
         }
-        return channel
+        return {'channel': channel}
 
-    def videos(self, channel_id, max_results=50,
-                       published_after=None, next_page=None):
+    def videos(self, channel_id, published_after=None, next_page_token=None):
+        max_results=50
         args = {
             'part': ['snippet'],
             'channelId': channel_id,
@@ -52,8 +66,9 @@ class YouTube():
         }
         if published_after:
             args['publishedAfter'] = published_after
-        if next_page:
-            args['pageToken'] = next_page
+        if next_page_token:
+            args['pageToken'] = next_page_token
+
         try:
             search_request = self.youtube.search().list(**args)
             response = search_request.execute()
@@ -69,18 +84,28 @@ class YouTube():
                 'published': item['snippet']['publishedAt'],
             })
         results = {
-            'next_page_token': response['nextPageToken'],
+            'next_page_token': None if not 'nextPageToken' in response else response['nextPageToken'],
             'total_videos': response['pageInfo']['totalResults'],
             'videos': videos,
         }
         return results
 
-    def comments(self, channel_id, video_id, n=100, next_page_token=None):
-        max_results = 1000
-        n_results = min(int(n), max_results)
-        max_per_loop = 100
-        n_loops = math.ceil(n_results / max_per_loop)
-        all_comments = []
+    def comments(self, video_id, next_page_token=None, sort='relevance'):
+        max_results = 100
+        args = {
+            'videoId': video_id,
+            'part': 'id, snippet, replies',
+            'maxResults': max_results,
+            'order': sort,
+        }
+        if (next_page_token):
+            args['pageToken'] = next_page_token
+
+        try:
+            comments_request = self.youtube.commentThreads().list(**args)
+            response = comments_request.execute()
+        except Exception as e:
+            raise RuntimeError(f"Error getting video comments from YouTube: {e}.")
 
         # Convert YT's format into CS's format
         def parse_comment(comment, parent=None, n_children=None):
@@ -88,7 +113,6 @@ class YouTube():
             output = {
                 "id": comment['id'],
                 "video_id": sn['videoId'],
-                "channel_id": channel_id,
                 "author": sn['authorDisplayName'][:32],
                 "published": sn['publishedAt'],
                 "text": sn['textDisplay'][:1000],
@@ -99,34 +123,26 @@ class YouTube():
             }
             return output
 
-        for i in range(n_loops):
-            # Get comments
-            args = {
-                'videoId': video_id,
-                'part': 'id, snippet, replies',
-                'maxResults': n_results,
-                'order': 'relevance',
-            }
-            if (next_page_token):
-                args['pageToken'] = next_page_token
-            comments_request = self.youtube.commentThreads().list(**args)
-            comments = comments_request.execute()
+        # Parse comments from yt response
+        comments = []
+        for thread in response['items']:
+            # Add the top level comment of each thread, and record the number of replies
+            sn = thread['snippet']
+            n_children = 0 if 'totalReplyCount' not in sn else sn["totalReplyCount"]
+            parent_comment = parse_comment(sn['topLevelComment'], None, n_children)
+            comments.append(parent_comment)
 
-            # Parse useful fields
-            if len(comments['items']) == 0:
-                break
-            next_page_token = None if 'nextPageToken' not in comments.keys() else comments['nextPageToken']
-            for thread in comments['items']:
+            # Add replies with a reference to the top-level comment
+            if 'replies' in thread:
+                parent_id = parent_comment['id']
+                for child_comment in thread['replies']['comments']:
+                    comments.append(parse_comment(child_comment, parent_id, 0))
 
-                # Flatten comments/replies, add parent_id or n_children
-                n_children = 0 if 'totalReplyCount' not in thread['snippet'].keys() else thread['snippet']["totalReplyCount"]
-                all_comments.append(parse_comment(thread['snippet']['topLevelComment'], None, n_children))
-                parent_id = all_comments[-1]['id']
-                if 'replies' in thread:
-                    for reply in thread['replies']['comments']:
-                        all_comments.append(parse_comment(reply, parent_id, 0))
-
-        return {'comments': all_comments, 'next_page_token': next_page_token}
+        results = {
+            'comments': comments,
+            'next_page_token': None if 'nextPageToken' not in response else response['nextPageToken'],
+        }
+        return results
 
     def video(self, video_id):
         video_request = self.youtube.videos().list(

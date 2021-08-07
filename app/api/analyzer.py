@@ -11,7 +11,7 @@ class Analyzer():
         self.db = database
         self.nlp = spacy.load('en_core_web_lg')
         self.nlp.add_pipe('spacytextblob')
-        
+
     def clean(self, dirty):
         clean = dirty.lower().strip()
         clean = re.sub("(\'s)", "", clean)
@@ -70,11 +70,6 @@ class Analyzer():
                 if (not span) | (span_text in ents) | (span_text == ""):
                     pass; # Avoid duplicates
                 topics.append((span_text, span.start, span.end, 'NOUN_CHUNK'))
-            c['topics'] = json.dumps(topics)
-            self.db.add_comment(c)
-            results.append({
-                'id': c['id'], 
-                'likes': c['likes'], 
-                'sentiment': c['sentiment'], 
-                'topics': c['topics']})
+            c['topics'] = topics
+            results.append(c)
         return results

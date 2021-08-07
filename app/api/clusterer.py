@@ -54,7 +54,7 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
     for c in comment_topics:
         if ('topics' not in c.keys()):
             pass
-        topics = json.loads(c['topics'])
+        topics = c['topics']
         for token, start, end, label in topics:
             edge = (c['id'], token, label, c['likes'], c['sentiment'])
             if token in clustered.keys():

@@ -111,6 +111,8 @@ class Database():
 
     # Add new record
     if len(current) == 0:
+      data['db_videos'] = 0
+      data['db_comments'] = 0
       if 'id' not in data:
         data['id'] = id
       placeholders = ", ".join(['%s'] * len(data))
@@ -171,7 +173,7 @@ class Database():
     self.cursor.execute("CREATE TABLE IF NOT EXISTS videos ( "
       "id VARCHAR(32) NOT NULL, "
       "title VARCHAR(300) NOT NULL, "
-      "thumbnail VARCHAR(50) NOT NULL, "
+      "thumbnail VARCHAR(255) NOT NULL, "
       "channel_id VARCHAR(32) NOT NULL, "
       "published VARCHAR(32) NOT NULL, "
       "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
@@ -273,7 +275,7 @@ class Database():
       return {'status': 'Fetched video data successfully.', 'video': video}
 
 
-  def get_videos(self, channel_id, search=None, sort=None, n=10, page=1):
+  def get_videos(self, channel_id, search=None, sort=None, n=10, page=1, all=False):
     if search:
       sql = """SELECT id, title, thumbnail, published, db_comments
                FROM videos
@@ -297,11 +299,15 @@ class Database():
       result.reverse()
     if sort == 'top':
       result = sorted(result, key=lambda v: v['db_comments'], reverse=True)
-    n = int(n)
-    page = int(page)
-    start = min(len(result), n * (page - 1))
-    finish = min(len(result), start + n)
-    return {'videos': result[start:finish]}
+
+    if all:
+      return {"videos": result}
+    else:
+      n = int(n)
+      page = int(page)
+      start = min(len(result), n * (page - 1))
+      finish = min(len(result), start + n)
+      return {'videos': result[start:finish]}
 
 # COMMENTS
 
@@ -409,11 +415,23 @@ class Database():
       return {'status': 'Fetched comment data successfully.', 'comment': comment}
 
 
-  def get_comments(self, comment_ids):
+  def get_comments(self, comment_ids=[], video_id=None, all=False):
     comments = []
     try:
-      for id in comment_ids:
-        comments.append(self.get_comment(id))
+      self.refresh()
+      if video_id and all:
+        self.cursor.execute("SELECT * FROM comments WHERE video_id = %s", (video_id, ))
+        response = self.cursor.fetchall()
+        for comment in response:
+          for field in self.comment_json_fields:
+            if field in comment and comment[field] is not None:
+              comment[field] = json.loads(comment[field])
+          comments.append(comment)
+      elif len(comment_ids) > 0:
+        for id in comment_ids:
+          comments.append(self.get_comment(id))
+      else:
+        raise RuntimeError("Invalid comments request to database.")
     except Exception as e:
         raise RuntimeError(f"Error getting comments from database: {e}.")
     return {"comments": comments}
