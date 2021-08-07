@@ -33,7 +33,7 @@ class Database():
     self.createVideosTable()
     self.video_fields = [
       "id", "title", "thumbnail", "channel_id", "published", "created", "total_comments",
-      "db_comments", "next_page_token", "last_scan", "topics" "last_refresh"]
+      "db_comments", "next_page_token", "last_scan", "topics", "last_refresh"]
     self.video_json_fields = ['topics', 'next_page_token']
 
     self.createCommentsTable()
@@ -280,22 +280,24 @@ class Database():
       return {'status': 'Fetched video data successfully.', 'video': video}
 
 
-  def get_videos(self, channel_id, search=None, sort=None, n=10, page=1, all=False):
-    if search:
-      sql = """SELECT id, title, thumbnail, published, db_comments
-               FROM videos
-               WHERE channel_id = %s AND title LIKE CONCAT('%', %s, '%')
-            """
-      args = (channel_id, search, )
+  def get_videos(self, channel_id, search=None, sort=None,
+                 n=10, page=1, all=False, all_data=False):
+
+    args = []
+    if all_data:
+      sql = "SELECT * FROM videos"
     else:
-      sql = """SELECT id, title, thumbnail, published, db_comments
-               FROM videos
-               WHERE channel_id = %s
-               ORDER BY published DESC"""
-      args = (channel_id, )
+      sql = "SELECT id, title, thumbnail, published, db_comments FROM videos"
+
+    sql += " WHERE channel_id = %s"
+    args.append(channel_id)
+    if search:
+      sql += " LIKE CONCAT('%', %s, '%')"
+      args.append(search)
+    sql += " ORDER BY published DESC"
     try:
       self.refresh()
-      self.cursor.execute(sql, args)
+      self.cursor.execute(sql, list(args))
       result = self.cursor.fetchall()
     except Exception as e:
       raise RuntimeError(f"Error fetching videos list from database.")
@@ -485,13 +487,47 @@ class Database():
 
 # TOPICS
 
-  def get_topics(self, channel_id, video_id=None, search=None, sort=None, n=10, page=1):
+  def get_topics(self, channel_id, video_id=None, search=None, labels=None,
+                 sort=None, n=10, page=1, all=False):
     if video_id:
       sql = 'SELECT topics FROM videos WHERE id = %s'
       ref = video_id
     else:
-      sql = "SELECT id, topics FROM videos WHERE channel_id = %s"
+      sql = "SELECT topics FROM channels WHERE id = %s"
       ref = channel_id
-    self.cursor.execute(sql, (ref, ))
-    result = self.cursor.fetchall()
-    return {'videos': result}
+
+    try:
+      self.cursor.execute(sql, (ref, ))
+      result = self.cursor.fetchall()
+      topics = json.loads(result[0]['topics'])
+    except Exception as e:
+      raise RuntimeError(f"Error fetching topics from database.")
+
+    if not topics:
+      return {'error': "No topics found"}
+
+    if search:
+      def search_topic(topic):
+        if search.lower() in topic['token'].lower():
+          return True
+        for tok in topic['toks']:
+          if search.lower() in tok.lower():
+            return True
+        return False
+      topics = list(filter(search_topic, topics))
+
+    if labels:
+      def has_label(topic):
+        if topic['label'] in labels:
+          return True
+        return False
+      topics = list(filter(has_label, topics))
+
+    if not all:
+      n = int(n)
+      page = int(page)
+      start = min(len(topics), n * (page - 1))
+      finish = min(len(topics), start + n)
+      topics = topics[start:finish]
+
+    return {'topics': topics}

@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
 from database import Database
 from analyzer import Analyzer
-from clusterer import Clusterer, cluster, cluster_topics
+from clusterer import Clusterer, cluster, cluster_videos
 from id_hash import hash
 
 # Initialize Logger
@@ -381,34 +381,89 @@ def analyze_comments():
 @app.route('/api/topics', methods=['POST'])
 def topics():
     request_data = request.get_json()
-    user = request_data['user']
-    request_type = 'video' if (request_data['videoId']) else 'channel'
-    if 'channelId' not in user.keys():
-        return
-    args = {
-        'channel_id': user['channelId'],
-        'search': request_data['search'],
-        'sort': request_data['sort'],
-    }
-    if request_type == 'video':
+
+    args = {'channel_id': request_data['user']['channelId']}
+    if 'videoId' in request_data:
         args['video_id'] = request_data['videoId']
+    for field in ['search', 'labels', 'sort', 'all']:
+        if field in request_data:
+            if (request_data[field]):
+                args[field] = request_data[field]
+    if 'pageSize' in request_data:
+        args['n'] = request_data['pageSize']
+    if 'pageNumber' in request_data:
+        args['page'] = request_data['pageNumber']
+    if 'all' in request_data:
+        args['all'] = request_data['all']
 
-    logger.info(f"topics - {json.dumps(args)}")
-    db_data = db.topics(**args)
-    if request_type == 'video':
-        topics = json.loads(db_data['videos'][0]['topics'])
-    else:
-        topics = cluster_topics(db_data['videos'])
+    try:
+        logger.info(f"topics - {json.dumps(args)}")
+        db_topics = db.get_topics(**args)
+    except Exception as e:
+        return {'error': f"Error getting topics from database: {e}"}
+    if 'error' in db_topics:
+        return {'error': db_topics['error']}
+    return {'topics': db_topics['topics']}
 
-    with open('casey_topics.json', 'w') as f:
-        json.dump(topics, f)
+@app.route('/api/refresh_video', methods=['POST'])
+def refresh_video():
+    # Get all comments, cluster topics, reset db
+    request_data = request.get_json()
+    channel_id = request_data['user']['channelId']
+    video_id = request_data['videoId']
+    db_comments = db.get_comments(channel_id, video_id, all=True)
+    all_comments = db_comments['comments']
+    n_topics = 200
+    args = {
+        'comment_topics': all_comments,
+        'n_topics': n_topics,
+    }
+    db_channel = db.get_channel(channel_id)
+    if 'error' in db_channel:
+        return {'error': 'Error getting channel data for cluster.'}
+    c = db_channel['channel']
+    for field in ['subs_list', 'labels_list', 'ignore_list']:
+        if c[field]:
+            args[field] = c[field]
+    raw_topics = cluster(**args)
+    video_topics = [{
+        'token': token,
+        'toks': toks,
+        'score': n,
+        'likes': likes,
+        'sentiment': sentiment,
+        'label': label,
+        'comments': commentIds
+    } for (token, toks, label, n, likes, sentiment, commentIds) in raw_topics]
 
-    n = int(request_data['pageSize'])
-    page = int(request_data['pageNumber'])
-    start = min(len(topics), int(n) * (int(page) - 1))
-    finish = min(len(topics), start + int(n))
-    return {'items': topics[start:finish]}
+    timestamp = str(datetime.datetime.now())
+    reset_video = {
+        'db_comments': len(all_comments),
+        'topics': video_topics,
+        'last_refresh': timestamp,
+    }
+    result = db.set_video(video_id, reset_video)
+    return {"status": result}
 
+
+@app.route('/api/refresh_channel', methods=['POST'])
+def refresh_channel():
+    # Get all comments, cluster topics, reset db
+    request_data = request.get_json()
+    channel_id = request_data['user']['channelId']
+    db_videos = db.get_videos(channel_id, all=True, all_data=True)
+    if len(db_videos['videos']) == 0:
+        return {'error': 'No videos for this channel'}
+    new_channel = cluster_videos(db_videos['videos'])
+
+    timestamp = str(datetime.datetime.now())
+    reset_channel = {
+        'db_comments': new_channel['db_comments'],
+        'topics': new_channel['topics'],
+        'last_refresh': timestamp,
+    }
+    result = db.set_channel(channel_id, reset_channel)
+    return {'topics': result}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
