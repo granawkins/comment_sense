@@ -130,10 +130,9 @@ class Database():
       sql = "UPDATE channels SET "
       args = []
       for field in data:
-        if data[field] == None:
+        if (data[field] == None) or (data[field] == 'null'):
           sql += f"{field} = NULL, "
         else:
-
           sql += f"{field} = %s, "
           args.append(data[field])
       sql = sql[:-2]
@@ -161,6 +160,9 @@ class Database():
       return {'status': 'Channel not found'}
     else:
       channel = response[0]
+      for field in channel:
+        if channel[field] == 'null':
+          channel[field] = None
       for field in self.channel_json_fields:
         if field in channel and channel[field] is not None:
           channel[field] = json.loads(channel[field])
@@ -239,7 +241,7 @@ class Database():
       sql = "UPDATE videos SET "
       args = []
       for field in data:
-        if data[field] == None:
+        if (data[field] == None) or (data[field] == 'null'):
           sql += f"{field} = NULL, "
         else:
           sql += f"{field} = %s, "
@@ -269,6 +271,9 @@ class Database():
       return {'status': 'Video not found'}
     else:
       video = response[0]
+      for field in video:
+        if video[field] == 'null':
+          video[field] = None
       for field in self.video_json_fields:
         if field in video and video[field] is not None:
           video[field] = json.loads(video[field])
@@ -379,7 +384,7 @@ class Database():
       sql = "UPDATE comments SET "
       args = []
       for field in data:
-        if data[field] == None:
+        if (data[field] == None) or (data[field] == 'null'):
           sql += f"{field} = NULL, "
         else:
           sql += f"{field} = %s, "
@@ -412,37 +417,78 @@ class Database():
       for field in self.comment_json_fields:
         if field in comment and comment[field] is not None:
           comment[field] = json.loads(comment[field])
+      for field in comment:
+        if comment[field] == 'null':
+          comment[field] = None
       return {'status': 'Fetched comment data successfully.', 'comment': comment}
 
 
-  def get_comments(self, comment_ids=[], video_id=None, all=False):
-    comments = []
-    try:
-      self.refresh()
-      if video_id and all:
-        self.cursor.execute("SELECT * FROM comments WHERE video_id = %s", (video_id, ))
-        response = self.cursor.fetchall()
-        for comment in response:
-          for field in self.comment_json_fields:
-            if field in comment and comment[field] is not None:
-              comment[field] = json.loads(comment[field])
-          comments.append(comment)
-      elif len(comment_ids) > 0:
-        for id in comment_ids:
-          comments.append(self.get_comment(id))
+  def get_comments(self, channel_id=None, video_id=None, comment_ids=[],
+                   search=None, sort=None, n=10, page=1, all=False):
+
+    # For each comment, there is json loading and null-None switching needed.
+    # For those than use the get_comment, this is done already and shouldn't be duplicated.
+    converted = False
+
+    # Prioritize the most specific ID
+    if len(comment_ids) > 1:
+      converted = True
+      result = []
+      for id in comment_ids:
+        db_comment = self.get_comment(id)
+        result.append(db_comment['comment'])
+    else:
+      sql = "SELECT * FROM COMMENTS"
+      args = []
+      if video_id:
+        sql += ' WHERE video_id = %s'
+        args.append(video_id)
       else:
-        raise RuntimeError("Invalid comments request to database.")
-    except Exception as e:
-        raise RuntimeError(f"Error getting comments from database: {e}.")
-    return {"comments": comments}
+        sql += ' WHERE channel_id = %s'
+        args.append(channel_id)
+
+      if search:
+        sql += " AND text LIKE CONCAT('%', %s, '%')"
+        args.append(search)
+      sql += " ORDER BY published DESC"
+
+      try:
+        self.refresh()
+        self.cursor.execute(sql, args)
+        result = self.cursor.fetchall()
+      except Exception as e:
+        raise RuntimeError(f"Error fetching comments from database: {e}")
+
+    if sort == 'oldest':
+      result.reverse()
+    if sort == 'top':
+      result = sorted(result, key=lambda v: v['likes'], reverse=True)
+
+    if not all:
+      n = int(n)
+      page = int(page)
+      start = min(len(result), n * (page - 1))
+      finish = min(len(result), start + n)
+      result = result[start:finish]
+
+    if not converted:
+      for comment in result:
+        for field in self.comment_json_fields:
+          if field in comment and comment[field] is not None:
+            comment[field] = json.loads(comment[field])
+        for field in comment:
+          if comment[field] == 'null':
+            comment[field] = None
+
+    return {'comments': result}
 
 
 # TOPICS
 
-  def topics(self, channel_id, videoId=None, search=None, sort=None, n=10, page=1):
-    if videoId:
+  def get_topics(self, channel_id, video_id=None, search=None, sort=None, n=10, page=1):
+    if video_id:
       sql = 'SELECT topics FROM videos WHERE id = %s'
-      ref = videoId
+      ref = video_id
     else:
       sql = "SELECT id, topics FROM videos WHERE channel_id = %s"
       ref = channel_id

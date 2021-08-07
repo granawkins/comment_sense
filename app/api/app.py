@@ -184,7 +184,7 @@ def videos():
     request_data = request.get_json()
     user = request_data['user']
     if 'channelId' not in user.keys():
-        return
+        return {'error': 'Cannot fetch videos, missing channel_id'}
     args = {
         'channel_id': user['channelId'],
         'search': None if not 'search' in request_data else request_data['search'],
@@ -200,6 +200,57 @@ def videos():
     db_data = db.get_videos(**args)
     videos = db_data['videos']
     return {'items': videos}
+
+
+@app.route('/api/video/<video_id>', methods=['GET'])
+def video(video_id):
+    logger.info(f"video - {video_id}")
+    db_data = db.get_video(video_id)
+    db_video = db_data['video']
+    yt_video = yt.video(video_id)
+    del yt_video['published'] # Prefer the format from the 'videos' function
+
+    # This function will update the db fields which are timely and come from youtube
+    video_data = {**db_video, **yt_video}
+    db.set_video(video_id, video_data)
+    del video_data['topics']
+    return {'video_data': video_data}
+
+
+@app.route('/api/comments', methods=['POST'])
+def comments():
+    request_data = request.get_json()
+    args = {}
+
+    # Requires a channelId, videoId, or list of commentIds.
+    # The most specific ID (comment > video > channel) is used.
+    if 'comments' in request_data:
+        if len(request_data['comments']) > 1:
+            args['comment_ids'] = request_data['comments']
+    elif 'videoId' in request_data:
+        args['video_id']  = request_data['videoId']
+    elif 'user' in request_data:
+        if 'channelId' in request_data['user']:
+            args['channel_id'] = request_data['user']['channelId']
+    if len(args) == 0:
+        return {'error': 'No valid arguments supplied to api/comments'}
+
+    # Return the first page of 10 by default.
+    for field in ['search', 'sort', 'all']:
+        if field in request_data:
+            args[field] = request_data[field]
+    if 'pageSize' in request_data:
+        args['n'] = request_data['pageSize']
+    if 'pageNumber' in request_data:
+        args['page'] = request_data['pageNumber']
+
+    try:
+        db_comments = db.get_comments(**args)
+    except Exception as e:
+        return {'error': f"Error getting comments from database: {e}"}
+    if 'error' in db_comments:
+        return {'error': db_comments['error']}
+    return {'comments': db_comments['comments']}
 
 
 @app.route('/api/analyze_comments', methods=['POST'])
@@ -335,14 +386,14 @@ def topics():
     if 'channelId' not in user.keys():
         return
     args = {
-        'channelId': user['channelId'],
+        'channel_id': user['channelId'],
         'search': request_data['search'],
         'sort': request_data['sort'],
     }
     if request_type == 'video':
-        args['videoId'] = request_data['videoId']
+        args['video_id'] = request_data['videoId']
 
-    logger.info(f"videos - {json.dumps(args)}")
+    logger.info(f"topics - {json.dumps(args)}")
     db_data = db.topics(**args)
     if request_type == 'video':
         topics = json.loads(db_data['videos'][0]['topics'])
@@ -358,157 +409,6 @@ def topics():
     finish = min(len(topics), start + int(n))
     return {'items': topics[start:finish]}
 
-@app.route('/api/video/<videoId>', methods=['GET'])
-def video(videoId):
-    logger.info(f"video - {videoId}")
-    video_data = yt.video(videoId)
-    db_data = db.video(videoId)
-    video_data['topics'] = [] if not db_data else db_data['topics']
-    video_data['n_analyzed'] = 0 if not db_data else db_data['n_analyzed']
-    video_data['next_page_token'] = None if not db_data else db_data['next_page_token']
-    return {'video_data': video_data}
-
-@app.route('/api/comments', methods=['POST'])
-def comments():
-    request_data = request.get_json()
-    comment_ids = request_data['comments']
-    logger.info(f"comments - {request_data['videoId']}, {request_data['topic']}")
-    comments = db.comments(comment_ids)
-    return {'comments': comments}
-
-@app.route('/api/analyze', methods=['POST'])
-def analyze():
-    # Parse request info
-    request_data = request.get_json()
-    video_data = request_data['videoData']
-    videoId = video_data['id']
-    n_target = int(request_data['nComments'])
-    if 'next_page_token' in video_data.keys():
-        page_token =  video_data['next_page_token']
-        old_analyzed = db.all_comments(videoId)
-    else:
-        page_token = None
-        old_analyzed = []
-
-    # Get comments from YouTube API
-    logger.info(f"youtube_comments - {videoId}, {n_target}")
-    comment_data, next_page_token = yt.comments(videoId, n_target, page_token)
-    # -> [[id, videoId, text, author, parent, likes, published], ...]
-
-    # Get analyzed comments and add to database
-    logger.info(f"analyze - {videoId}, {len(comment_data)}")
-    new_analyzed = an.analyze(comment_data)
-    # -> [[id, likes, sentiment, topics], ...]
-
-    video_data['next_page_token'] = json.dumps(next_page_token)
-    analyzed = old_analyzed + new_analyzed
-    video_data['n_analyzed'] = len(analyzed)
-
-    # Extract a sorted list of topics from comments
-    n_topics = 200
-    subs = []
-    user_labs = []
-    logger.info(f"cluster - {videoId}, {len(analyzed)}")
-    topics_raw = cluster(analyzed, n_topics, subs, user_labs)
-    # -> [[token, toks, label, n, likes, sentiment, commentIds], ...]
-
-    # Add topics to database
-    topics_data = [{
-        'token': token,
-        'toks': toks,
-        'score': n,
-        'likes': likes,
-        'sentiment': sentiment,
-        'type': label,
-        'comments': commentIds
-    } for (token, toks, label, n, likes, sentiment, commentIds) in topics_raw]
-    video_data['topics'] = json.dumps(topics_data)
-    db.add_video(video_data)
-
-    # Send results to frontend
-    return {'video_data': video_data}
-
-
-# ADMIN
-
-@app.route('/api/blogs', methods=['GET'])
-def blogs():
-    db_data = db.get_blog_posts()
-    return {'posts': db_data}
-
-@app.route('/api/get_blog_post/<permalink>', methods=['GET'])
-def get_blog_post(permalink):
-    post = None
-    try:
-        logger.info(f"blog - {permalink}")
-        post = db.get_blog_post({'permalink': permalink})
-    except:
-        print("Unexpected error retrieving blog post:", sys.exc_info()[0])
-    finally:
-        return {'blog': post}
-
-@app.route('/api/add_blog', methods=['POST'])
-def add_blog():
-    new_post = request.get_json()
-    successful = False
-    try:
-        db.add_blog_post(new_post)
-        successful = True
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-    finally:
-        return {'successful': successful}
-
-@app.route('/api/remove_blog', methods=['POST'])
-def remove_blog():
-    post = request.get_json()
-    id = post['id']
-    successful = False
-    if id:
-        try:
-            db.remove_blog_post(id)
-            successful = True
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-        finally:
-            return {'successful': successful}
-    else:
-        return {'successful': successful}
-
-@app.route('/api/add_feedback', methods=['POST'])
-def add_feedback():
-    feedback = request.get_json()
-    successful = False
-    try:
-        db.add_feedback(feedback)
-        successful = True
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-    finally:
-        return {'successful': successful}
-
-@app.route('/api/get_feedback', methods=['GET'])
-def get_feedback():
-    try:
-        all_feedback = db.get_feedback()
-        feedback = sorted(all_feedback, key=lambda k: k['created'], reverse=True)
-
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-        feedback = None
-    finally:
-        return {'feedback': feedback}
-
-@app.route('/api/get_logs', methods=['POST'])
-def get_logs():
-    params = request.get_json() # ignore for now
-    results = []
-    script_dir = os.path.dirname(__file__)
-    file_path = os.path.join(script_dir, 'logs/cs_logs.log')
-    with open(file_path) as f:
-        for line in f:
-            results.append(line)
-    return {'logs': results}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
