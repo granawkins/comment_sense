@@ -7,7 +7,7 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 
 import TopicBar from './TopicBar'
-import CommentsBlock from './CommentsBlock'
+import CommentsBlock from '../Topics/CommentsBlock'
 import Attribute from './Attribute'
 
 const styles = (theme) => ({

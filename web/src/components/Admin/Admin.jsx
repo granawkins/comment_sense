@@ -10,10 +10,10 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Toolbar from '@material-ui/core/Toolbar'
 import { withStyles } from '@material-ui/core/styles'
 
-import BlogAdmin from './Blog/BlogAdmin'
-import Feedback from './Admin/Feedback'
-import Logs from './Admin/Logs'
-import Placeholder from './Placeholder'
+import BlogAdmin from '../blog/BlogAdmin'
+import Feedback from './Feedback'
+import Logs from './Logs'
+import Placeholder from '../Placeholder'
 
 const drawerWidth = 240
 

@@ -1,89 +1,14 @@
 import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
-import Navbar from './components/landing/Navbar.jsx'
-import Feed from "./components/Feed.jsx"
-import { Video } from "./components/Video.jsx"
-import Landing from "./components/Landing.jsx"
-import Admin from "./components/Admin.jsx"
-import BlogFeed from "./components/BlogFeed.jsx"
-import BlogDisplay from "./components/Blog/BlogDisplay.jsx"
+
+import getTheme from './theme.js'
+import Landing from "./components/landing/Landing.jsx"
+import Dashboard from "./components/dashboard/Dashboard.jsx"
 import Contact from "./components/Contact.jsx"
 import Placeholder from "./components/Placeholder.jsx"
-import Footer from "./components/landing/Footer.jsx"
-import Dashboard from "./components/Dashboard.jsx"
-import './App.css';
 
-const csRed = '#B70000'
-const lightWeight = '200'
-const boldWeight = '600'
-
-const theme = createTheme({
-  typography: {
-    fontFamily: ['Roboto'],
-    h1: {
-      fontSize: '2.5em',
-      fontWeight: '800',
-      lineHeight: '1',
-    },
-    h3: {
-      fontSize: '2em',
-      fontWeight: boldWeight,
-    },
-    h4: {
-      fontSize: '2em',
-      fontWeight: lightWeight,
-      color: csRed,
-    },
-    h5: {
-      fontSize: '1.2em',
-      fontWeight: boldWeight,
-    },
-    h6: {
-      fontSize: '1.2em',
-      fontWeight: lightWeight,
-    },
-    body1: {
-      fontSize: '1em',
-      fontWeight: lightWeight,
-    },
-  },
-  overrides: {
-    MuiCssBaseline: {
-      '@global': {
-        '@font-face': 'Roboto',
-      },
-    },
-  },
-  palette: {
-    primary: {
-      main: '#F5F5F5',
-      dark: '#1E1E1E',
-    },
-    secondary: {
-      main: '#FFFFFF',
-      dark: '#252526',
-    },
-    error: {
-      main: '#B70000',
-      dark: '#FFFFFF',
-    },
-    csRed: {
-      main: csRed,
-      dark: '#8B0000',
-    },
-    faded: {
-      main: '#7D7D7D',
-    },
-  },
-  components: {
-    MuiButton: {
-      variants: [
-
-      ]
-    }
-  }
-})
+const theme = getTheme()
 
 theme.typography.h1 = {
   [theme.breakpoints.up('sm')]: {

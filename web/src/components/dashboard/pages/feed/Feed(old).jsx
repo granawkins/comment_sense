@@ -2,9 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import FeedCard from "./Feed/FeedCard.jsx"
-import LoadingCircle from '../utils/LoadingCircle';
-import { postData } from '../utils/helpers.js';
+import FeedCard from "./Feed/FeedCard.jsx.js.js"
+import LoadingCircle from '../../../../utils/LoadingCircle';
+import { postData } from '../../../../utils/helpers.js';
 
 const styles = (theme) => ({
     root: {

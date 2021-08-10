@@ -4,7 +4,7 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 import Typography from '@material-ui/core/Typography';
-import { thousands_separator } from '../../utils/helpers.js'
+import { thousands_separator } from '../../../utils/helpers.js'
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = (theme) => ({
@@ -12,7 +12,7 @@ const styles = (theme) => ({
         padding: '5px 0',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',        
+        justifyContent: 'space-between',
         [theme.breakpoints.up('sm')]: {
             flexDirection: 'row',
         },

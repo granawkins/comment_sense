@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import FeedCard from "./Feed/FeedCard.jsx"
+import FeedCard from "../dashboard/pages/feed/FeedCard.jsx"
 import LoadingCircle from '../utils/LoadingCircle';
 import { postData } from '../utils/helpers.js';
 

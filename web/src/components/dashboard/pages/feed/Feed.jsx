@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import LoadingCircle from '../../utils/LoadingCircle.js'
-import { postData } from '../../utils/helpers.js'
+import LoadingCircle from '../../../utils/LoadingCircle.js'
+import { postData } from '../../../utils/helpers.js'
 
 const styles = (theme) => ({
     root: {

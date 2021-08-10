@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/styles'
 import { postData } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle';
-import Comment from './Comment'
+import Comment from './feed/Comment'
 
 const styles = (theme) => ({
     root: {

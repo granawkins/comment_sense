@@ -6,7 +6,7 @@ import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import { withStyles } from '@material-ui/core/styles'
 
-import { postData } from '../utils/helpers'
+import { postData } from './utils/helpers'
 
 const styles = (theme) => ({
     root: {

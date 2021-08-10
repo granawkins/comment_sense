@@ -10,7 +10,7 @@ import Switch from '@material-ui/core/Switch'
 import ReactQuill, { Quill } from 'react-quill'
 import ImageUploader from "quill-image-uploader"
 
-import LoadingCircle from '../../utils/LoadingCircle'
+import LoadingCircle from '../utils/LoadingCircle'
 
 Quill.register("modules/imageUploader", ImageUploader)
 

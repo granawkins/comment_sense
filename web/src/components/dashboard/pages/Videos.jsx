@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 import { Typography, Button } from '@material-ui/core'
 
-import Feed from './Feed'
 import Controller from './Controller'
-import FeedCard from '../Feed/FeedCard'
+import Feed from './feed/Feed'
+import FeedCard from './feed/FeedCard'
 import { postData } from '../../utils/helpers'
 
 const styles = (theme) => ({

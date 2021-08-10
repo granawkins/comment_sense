@@ -7,12 +7,11 @@ import Toolbar from '@material-ui/core/Toolbar'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 
-import ReactiveDrawer from './ReactiveDrawer'
-import Feed from './feed/Feed'
+import ReactiveDrawer from './Drawer'
 import Videos from './pages/Videos'
-import { postData, capitalize } from '../../utils/helpers'
-import LoadingCircle from '../../utils/LoadingCircle';
-import ErrorPage from '../../utils/ErrorPage';
+import { postData, capitalize } from '../utils/helpers'
+import LoadingCircle from '../utils/LoadingCircle';
+import ErrorPage from '../utils/ErrorPage';
 
 const drawerWidth = '240px'
 
@@ -141,10 +140,10 @@ const Dashboard = ({classes}) => {
                             <Videos user={user} channel={channel} key='videos'/>
                         </Route>
                         <Route exact path={`/dashboard/topics`}>
-                            <Feed user={user} type='topics' key='topics' />
+                            {/* <Feed user={user} type='topics' key='topics' /> */}
                         </Route>
                         <Route exact path={`/dashboard/video/:videoId`}>
-                            <Feed user={user} type='topics' key='video' />
+                            {/* <Feed user={user} type='topics' key='video' /> */}
                         </Route>
                         <Route exact path={`/dashboard/settings`}>
                             Settings

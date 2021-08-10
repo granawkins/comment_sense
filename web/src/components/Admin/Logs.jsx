@@ -13,8 +13,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
-import { postData } from '../../utils/helpers'
-import LoadingCircle from '../../utils/LoadingCircle'
+import { postData } from '../utils/helpers'
+import LoadingCircle from '../utils/LoadingCircle'
 
 const styles = (theme) => ({
     root: {

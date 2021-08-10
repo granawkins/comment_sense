@@ -6,10 +6,10 @@ import Tab from '@material-ui/core/Tab'
 import Box from '@material-ui/core/Box'
 import Divider from '@material-ui/core/Divider';
 
-import { postData } from '../../utils/helpers'
+import { postData } from '../utils/helpers'
 import BlogManager from './BlogManager'
 import BlogEditor from './BlogEditor'
-import FeedCard from '../Feed/FeedCard'
+import FeedCard from '../dashboard/pages/feed/FeedCard'
 import BlogPost from './BlogPost'
 
 // This component is based on the first example ('Simple tabs') here:

@@ -7,7 +7,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/styles';
-import { postData } from '../../utils/helpers';
+import { postData } from '../../../utils/helpers';
 
 const styles = (theme) => ({
     root: {

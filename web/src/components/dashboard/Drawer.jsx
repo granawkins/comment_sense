@@ -9,7 +9,7 @@ import ListItem from '@material-ui/core/ListItem'
 import CardMedia from '@material-ui/core/CardMedia'
 
 import Footer from '../landing/Footer'
-import { capitalize } from '../../utils/helpers'
+import { capitalize } from '../utils/helpers'
 
 const drawerWidth = '240px'
 

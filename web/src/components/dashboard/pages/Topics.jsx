@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/styles'
 import { Typography } from '@material-ui/core'
-import TopicCard from './TopicCard.jsx'
+import TopicCard from './feed/TopicCard.jsx'
 import LoadingCircle from '../../utils/LoadingCircle.js'
 import { postData } from '../../utils/helpers.js'
 

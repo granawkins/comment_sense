@@ -13,7 +13,7 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-import LoadingCircle from '../../utils/LoadingCircle'
+import LoadingCircle from '../utils/LoadingCircle'
 import { Tab } from '@material-ui/core'
 
 const styles = (theme) => ({
