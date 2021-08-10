@@ -7,10 +7,10 @@ import Toolbar from '@material-ui/core/Toolbar'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 
-import ReactiveDrawer from './dashboard/ReactiveDrawer'
-import Feed from './dashboard/Feed'
-import Videos from './dashboard/Videos'
-import { postData, capitalize } from '../utils/helpers'
+import ReactiveDrawer from './ReactiveDrawer'
+import Feed from './feed/Feed'
+import Videos from './pages/Videos'
+import { postData, capitalize } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle';
 import ErrorPage from '../../utils/ErrorPage';
 
