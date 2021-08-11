@@ -3,8 +3,8 @@ import debounce from 'lodash.debounce'
 
 import { withStyles } from '@material-ui/core/styles'
 import Container from '@material-ui/core/Container'
-import FormControl from '@material-ui/core/FormControl'
-import InputLabel from '@material-ui/core/Input'
+import IconButton from '@material-ui/core/IconButton';
+import Menu from '@material-ui/core/Menu';
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
@@ -56,8 +56,13 @@ const Controller = ({type, control, setControl, classes}) => {
     // Manage sort.
     const [sort, setSort] = useState("")
     const handleSort = (e) => {
-        setSort(e.target.value)
+        setSort(e.currentTarget.dataset.value)
+        handleSortClose()
     }
+    const [anchorEl, setAnchorEl] = useState(null)
+    const sortOpen = Boolean(anchorEl)
+    const handleSortClick = (e) => setAnchorEl(e.currentTarget)
+    const handleSortClose = () => setAnchorEl(null)
 
     // Set default values from parent on load, update control on change.
     useEffect(() => {
@@ -73,16 +78,6 @@ const Controller = ({type, control, setControl, classes}) => {
         }
     }, [search, sort])
 
-    // TODO: Make type-specific sort options
-    const [sortOptions, setSortOptions] = useState("")
-    useEffect(() => {
-        setSortOptions([
-            <MenuItem value={'recent'}>Recent</MenuItem>,
-            <MenuItem value={'oldest'}>Oldest</MenuItem>,
-            <MenuItem value={'top'}>Top</MenuItem>
-        ])
-    }, [type])
-
     return(
         <Container className={classes.root}>
             <div className={classes.row}>
@@ -94,17 +89,21 @@ const Controller = ({type, control, setControl, classes}) => {
                   inputProps={{ 'aria-label': 'search' }}
                   onChange={handleSearch}
                 />
-                <div className={classes.spacer} />
-                <Select
-                    IconComponent={SortIcon}
-                    value={sort}
-                    onChange={handleSort}
-                    classes={{
-                        root: `${classes.h6} ${classes.sort}`,
-                    }}
-                >
-                    {sortOptions}
-                </Select>
+
+                <IconButton onClick={handleSortClick}>
+                  <SortIcon />
+                </IconButton>
+                <Menu keepMounted anchorEl={anchorEl} open={sortOpen} onClose={handleSortClose}>
+                    {['recent', 'oldest', 'top'].map(option => (
+                        <MenuItem
+                            key={option}
+                            data-value={option}
+                            onClick={handleSort}
+                            selected={option === sort}
+                        >{capitalize(option)}</MenuItem>
+                    ))}
+                </Menu>
+
             </div>
         </Container>
     )
