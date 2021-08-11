@@ -7,7 +7,7 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 
 import TopicBar from './TopicBar'
-import CommentsBlock from '../Topics/CommentsBlock'
+import CommentsBlock from '../Comments'
 import Attribute from './Attribute'
 
 const styles = (theme) => ({
@@ -17,12 +17,6 @@ const styles = (theme) => ({
         padding: '0',
         margin: '10px 0 0 0',
         boxSizing: 'border-box',
-        [theme.breakpoints.up('sm')]: {
-            width: '600px',
-        },
-        [theme.breakpoints.up('md')]: {
-            width: '768px',
-        },
     },
     accordian: {
         padding: 0,
@@ -46,7 +40,7 @@ const styles = (theme) => ({
     },
 })
 
-const TopicCard = ({videoId, topic, max, classes}) => {
+const TopicCard = ({videoId=null, topic, max, classes}) => {
 
     const [labels, setLabels] = useState(null)
     const [toks, setToks] = useState(null)

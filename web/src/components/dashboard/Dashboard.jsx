@@ -9,6 +9,7 @@ import MenuIcon from '@material-ui/icons/Menu'
 
 import ReactiveDrawer from './Drawer'
 import Videos from './pages/Videos'
+import Topics from './pages/Topics'
 import { postData, capitalize } from '../utils/helpers'
 import LoadingCircle from '../utils/LoadingCircle';
 import ErrorPage from '../utils/ErrorPage';
@@ -18,18 +19,36 @@ const drawerWidth = '240px'
 const styles = (theme) => ({
     ...theme.typography,
     root: {
-        // display: 'flex',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         position: 'relative',
         width: '100%',
         height: '100%',
-        margin: '0',
-        padding: '0',
+        margin: 0,
+        [theme.breakpoints.up('md')]: {
+            alignItems: 'flex-start',
+        },
     },
-    appBar: {
+    content: {
+        width: '100%',
+        padding: theme.spacing(2),
+        [theme.breakpoints.up('sm')]: {
+            width: '80%',
+        },
         [theme.breakpoints.up('md')]: {
             width: `calc(100% - 240px)`,
+            maxWidth: '800px',
             marginLeft: drawerWidth,
         },
+        boxSizing: 'border-box',
+    },
+    titleLine: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: 'inherit',
     },
     menuButton: {
         marginRight: theme.spacing(2),
@@ -38,21 +57,11 @@ const styles = (theme) => ({
             display: 'none',
         },
     },
-    // necessary for content to be below app bar
-    toolbar: theme.mixins.toolbar,
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        [theme.breakpoints.up('md')]: {
-            width: `calc(vw - 240px)`,
-            marginLeft: drawerWidth,
-        },
-    },
 })
 
 const Dashboard = ({classes}) => {
 
-    const user = {channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ'}
+    const user = {channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ', sentiment: true}
     const params = useParams()
     const activePage = params.tab
 
@@ -80,6 +89,7 @@ const Dashboard = ({classes}) => {
                     thumbnail: "https://..."
                     title: "CaseyNeistat"
                     topics: (361) [{…}, …]
+                    labels: ['PERSON'...]
                     total_videos: null
                 }}
                 */
@@ -131,8 +141,13 @@ const Dashboard = ({classes}) => {
 
     return(
         <div className={classes.root}>
-            <AppBar position="fixed" className={classes.appBar} elevation={0}>
-                <Toolbar>
+
+
+            {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
+            <ReactiveDrawer drawerItems={drawerItems} activePage={activePage} channel={channel}
+                            mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
+            <div className={classes.content}>
+                <div className={classes.titleLine}>
                     <IconButton
                         color="inherit"
                         aria-label="open drawer"
@@ -145,16 +160,7 @@ const Dashboard = ({classes}) => {
                     <Typography variant="h3" noWrap>
                         {capitalize(activePage)}
                     </Typography>
-                </Toolbar>
-            </AppBar>
-
-            {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
-            <ReactiveDrawer drawerItems={drawerItems} activePage={activePage} channel={channel}
-                            mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
-            {/* offset content by drawerWidth when fixed */}
-            <div className={classes.toolbar} />
-
-            <div className={classes.content}>
+                </div>
                 {dashboardLoading || hasError
                     ? placeholder
                     : <Switch>
@@ -162,7 +168,7 @@ const Dashboard = ({classes}) => {
                             <Videos user={user} channel={channel} key='videos'/>
                         </Route>
                         <Route exact path={`/dashboard/topics`}>
-                            {/* <Feed user={user} type='topics' key='topics' /> */}
+                            <Topics user={user} channel={channel} page='channel' key='topics' />
                         </Route>
                         <Route exact path={`/dashboard/video/:videoId`}>
                             {/* <Feed user={user} type='topics' key='video' /> */}

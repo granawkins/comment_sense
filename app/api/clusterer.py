@@ -196,9 +196,12 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
 
 def cluster_videos(videos):
     all_topics = {}
+    labels = []
     db_comments = 0
     def add_topic(topic, videoId):
         token = topic['token']
+        if topic['label'] not in labels:
+            labels.append(topic['label'])
         if token in all_topics.keys():
             t = all_topics[token].copy()
             for tok in topic['toks']:
@@ -238,4 +241,4 @@ def cluster_videos(videos):
 
     topics_list = [all_topics[t] for t in all_topics]
     topics_list_sorted = sorted(topics_list, key=lambda e: e['score'], reverse=True)
-    return {'topics': topics_list_sorted, 'db_comments': db_comments}
+    return {'topics': topics_list_sorted, 'db_comments': db_comments, 'labels': labels}

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { withStyles } from '@material-ui/core/styles'
-import { Typography, Button } from '@material-ui/core'
 
 import Controller from './Controller'
 import Feed from './feed/Feed'
@@ -13,40 +12,35 @@ import ErrorPage from '../../utils/ErrorPage'
 const styles = (theme) => ({
     ...theme.typography,
     root: {
-        // display: 'flex',
         position: 'relative',
         width: '100%',
         height: '100%',
         margin: '0',
         padding: '0',
     },
-    scanBlock: {
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    scanNow: {
-        backgroundColor: theme.palette.csRed.main,
-        color: 'white',
-        top: '0',
-        marginLeft: '20px',
-    },
 })
 
+// Rendered only after dashboard has a valid channel object
 const Videos = ({user, channel, classes}) => {
 
     // const videoId = useParams().videoId
-    const [pageLoading, setPageLoading] = useState(false)
-    const [dbComments, setDBComments] = useState(null)
-    const [totalComments, setTotalComments] = useState(null)
+    const [dbVideos, setDBVideos] = useState(null)
+    const [totalVideos, setTotalVideos] = useState(null)
     useEffect(() => {
         if (channel) {
-            setDBComments(channel.db_videos)
-            setTotalComments(channel.total_videos ? channel.total_videos : "?")
+            setDBVideos(channel.db_videos)
+            setTotalVideos(channel.total_videos ? channel.total_videos : "?")
         }
     }, [channel])
 
+    // Action Messaage is displayed on top of the controller, next to action button
+    const [actionMessage, setActionMessage] = useState("")
+    useEffect(() => {
+        setActionMessage(`${dbVideos} scanned / ${totalVideos} videos`)
+    }, [dbVideos, totalVideos])
+
+    // ScanVideos is the primary action for the videos page.
+    const [pageLoading, setPageLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
     const scanVideos = async () => {
         setPageLoading(true)
@@ -66,8 +60,8 @@ const Videos = ({user, channel, classes}) => {
                 error: String,
             }
             */
-            setDBComments(response.db_videos)
-            setTotalComments(response.total_videos)
+            setDBVideos(response.db_videos)
+            setTotalVideos(response.total_videos)
             setPageLoading(false)
         }
         catch {
@@ -91,7 +85,6 @@ const Videos = ({user, channel, classes}) => {
         return <VideoCard type='video' data={video} key={video.id} />
     }
 
-
     const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
         if (pageLoading) {
@@ -105,20 +98,24 @@ const Videos = ({user, channel, classes}) => {
 
     return(
         <div className={classes.root}>
-            <div className={classes.scanBlock}>
-                <Typography className={classes.body1}>{dbComments} scanned / {totalComments} videos</Typography>
-                <Button
-                    onClick={scanVideos}
-                    className={classes.scanNow}
-                    variant='contained'
-                >SCAN NOW</Button>
-            </div>
             {!control
                 ? null
-                : <Controller type='videos' control={control} setControl={setControl} />}
+                : <Controller
+                    type='videos'
+                    control={control}
+                    setControl={setControl}
+                    actionMessage={actionMessage}
+                    action={scanVideos}
+                    actionLabel="SCAN NOW"
+                    sortOptions={['recent', 'oldest', 'top']}
+                />}
             {pageLoading || hasError
                 ? placeholder
-                : <Feed query={query} control={control} render={render} />}
+                : <Feed
+                    query={query}
+                    control={control}
+                    render={render}
+                />}
         </div>
     )
 }

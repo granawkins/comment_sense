@@ -11,7 +11,7 @@ const styles = (theme) => ({
     },
 })
 
-const CommentsBlock = ({videoId, topic, topicComments, classes}) => {
+const CommentsBlock = ({videoId=null, topic, topicComments, classes}) => {
 
     const COMMENTS_PER_PAGE = 10
 

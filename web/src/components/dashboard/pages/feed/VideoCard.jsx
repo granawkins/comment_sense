@@ -16,12 +16,12 @@ const styles = (theme) => ({
         margin: '10px 0 0 0',
         boxSizing: 'border-box',
         width: '100%',
-        [theme.breakpoints.up('sm')]: {
-            width: '480px',
-        },
-        [theme.breakpoints.up('md')]: {
-            width: '768px',
-        },
+        // [theme.breakpoints.up('sm')]: {
+        //     width: '480px',
+        // },
+        // [theme.breakpoints.up('md')]: {
+        //     width: '700px',
+        // },
     },
     link: {
         width: '100%',

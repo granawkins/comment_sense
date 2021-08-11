@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, withStyles, Typography } from '@material-ui/core'
 import Button from '@material-ui/core/Button';
 
-let styles = () => ({
+let styles = (theme) => ({
     default: {
         display: 'flex',
         flexDirection: 'column',
@@ -14,14 +14,18 @@ let styles = () => ({
     attribute: {
         borderRadius: '12px',
         height: '24px',
-        '&:hover': {
-            cursor: 'default',
-        }
-    }
+        margin: '3px 1px',
+    },
+    activeAttribute: {
+        borderRadius: '12px',
+        height: '24px',
+        backgroundColor: theme.palette.csRed.main,
+        color: 'white',
+    },
 })
 
 
-const Attribute = ({type, value, classes}) => {
+const Attribute = ({type, value, onClick, active, classes}) => {
 
     const [err, setErr] = useState(null)
     const [color, setColor] = useState("")
@@ -49,7 +53,8 @@ const Attribute = ({type, value, classes}) => {
                     size='small'
                     variant='contained'
                     color={color}
-                    classes={{root: classes.attribute}}
+                    classes={{root: active ? classes.activeAttribute : classes.attribute}}
+                    onClick={onClick}
                 ><span dangerouslySetInnerHTML={{__html: value}}></span></Button>
             }
         </>

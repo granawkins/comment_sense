@@ -15,12 +15,12 @@ const styles = (theme) => ({
     },
 })
 
-const ErrorPage = ({classes}) => {
+const EndPage = ({classes}) => {
     return (
         <div className={classes.root}>
-            <Typography className={classes.error}>ERROR</Typography>
+            <Typography className={classes.error}>END OF FEED</Typography>
         </div>
     )
 }
 
-export default withStyles(styles)(ErrorPage)
+export default withStyles(styles)(EndPage)

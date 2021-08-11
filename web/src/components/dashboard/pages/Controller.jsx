@@ -5,11 +5,14 @@ import { withStyles } from '@material-ui/core/styles'
 import Container from '@material-ui/core/Container'
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
-import Select from '@material-ui/core/Select'
+import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import SortIcon from '@material-ui/icons/Sort';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
+import Attribute from './feed/Attribute'
 import { capitalize } from '../../utils/helpers'
 
 const styles = (theme) => ({
@@ -30,7 +33,15 @@ const styles = (theme) => ({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
         width: '100%',
+        marginTop: theme.spacing(1),
+    },
+    actionButton: {
+        backgroundColor: theme.palette.csRed.main,
+        color: 'white',
+        top: '0',
+        margin: '0px 5px',
     },
     search: {
         flexGrow: '1',
@@ -41,34 +52,19 @@ const styles = (theme) => ({
     sort: {
         minWidth: '120px',
     },
+    sortIcon: {
+        height: '100%',
+    },
 })
 
-const Controller = ({type, control, setControl, classes}) => {
-    // Manage search. Debounce 1 second.
+const Controller = ({type, control, setControl, sortOptions=null, allLabels=null,
+                    actionMessage=null, action=null, actionLabel=null,
+                    refresh=null, lastRefresh=null, classes}) => {
+
+    // Update control (in parent) when sort and local variables are changed
     const [search, setSearch] = useState("")
-	const handleSearch = (e) => {
-        debouncedSearch(e.target.value)
-	}
-    const debouncedSearch = useCallback(
-        debounce(key => setSearch(key), 1000)
-    )
-
-    // Manage sort.
-    const [sort, setSort] = useState("")
-    const handleSort = (e) => {
-        setSort(e.currentTarget.dataset.value)
-        handleSortClose()
-    }
-    const [anchorEl, setAnchorEl] = useState(null)
-    const sortOpen = Boolean(anchorEl)
-    const handleSortClick = (e) => setAnchorEl(e.currentTarget)
-    const handleSortClose = () => setAnchorEl(null)
-
-    // Set default values from parent on load, update control on change.
-    useEffect(() => {
-        setSearch(control.search)
-        setSort(control.sort)
-    }, [])
+    const [sort, setSort] = useState(null)
+    const [labels, setLabels] = useState(null)
     useEffect(() => {
         if (search !== control.search) {
             setControl({...control, search})
@@ -76,10 +72,67 @@ const Controller = ({type, control, setControl, classes}) => {
         if (sort !== control.sort) {
             setControl({...control, sort})
         }
-    }, [search, sort])
+        if (JSON.stringify(labels) !== JSON.stringify(control.labels)) {
+            setControl({...control, labels})
+        }
+    }, [search, sort, labels])
+
+    // Set default values from parent on load.
+    useEffect(() => {
+        setSearch(control.search)
+        setSort(control.sort)
+        if (allLabels) {
+            setLabels(allLabels.reduce((o, lab) => ({ ...o, [lab]: false}), {}))
+        }
+    }, [sortOptions, allLabels])
+
+    // Debounce search by 1 second
+	const handleSearch = (e) => {
+        debouncedSearch(e.target.value)
+	}
+    const debouncedSearch = useCallback(
+        debounce(key => setSearch(key), 1000)
+    )
+
+    // If sortOptions are provided, update sort on change
+    const handleSort = (e) => {
+        setSort(e.currentTarget.dataset.value)
+        handleSortClose()
+    }
+    const [anchorEl, setAnchorEl] = useState(null)
+    const handleSortClick = (e) => setAnchorEl(e.currentTarget)
+    const handleSortClose = () => setAnchorEl(null)
+    const sortOpen = Boolean(anchorEl)
+
+    // Labels are off by default. Click on label to toggle status.
+    const handleLabel = (label, status) => {
+        const newLabels = JSON.parse(JSON.stringify(labels))
+        newLabels[label] = status
+        setLabels(newLabels)
+    }
 
     return(
         <Container className={classes.root}>
+            <div className={classes.row}>
+                <Typography className={classes.body1}>{actionMessage}</Typography>
+                {actionLabel && action
+                    ? <Button
+                        onClick={action}
+                        className={classes.actionButton}
+                        variant='contained'
+                    >{actionLabel}</Button>
+                    : null
+                }
+                {lastRefresh && refresh
+                ? <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                    <Typography className={classes.body1}>Last updated {lastRefresh}</Typography>
+                    <IconButton onClick={refresh}>
+                        <RefreshIcon className={classes.sortIcon} />
+                    </IconButton>
+                </div>
+                : null
+                }
+            </div>
             <div className={classes.row}>
                 <TextField
                   placeholder="Search"
@@ -89,24 +142,44 @@ const Controller = ({type, control, setControl, classes}) => {
                   inputProps={{ 'aria-label': 'search' }}
                   onChange={handleSearch}
                 />
-
-                <IconButton onClick={handleSortClick}>
-                  <SortIcon />
-                </IconButton>
-                <Menu keepMounted anchorEl={anchorEl} open={sortOpen} onClose={handleSortClose}>
-                    {['recent', 'oldest', 'top'].map(option => (
-                        <MenuItem
-                            key={option}
-                            data-value={option}
-                            onClick={handleSort}
-                            selected={option === sort}
-                        >{capitalize(option)}</MenuItem>
-                    ))}
-                </Menu>
-
+                {sortOptions
+                    ? <>
+                        <IconButton onClick={handleSortClick}>
+                            <SortIcon className={classes.sortIcon} />
+                        </IconButton>
+                        <Menu keepMounted anchorEl={anchorEl} open={sortOpen} onClose={handleSortClose}>
+                            {sortOptions.map(option => (
+                                <MenuItem
+                                    key={option}
+                                    data-value={option}
+                                    onClick={handleSort}
+                                    selected={option === sort}
+                                >{capitalize(option)}</MenuItem>
+                            ))}
+                        </Menu>
+                    </>
+                    : null
+                }
             </div>
+            {control.labels
+                ? <div className={classes.row}>
+                    {Object.entries(control.labels).map(([key, value]) => (
+                        <Attribute type='label' value={key} active={value}
+                                onClick={() => handleLabel(key, !value)} />
+                    ))}
+                    <div style={{flexGrow: 1}} />
+                </div>
+                : null
+            }
         </Container>
     )
 }
 
 export default withStyles(styles)(Controller)
+
+{/* <Switch
+        checked={sentimentOn}
+        onChange={toggleSentiment}
+        color='secondary'
+    />
+    <Typography color='black'>Sentiment</Typography> */}

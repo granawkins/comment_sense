@@ -5,9 +5,9 @@ import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 
 import { postData } from '../../utils/helpers'
-import VideoPlayer from "./Video/VideoPlayer.jsx"
-import Controller from "./pages/Controller.jsx"
-import Topics from "./Topics/Topics.jsx"
+import VideoPlayer from "./player/VideoPlayer.jsx"
+import Controller from "./Controller.jsx"
+import Topics from "./Topics.jsx"
 
 const styles = (theme) => ({
     root: {

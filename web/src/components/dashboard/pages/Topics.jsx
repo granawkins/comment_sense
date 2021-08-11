@@ -1,151 +1,147 @@
-import { useState, useEffect, useRef } from 'react'
-import { withStyles } from '@material-ui/styles'
-import { Typography } from '@material-ui/core'
-import TopicCard from './feed/TopicCard.jsx'
-import LoadingCircle from '../../utils/LoadingCircle.js'
-import { postData } from '../../utils/helpers.js'
+import { useState, useEffect } from 'react'
+import { withStyles } from '@material-ui/core/styles'
+
+import Controller from './Controller'
+import Feed from './feed/Feed'
+import TopicCard from './feed/TopicCard'
+
+import { postData } from '../../utils/helpers'
+import LoadingCircle from '../../utils/LoadingCircle'
+import ErrorPage from '../../utils/ErrorPage'
+
+const formatDate = (timestamp) => {
+    const ms = Date.parse(timestamp)
+    const date = new Date(ms)
+    return date.toLocaleString()
+}
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
         position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        flexWrap: 'nowrap',
-        backgroundColor: '#f5f5f5',
-        margin: '0',
-        padding: '10px 0',
-    },
-    grayout: {
-        position: 'absolute',
-        top: '0',
-        left: '0',
         width: '100%',
         height: '100%',
-        backgroundColor: 'rgba(245, 245, 245, 0.4)',
-        zIndex: '1000',
+        margin: '0',
+        padding: '0',
     },
-    loading: {
-        margin: '20px 0',
-    },
-    error: {
-        width: '100%',
-        textAlign: 'center',
-        color: 'gray',
-        padding: '20px',
-        fontWeight: '400',
-    }
 })
 
-const Topics = ({videoId, commentsAnalyzed, loadingComments, classes}) => {
+// Rendered only after dashboard has a valid channel object
+const Topics = ({user, channel, video=null, page, classes}) => {
 
-    const [isLoading, setIsLoading] = useState(false)
-    const [updatingFeed, setUpdatingFeed] = useState(false)
+    const [dbComments, setDBComments] = useState(null)
+    const [dbVideos, setDBVideos] = useState(null)
+    const [totalComments, setTotalComments] = useState(null)
+    const [lastRefresh, setLastRefresh] = useState(null)
+    const [allLabels, setAllLabels] = useState(null)
+    useEffect(() => {
+        if (channel && page === 'channel') {
+            setDBComments(channel.db_comments)
+            setDBVideos(channel.total_videos ? channel.total_videos : "?")
+            setAllLabels(channel.labels ? channel.labels : null)
+            setLastRefresh(channel.last_refresh ? formatDate(channel.last_refresh) : null)
+        } else if (video && page === 'video') {
+            setDBComments(video.db_comments)
+            setTotalComments(video.total_comments)
+            setAllLabels(video.labels ? video.labels : null)
+            setLastRefresh(video.last_refresh ? formatDate(video.last_refresh) : null)
+        }
+    }, [channel, video])
+
+
+    // Contains controller settings. Controller updates, Feed adds to api call.
+    const [control, setControl] = useState(null)
+    useEffect(() => {
+        setControl({pageSize: 25, search: ""})
+    }, [])
+
+    // Action Messaage is displayed on top of the controller, next to action button
+    const [actionMessage, setActionMessage] = useState("")
+    useEffect(() => {
+        if (page === 'channel') {
+            setActionMessage(`${dbComments} comments, ${dbVideos} videos`)
+        } else if (page === 'video') {
+            setActionMessage(`${dbComments} comments / ${totalComments} total`)
+        }
+    }, [dbComments, dbVideos, totalComments])
+
+    // Refresh (channel or video) is the primary action for the videos page.
+    // Recalculate the entity's topics list and reset dbComments.
+    const [pageLoading, setPageLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
-    const [isEnd, setIsEnd] = useState(false)
-    const [topicsFeed, setTopicsFeed] = useState([])
-    const [pageNumber, setPageNumber] = useState(0)
-    const loader = useRef(null)
-    const grayout = useRef(null)
-
-    useEffect(() => {
-        if (!loadingComments && !updatingFeed) {
-            grayout.current.style.display = 'none'
-        } else {
-            grayout.current.style.display = 'block'
-        }
-    }, [loadingComments, updatingFeed])
-
-    const [maxScore, setMaxScore] = useState(0)
-    const addToFeed = (items) =>  {
-        let newItems = []
-        if (items.length === 0) {
-            setIsEnd(true)
-            setUpdatingFeed(false)
-            return
-        }
-        let newMax = Math.max(maxScore, items[0].score)
-        setMaxScore(newMax)
-
-        newItems = items.map(t => <TopicCard videoId={videoId} topic={t} max={newMax} key={t.token} />)
-        setTopicsFeed(oldItems => [...oldItems, newItems])
-        setUpdatingFeed(false)
-    }
-
-    const handleLoad = async () => {
-        if (isEnd || loadingComments) {
-            return
-        }
-        setIsLoading(true)
+    const refresh = async () => {
+        setPageLoading(true)
         try {
-            let apiRef = '/api/topics'
-            let data = {
-                videoId: videoId,
-                page: pageNumber,
+            const response = await postData(`/api/refresh_${page}`, {
+                user, // must contain valid channelId
+                videoId: video ? video.id : null,
+            })
+            /*
+            const response = {
+                status: String,
+                error: String,
+                db_comments: Integer,
+                last_refresh: String,
             }
-            let result = await postData(apiRef, data)
-            let newItems = JSON.parse(result.topics)
-            addToFeed(newItems)
-            setIsLoading(false)
+            */
+            setDBComments(response.db_comments)
+            setLastRefresh(formatDate(response.last_refresh))
+            setPageLoading(false)
         }
-        catch (err) {
-            console.log(`Error loading new topics.`)
-            setIsLoading(false)
+        catch {
             setHasError(true)
+            setPageLoading(false)
         }
     }
 
-    // Add new topics when scroll to bottom
-    useEffect(() => {
-        if (pageNumber > 0) {
-            handleLoad()
-        }
-    }, [pageNumber])
-
-    const handleObserver = (entries) => {
-        const target = entries[0]
-        if (target.isIntersecting && !isLoading && !loadingComments) {
-            setPageNumber((p) => p + 1)
-        }
+    // Tells the Feed where to get items, and how to render them.
+    const query = {
+        api: '/api/topics',
+        data: {
+            user,
+            pageSize: 25,
+            videoId: video ? video.id : null,
+        },
+    }
+    const render = (topic, maxScore=0) => {
+        return <TopicCard
+            topic={topic}
+            max={maxScore}
+            key={topic.token}
+        />
     }
 
-
-    // Rebuild the feed whenever new comments are added to db
-    let [observer, setObserver] = useState(null)
+    const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
-        if (commentsAnalyzed > 0) {
-            // Empty current feed
-            setUpdatingFeed(true)
-            setTopicsFeed([])
-            setPageNumber(0)
-
-            // Connect observer if not yet connected
-            if (!observer) {
-                const option = {
-                    root: null,
-                    rootMargin: "20px",
-                    threshold: 0
-                };
-                let newObserver = new IntersectionObserver(handleObserver, option);
-                if (loader.current) newObserver.observe(loader.current);
-                setObserver(newObserver)
-            }
+        if (pageLoading) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (hasError) {
+            setPlaceholder(<ErrorPage />)
         } else {
-            if (observer) {
-                observer.unobserve(loader.current)
-            }
+            setPlaceholder("")
         }
-    }, [commentsAnalyzed])
+    }, [pageLoading, hasError])
 
-    return (
+    return(
         <div className={classes.root}>
-            {(loadingComments || updatingFeed) ? <div className={classes.loading}><LoadingCircle /></div> : null}
-            <div ref={grayout} className={classes.grayout} />
-            {topicsFeed}
-            <div ref={loader} />
-            {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
-            {hasError ? <Typography className={classes.error}>ERROR</Typography> : null}
-            {isEnd ? <Typography className={classes.error}>END OF TOPICS</Typography> : null}
+            {!control
+                ? null
+                : <Controller
+                    type='topics'
+                    control={control}
+                    setControl={setControl}
+                    actionMessage={actionMessage}
+                    allLabels={allLabels}
+                    refresh={refresh}
+                    lastRefresh={lastRefresh}
+                />}
+            {pageLoading || hasError
+                ? placeholder
+                : <Feed
+                    query={query}
+                    control={control}
+                    render={render}
+                />}
         </div>
     )
 }

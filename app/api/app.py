@@ -250,7 +250,7 @@ def comments():
         return {'error': f"Error getting comments from database: {e}"}
     if 'error' in db_comments:
         return {'error': db_comments['error']}
-    return {'comments': db_comments['comments']}
+    return {'items': db_comments['comments']}
 
 
 @app.route('/api/analyze_comments', methods=['POST'])
@@ -403,7 +403,7 @@ def topics():
         return {'error': f"Error getting topics from database: {e}"}
     if 'error' in db_topics:
         return {'error': db_topics['error']}
-    return {'topics': db_topics['topics']}
+    return {'items': db_topics['topics']}
 
 @app.route('/api/refresh_video', methods=['POST'])
 def refresh_video():
@@ -443,8 +443,8 @@ def refresh_video():
         'last_refresh': timestamp,
     }
     result = db.set_video(video_id, reset_video)
-    return {"status": result}
-
+    return {"status": result, 'db_comments': len(all_comments),
+            'last_refresh': timestamp}
 
 @app.route('/api/refresh_channel', methods=['POST'])
 def refresh_channel():
@@ -460,10 +460,12 @@ def refresh_channel():
     reset_channel = {
         'db_comments': new_channel['db_comments'],
         'topics': new_channel['topics'],
+        'labels': new_channel['labels'],
         'last_refresh': timestamp,
     }
     result = db.set_channel(channel_id, reset_channel)
-    return {'topics': result}
+    return {'status': result, 'db_comments': new_channel['db_comments'],
+            'last_refresh': timestamp}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

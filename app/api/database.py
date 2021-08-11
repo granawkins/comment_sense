@@ -26,15 +26,15 @@ class Database():
     self.createChannelsTable()
     self.channel_fields = [
       "id", "title", "thumbnail", "created", "total_videos", "db_videos",
-      "last_scan", "next_page_token", "db_comments", "topics", "last_refresh",
+      "last_scan", "next_page_token", "db_comments", "topics", "labels", "last_refresh",
       "subs_list", "labels_list", "ignore_list"]
-    self.channel_json_fields = ['topics', 'subs_list', 'labels_list', 'ignore_list']
+    self.channel_json_fields = ['topics', 'labels', 'subs_list', 'labels_list', 'ignore_list']
 
     self.createVideosTable()
     self.video_fields = [
       "id", "title", "thumbnail", "channel_id", "published", "created", "total_comments",
-      "db_comments", "next_page_token", "last_scan", "topics", "last_refresh"]
-    self.video_json_fields = ['topics', 'next_page_token']
+      "db_comments", "next_page_token", "last_scan", "topics", "labels", "last_refresh"]
+    self.video_json_fields = ['topics', "labels", 'next_page_token']
 
     self.createCommentsTable()
     self.comment_fields = [
@@ -73,6 +73,7 @@ class Database():
       # Updated with app/refresh_channel()
       "db_comments INT, "
       "topics JSON, "
+      "labels JSON, "
       "last_refresh VARCHAR(32), "
 
       # TODO
@@ -190,6 +191,7 @@ class Database():
 
       # Update on analyze and refresh
       "topics JSON, "
+      "labels JSON, "
       "last_refresh VARCHAR(32), "
 
       "PRIMARY KEY (`id`) "
@@ -518,11 +520,14 @@ class Database():
       topics = list(filter(search_topic, topics))
 
     if labels:
-      def has_label(topic):
-        if topic['label'] in labels:
-          return True
-        return False
-      topics = list(filter(has_label, topics))
+      active_labels = [key for key, value in labels.items() if value]
+      if len(active_labels) > 0:
+        def has_label(topic):
+          for label in topic['label']:
+            if label in active_labels:
+              return True
+          return False
+        topics = list(filter(has_label, topics))
 
     if not all:
       n = int(n)

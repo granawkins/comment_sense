@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
+
 import LoadingCircle from '../../../utils/LoadingCircle.js'
+import ErrorPage from '../../../utils/ErrorPage.js'
+import EndPage from '../../../utils/EndPage.js'
 import { postData } from '../../../utils/helpers.js'
 
 const styles = (theme) => ({
@@ -13,9 +16,6 @@ const styles = (theme) => ({
         margin: '0',
         padding: '10px 0',
         alignItems: 'center',
-        [theme.breakpoints.up('md')]: {
-            alignItems: 'start',
-        },
     },
     loading: {
         margin: '20px 0',
@@ -33,8 +33,14 @@ const Feed = ({query, control, render, classes}) => {
 
     // Add new items to the bottom of the feed
     const [feed, setFeed] = useState([])
+    const [maxScore, setMaxScore] = useState(null)
     const addToFeed = async (items) => {
-        setFeed(feed => [...feed, items.map(item => render(item))])
+        if (feed.length === 0) {
+            if ('score' in items[0]) {
+                setMaxScore(items[0].score)
+            }
+        }
+        setFeed(feed => [...feed, items.map(item => render(item, maxScore ? maxScore : items[0].score))])
     }
 
     // Load content from api
@@ -51,7 +57,11 @@ const Feed = ({query, control, render, classes}) => {
                 pageNumber,
             }
             let result = await postData(query.api, request_data)
-            if (result.items.length === 0) {
+            if ('error' in result) {
+                setIsLoading(false)
+                setHasError(true)
+                console.log(`Error with post results: ${result['error']}`)
+            } else if (result.items.length === 0) {
                 setIsEnd(true)
                 setIsLoading(false)
             } else {
@@ -107,15 +117,16 @@ const Feed = ({query, control, render, classes}) => {
             setPageNumber(0)
         }
         setFeed([])
+        setMaxScore(0)
     }, [control])
 
     return (
         <div className={classes.root}>
             {feed}
             <div ref={loader} />
-            {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
-            {hasError ? <Typography className={classes.error}>ERROR</Typography> : null}
-            {isEnd ? <Typography className={classes.error}>END OF FEED</Typography> : null}
+            {isLoading ? <LoadingCircle /> : null}
+            {hasError ? <ErrorPage /> : null}
+            {isEnd && !hasError ? <EndPage /> : null}
         </div>
     )
 }
