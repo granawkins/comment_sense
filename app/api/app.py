@@ -56,7 +56,7 @@ def channel():
     try:
         data = db.get_channel(channel_id)
     except Exception as e:
-        return {'error': f'Error loading video from Database: {e}'}
+        return {'error': f'Error loading channel from Database: {e}'}
 
     if 'channel' in data.keys():
         channel = data['channel']
@@ -99,8 +99,8 @@ def scan_videos():
     published_after = None if not 'publishedAfter' in request_data.keys() else request_data['publishedAfter']
 
     # Abandon the next_page_token stored in channel and start over from page 1. Max_retries determines
-    # how many empty pages to cycle through looking for new videos.
     reset_token = None if not 'resetToken' in request_data.keys() else request_data['resetToken']
+    # how many empty pages to cycle through looking for new videos.
     max_retries = 10
 
     # The target number of new videos. If it's the first scan, this is equal to the total videos returned.

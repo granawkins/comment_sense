@@ -65,17 +65,39 @@ const Dashboard = ({classes}) => {
         const getChannel = async () => {
             try {
                 const response = await postData('/api/channel', {channelId: user.channelId})
+                /*
+                const response = {channel: {
+                    created: "Fri, 06 Aug 2021 18:52:49 GMT"
+                    db_comments: 633
+                    db_videos: 50
+                    id: "UCtinbF-Q-fVthA0qrFQTgXQ"
+                    ignore_list: null
+                    labels_list: null
+                    last_refresh: "2021-08-07 20:28:37.211097"
+                    last_scan: "2021-08-07 08:08:15.470295"
+                    next_page_token: "CDIQAA"
+                    subs_list: null
+                    thumbnail: "https://..."
+                    title: "CaseyNeistat"
+                    topics: (361) [{…}, …]
+                    total_videos: null
+                }}
+                */
                 if (!response.channel) {
                     setDashboardLoading(false)
                     setHasError(true)
+                    if (response.error) {
+                        console.log(`Error loading channel from Dashboard: ${response.error}`)
+                    }
                 } else {
                     setChannel(response.channel)
                     setDashboardLoading(false)
                 }
             }
-            catch {
+            catch(e) {
                 setDashboardLoading(false)
                 setHasError(true)
+                console.log(`Error loading dashboard: ${e}`)
             }
         }
         getChannel()

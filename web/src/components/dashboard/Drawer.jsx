@@ -59,7 +59,7 @@ const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle
     }, [activePage])
 
     useEffect(() => {
-        console.log(channel)
+        // console.log(channel)
     }, [])
 
     const drawer = (

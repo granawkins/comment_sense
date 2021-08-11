@@ -292,9 +292,10 @@ class Database():
     sql += " WHERE channel_id = %s"
     args.append(channel_id)
     if search:
-      sql += " LIKE CONCAT('%', %s, '%')"
+      sql += " AND title LIKE CONCAT('%', %s, '%')"
       args.append(search)
     sql += " ORDER BY published DESC"
+
     try:
       self.refresh()
       self.cursor.execute(sql, list(args))

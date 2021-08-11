@@ -8,6 +8,7 @@ import InputLabel from '@material-ui/core/Input'
 import Select from '@material-ui/core/Select'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
+import SortIcon from '@material-ui/icons/Sort';
 
 import { capitalize } from '../../utils/helpers'
 
@@ -43,48 +44,43 @@ const styles = (theme) => ({
 })
 
 const Controller = ({type, control, setControl, classes}) => {
-
+    // Manage search. Debounce 1 second.
     const [search, setSearch] = useState("")
+	const handleSearch = (e) => {
+        debouncedSearch(e.target.value)
+	}
     const debouncedSearch = useCallback(
         debounce(key => setSearch(key), 1000)
     )
-	const handleSearch = (e) => {
-		debouncedSearch(e.target.value)
-	}
-    useEffect(() => {
-        if (search !== control.search) {
-            setControl({...control, search})
-        }
-    }, [search])
 
+    // Manage sort.
     const [sort, setSort] = useState("")
     const handleSort = (e) => {
         setSort(e.target.value)
     }
 
+    // Set default values from parent on load, update control on change.
+    useEffect(() => {
+        setSearch(control.search)
+        setSort(control.sort)
+    }, [])
+    useEffect(() => {
+        if (search !== control.search) {
+            setControl({...control, search})
+        }
+        if (sort !== control.sort) {
+            setControl({...control, sort})
+        }
+    }, [search, sort])
+
+    // TODO: Make type-specific sort options
     const [sortOptions, setSortOptions] = useState("")
     useEffect(() => {
-        let recentFunction
-        let topFunction
-        switch(type) {
-            case 'videos': {
-                recentFunction = 'published'
-                topFunction = 'db_comments'
-                break
-            }
-            case 'topics': {
-                recentFunction = 'created'
-                topFunction = 'score'
-                break
-            }
-            default: break
-        }
         setSortOptions([
-            <MenuItem value={'recent'} active>Recent</MenuItem>,
-            <MenuItem value={'oldest'} active>Oldest</MenuItem>,
-            <MenuItem value={topFunction}>Top</MenuItem>
+            <MenuItem value={'recent'}>Recent</MenuItem>,
+            <MenuItem value={'oldest'}>Oldest</MenuItem>,
+            <MenuItem value={'top'}>Top</MenuItem>
         ])
-        setSort(recentFunction)
     }, [type])
 
     return(
@@ -100,6 +96,7 @@ const Controller = ({type, control, setControl, classes}) => {
                 />
                 <div className={classes.spacer} />
                 <Select
+                    IconComponent={SortIcon}
                     value={sort}
                     onChange={handleSort}
                     classes={{
