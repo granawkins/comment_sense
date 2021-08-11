@@ -3,15 +3,16 @@ import { Card, withStyles, Typography } from '@material-ui/core'
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import { ControllerContext } from '../Video'
 
-let styles = () => ({
-    default: {
+let styles = (theme) => ({
+    ...theme.typography,
+    root: {
+        width: '100%',
         position: 'relative',
         display: 'flex',
         flexDirection: 'row',
         alignContents: 'flex-start',
-        margin: '5px',
         padding: '0',
-        backgroundColor: '#f5f5f5',
+        marginTop: theme.spacing(1),
         height: '100%',
     },
     sentiment: {
@@ -24,6 +25,7 @@ let styles = () => ({
         zIndex: '10',
     },
     details: {
+        flexGrow: 1,
         display: 'flex',
         flexDirection: 'column',
         alignContents: 'flex-start',
@@ -33,7 +35,7 @@ let styles = () => ({
 })
 
 
-const Comment = ({comment, classes}) => {
+const CommentCard = ({comment, classes}) => {
 
     let context = useContext(ControllerContext)
     const [sentimentOn, setSentimentOn] = useState(true)
@@ -59,16 +61,16 @@ const Comment = ({comment, classes}) => {
     }, [sentimentOn])
 
     return(
-        <Card className={classes.default} >
+        <Card className={classes.root} >
             {sentimentOn
                 ? <div className={classes.sentiment} style={{backgroundColor: `${color}`}}></div>
                 : null
             }
             <div className={classes.details} style={{paddingLeft: `${leftPad}`}}>
-                <Typography color="secondary">{comment.author}</Typography>
+                <Typography className={classes.body1}><b>{comment.author}</b></Typography>
                 <Typography dangerouslySetInnerHTML={{__html: comment.text}}></Typography>
                 {comment.likes
-                    ? <Typography><ThumbUpAltIcon style={{padding: '0px 10px'}}/>{comment.likes}</Typography>
+                    ? <Typography><ThumbUpAltIcon style={{fontSize: '1em', padding: '0px 10px'}}/>{comment.likes}</Typography>
                     : null
                 }
             </div>
@@ -76,4 +78,4 @@ const Comment = ({comment, classes}) => {
     )
 }
 
-export default withStyles(styles)(Comment)
+export default withStyles(styles)(CommentCard)

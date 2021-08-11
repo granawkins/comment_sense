@@ -224,9 +224,9 @@ def comments():
 
     # Requires a channelId, videoId, or list of commentIds.
     # The most specific ID (comment > video > channel) is used.
-    if 'comments' in request_data:
-        if len(request_data['comments']) > 1:
-            args['comment_ids'] = request_data['comments']
+    if 'commentIds' in request_data:
+        if len(request_data['commentIds']) > 1:
+            args['comment_ids'] = request_data['commentIds']
     elif 'videoId' in request_data:
         args['video_id']  = request_data['videoId']
     elif 'user' in request_data:

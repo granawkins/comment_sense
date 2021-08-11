@@ -12,7 +12,6 @@ const styles = (theme) => ({
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#f5f5f5',
         margin: '0',
         padding: '10px 0',
         alignItems: 'center',

@@ -7,10 +7,11 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 
 import TopicBar from './TopicBar'
-import CommentsBlock from '../Comments'
+import Comments from '../Comments'
 import Attribute from './Attribute'
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
         width: '100%',
         borderRadius: '0',
@@ -24,39 +25,50 @@ const styles = (theme) => ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
+        padding: '10px',
+        boxSizing: 'border-box',
     },
     topicDetail: {
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-start',
+        alignItems: 'center',
     },
     detail: {
         alignItems: 'center',
         height: '100%',
-        margin: '10px',
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-start',
     },
+    comments: {
+        maxHeight: '400px',
+        overflow: 'auto',
+    }
 })
 
 const TopicCard = ({videoId=null, topic, max, classes}) => {
 
+    const [commentIds, setCommentIds] = useState(null)
+    const [videoIds, setVideoIds] = useState(null)
     const [labels, setLabels] = useState(null)
     const [toks, setToks] = useState(null)
-    useEffect(() => {
-        if (topic.type) {
-            setLabels([topic.type].map(label => <Attribute type='label' value={label} />))
-        }
-        if (topic.toks) {
-            setToks(topic.toks.map(tok => <Attribute type='tok' value={tok} />))
-        }
-    }, [topic])
-
-    const [comments, setComments] = useState(null)
     const getComments = () => {
-        if (!comments) {
-            setComments(<CommentsBlock videoId={videoId} topic={topic.token} topicComments={topic.comments} />)
+        if (!commentIds) {
+            if (videoId) {
+                setLabels(<Attribute type='label' value={topic.label} />)
+                setCommentIds(topic.comments)
+            } else {
+                setLabels(topic.label.map(l => <Attribute type='label' value={l} />))
+                setVideoIds(topic.videos.map(v => v[0]))
+                let newCommentIds = []
+                topic.videos.forEach(v => {
+                    newCommentIds.push(...v[1])
+                })
+                setCommentIds(newCommentIds)
+            }
+            console.log(topic)
+            setToks(topic.toks.map(tok => <Attribute type='tok' value={tok} />))
         }
     }
 
@@ -72,12 +84,18 @@ const TopicCard = ({videoId=null, topic, max, classes}) => {
             </AccordionSummary>
             <AccordionDetails className={classes.accordian}>
                 <div className={classes.topicDetail}>
-                    <Typography classes={{root: classes.detail}}>Labels:</Typography>
+                    <Typography className={classes.body1}>Label:</Typography>
                     <div className={classes.detail}>{labels}</div>
-                    <Typography classes={{root: classes.detail}}>Tokens: </Typography>
+                    <div style={{width: '30px'}} />
+                    <Typography className={classes.body1}>Substitutes: </Typography>
                     <div className={classes.detail}>{toks}</div>
                 </div>
-                {comments}
+                {commentIds
+                    ? <div className={classes.comments}>
+                        <Comments videoId={videoId} topic={topic.token} commentIds={commentIds} />
+                    </div>
+                    : null
+                }
             </AccordionDetails>
         </Accordion>
     )

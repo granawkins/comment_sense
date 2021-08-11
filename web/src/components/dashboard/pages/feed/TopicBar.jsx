@@ -2,7 +2,8 @@ import { useContext, useState, useEffect } from 'react'
 import { Box, withStyles, Typography } from '@material-ui/core'
 import { ControllerContext } from '../Video'
 
-const styles = () => ({
+const styles = (theme) => ({
+    ...theme.typography,
     bar: {
         height: '100%',
         position: 'absolute',

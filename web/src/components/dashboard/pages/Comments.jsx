@@ -1,103 +1,61 @@
-import { useState, useEffect, useRef } from 'react'
-import { withStyles } from '@material-ui/styles'
+import { useState, useEffect } from 'react'
+import { withStyles } from '@material-ui/core/styles'
+
+import Controller from './Controller'
+import Feed from './feed/Feed'
+import CommentCard from './feed/CommentCard'
+
 import { postData } from '../../utils/helpers'
-import LoadingCircle from '../../utils/LoadingCircle';
-import Comment from './feed/Comment'
+import LoadingCircle from '../../utils/LoadingCircle'
+import ErrorPage from '../../utils/ErrorPage'
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
-        maxHeight: '400px',
-        overflow: 'auto',
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        margin: '0',
+        padding: '0',
     },
 })
 
-const CommentsBlock = ({videoId=null, topic, topicComments, classes}) => {
+// Rendered only after dashboard has a valid channel object
+const Comments = ({user, channel, videoId=null, commentIds=[], control={}, classes}) => {
 
-    const COMMENTS_PER_PAGE = 10
-
-    const [isLoading, setIsLoading] = useState(false)
-    const [hasError, setHasError] = useState(false)
-    const [isEnd, setIsEnd] = useState(false)
-    const [commentsFeed, setCommentsFeed] = useState([])
-    const [lastLoaded, setLastLoaded] = useState(0)
-    const loader = useRef(null)
-
-    const addToFeed = (items) => {
-        let newItems = []
-        newItems = items.map(c => <Comment comment={c} key={c.id} />)
-        setCommentsFeed(oldItems => [...oldItems, newItems])
-        let newLast = lastLoaded + newItems.length
-        if (newLast === topicComments.length) {
-            setIsEnd(true)
-        }
-        setLastLoaded(newLast)
+    // Tells the Feed where to get items, and how to render them.
+    const query = {
+        api: '/api/comments',
+        data: {user, pageSize: 10, commentIds},
+    }
+    const render = (comment) => {
+        return <CommentCard comment={comment} key={comment.id} />
     }
 
-    const handleLoad = async() => {
-        if (isEnd || isLoading || hasError) {
-            return
-        }
-        setIsLoading(true)
-        try {
-            let apiRef = '/api/comments'
-            let data = {
-                videoId: videoId,
-                topic: topic,
-                comments: topicComments.slice(lastLoaded, lastLoaded + COMMENTS_PER_PAGE)
-            }
-            let result = await postData(apiRef, data)
-            let newItems = result.comments
-            addToFeed(newItems)
-            setIsLoading(false)
-        }
-        catch (err) {
-            console.log("Error loading new topics.")
-            setIsLoading(false)
-            setHasError(true)
-        }
-    }
-
-    const [pageNumber, setPageNumber] = useState(0)
+    const [pageLoading, setPageLoading] = useState(null)
+    const [hasError, setHasError] = useState(null)
+    const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
-        if (pageNumber > 0) {
-            handleLoad()
+        if (pageLoading) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (hasError) {
+            setPlaceholder(<ErrorPage />)
+        } else {
+            setPlaceholder("")
         }
-    }, [pageNumber])
+    }, [pageLoading, hasError])
 
-    const handleObserver = (entries) => {
-        const target = entries[0]
-        if (target.isIntersecting && !isLoading) {
-            setPageNumber((p) => p + 1)
-        }
-    }
-
-    const [observer, setObserver] = useState(null)
-    useEffect(() => {
-        const option = {
-            root: null,
-            rootMargin: "20px",
-            threshold: 0
-        };
-        let newObserver = new IntersectionObserver(handleObserver, option);
-        if (loader.current) newObserver.observe(loader.current);
-        setObserver(newObserver)
-    }, [])
-
-    return (
+    return(
         <div className={classes.root}>
-            {commentsFeed}
-            <div ref={loader} />
-            {isLoading ? <div className={classes.loading}><LoadingCircle /></div> : null}
-            {hasError ? <div className={classes.error}>ERROR</div> : null}
+            {pageLoading || hasError
+                ? placeholder
+                : <Feed
+                    query={query}
+                    control={control}
+                    render={render}
+                />}
         </div>
-
     )
-
-    // if (!comments) {
-    //     return ( <LoadingCircle /> )
-    // } else {
-    //     return( comments.map(c => <Comment comment={c} key={c.id} />) )
-    // }
 }
 
-export default withStyles(styles)(CommentsBlock)
+export default withStyles(styles)(Comments)

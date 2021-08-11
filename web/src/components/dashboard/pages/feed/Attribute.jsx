@@ -21,6 +21,7 @@ let styles = (theme) => ({
         height: '24px',
         backgroundColor: theme.palette.csRed.main,
         color: 'white',
+        margin: '3px 1px',
     },
 })
 
