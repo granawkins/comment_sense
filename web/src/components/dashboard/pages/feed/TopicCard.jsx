@@ -47,7 +47,7 @@ const styles = (theme) => ({
     }
 })
 
-const TopicCard = ({videoId=null, topic, max, classes}) => {
+const TopicCard = ({videoId=null, topic, max, sentimentOn=false, classes}) => {
 
     const [commentIds, setCommentIds] = useState(null)
     const [videoIds, setVideoIds] = useState(null)

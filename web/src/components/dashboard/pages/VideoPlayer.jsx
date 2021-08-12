@@ -10,9 +10,8 @@ import ScheduleIcon from '@material-ui/icons/Schedule';
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 
-import Details from './Details'
-import LoadingCircle from '../../../utils/LoadingCircle';
-import { numberWithCommas, formatTimestamp } from '../../../utils/helpers';
+import LoadingCircle from '../../utils/LoadingCircle';
+import { numberWithCommas, formatTimestamp } from '../../utils/helpers';
 
 const styles = (theme) => ({
     ...theme.typography,

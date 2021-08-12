@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from 'react'
 import { Box, withStyles, Typography } from '@material-ui/core'
-import { ControllerContext } from '../Video'
+import { TopicContext } from '../Topics'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -56,7 +56,11 @@ const styles = (theme) => ({
 
 const TopicBar = ({token, score, max, sentiment, classes}) => {
 
+    const context = useContext(TopicContext)
     const [sentimentOn, setSentimentOn] = useState(true)
+    useEffect(() => {
+        setSentimentOn(context.display.sentimentOn)
+    }, [context])
 
     const [xScore, setXScore] = useState(0)
     const [xPos, setXPos] = useState(0)

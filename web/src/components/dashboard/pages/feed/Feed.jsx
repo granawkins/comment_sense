@@ -105,7 +105,6 @@ const Feed = ({query, control, render, classes}) => {
 
     // Reset feed when control changes
     useEffect(() => {
-        console.log(`Feed is ${observing} observing; Control is ${JSON.stringify(control)}`)
         if (observing) {
             if (pageNumber === 1) {
                 handleLoad()
@@ -131,26 +130,3 @@ const Feed = ({query, control, render, classes}) => {
 }
 
 export default withStyles(styles)(Feed)
-
-// const API_URLS = {
-//     videos: '/api/videos',
-//     topics: '/api/topics',
-//     comments: '/api/comments',
-// }
-
-// const PAGE_SIZE = {
-//     videos: 10,
-//     topics: 20,
-//     comments: 10,
-// }
-
-// const queryTemplate = ({user, videoId, search, sort, pageSize, pageNumber, next}) => {
-//     return {
-//         user: (user) ? user : null,
-//         videoId: (videoId) ? videoId : null,
-//         search: (search) ? search : null,
-//         sort: (sort) ? sort : null,
-//         pageSize: (pageSize) ? pageSize : 10,
-//         pageNumber: (pageNumber) ? pageNumber : 1,
-//     }
-// }

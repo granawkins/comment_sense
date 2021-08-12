@@ -431,7 +431,7 @@ class Database():
       return {'status': 'Fetched comment data successfully.', 'comment': comment}
 
 
-  def get_comments(self, channel_id=None, video_id=None, comment_ids=[],
+  def get_comments(self, channel_id=None, video_id=None, comment_ids=[], parent_id=None,
                    search=None, sort=None, n=10, page=1, all=False):
 
     # For each comment, there is json loading and null-None switching needed.
@@ -439,7 +439,7 @@ class Database():
     converted = False
 
     # Prioritize the most specific ID
-    if len(comment_ids) > 1:
+    if len(comment_ids) > 0:
       converted = True
       result = []
       for id in comment_ids:
@@ -449,7 +449,10 @@ class Database():
     else:
       sql = "SELECT * FROM COMMENTS"
       args = []
-      if video_id:
+      if parent_id:
+        sql += " WHERE parent = %s"
+        args.append(parent_id)
+      elif video_id:
         sql += ' WHERE video_id = %s'
         args.append(video_id)
       else:

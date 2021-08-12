@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 
 import { postData } from '../../utils/helpers'
-import VideoPlayer from "./player/VideoPlayer.jsx"
+import VideoPlayer from "./VideoPlayer.jsx"
 import Topics from "./Topics.jsx"
 import LoadingCircle from '../../utils/LoadingCircle'
 import ErrorPage from '../../utils/ErrorPage'

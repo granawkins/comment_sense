@@ -30,6 +30,8 @@ const styles = (theme) => ({
     },
 })
 
+const TopicContext = createContext()
+
 // Rendered only after dashboard has a valid channel object
 const Topics = ({user, page, channel=null, video=null, analyze=null,
                  grayout=null, classes}) => {
@@ -56,9 +58,12 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
 
     // Contains controller settings. Controller updates, Feed adds to api call.
     const [control, setControl] = useState(null)
+    const [display, setDisplay] = useState(null)
     useEffect(() => {
         setControl({pageSize: 25, search: ""})
+        setDisplay({sentimentEnabled: user.sentimentEnabled, sentimentOn: false})
     }, [])
+
 
     // Action Messaage is displayed on top of the controller, next to action button
     const [actionMessage, setActionMessage] = useState("")
@@ -76,7 +81,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
         }
     }, [dbComments, dbVideos, totalComments])
 
-    // Refresh (channel or video) is the primary action for the videos page.
+    // Refresh (channel or video) is a secondary action for the videos and channel page.
     // Recalculate the entity's topics list and reset dbComments.
     const [pageLoading, setPageLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
@@ -136,12 +141,14 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
 
     return(
         <div className={classes.root}>
-            {!control
+            {!control || !display
                 ? null
                 : <Controller
                     type='topics'
                     control={control}
                     setControl={setControl}
+                    display={display}
+                    setDisplay={setDisplay}
                     actionMessage={actionMessage}
                     action={analyze}
                     actionLabel={'ANALYZE'}
@@ -151,11 +158,14 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
                 />}
             {pageLoading || hasError
                 ? placeholder
-                : <Feed
-                    query={query}
-                    control={control}
-                    render={render}
-                />}
+                : <TopicContext.Provider value={{display}}>
+                    <Feed
+                        query={query}
+                        control={control}
+                        render={render}
+                    />
+                </TopicContext.Provider>
+                }
             {grayout
                 ? <div className={classes.grayout} />
                 : null
@@ -165,3 +175,4 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
 }
 
 export default withStyles(styles)(Topics)
+export {TopicContext}

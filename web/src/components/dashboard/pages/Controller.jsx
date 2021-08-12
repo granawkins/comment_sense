@@ -7,6 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
+import Switch from '@material-ui/core/Switch'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import SortIcon from '@material-ui/icons/Sort';
@@ -14,6 +15,21 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 
 import Attribute from './feed/Attribute'
 import { capitalize } from '../../utils/helpers'
+
+const switchStyles = (theme) => ({
+    switchBase: {
+        '&$checked': {
+          color: theme.palette.csRed.main,
+        },
+        '&$checked + $track': {
+          backgroundColor: theme.palette.csRed.main,
+        },
+      },
+      checked: {},
+      track: {},
+})
+
+const RedSwitch = withStyles(switchStyles)(Switch)
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -57,8 +73,8 @@ const styles = (theme) => ({
     },
 })
 
-const Controller = ({type, control, setControl, sortOptions=null, allLabels=null,
-                    actionMessage=null, action=null, actionLabel=null,
+const Controller = ({type, control, setControl, display=null, setDisplay=null, sortOptions=null,
+                    allLabels=null, actionMessage=null, action=null, actionLabel=null,
                     refresh=null, lastRefresh=null, classes}) => {
 
     // Update control (in parent) when sort and local variables are changed
@@ -111,6 +127,15 @@ const Controller = ({type, control, setControl, sortOptions=null, allLabels=null
         setLabels(newLabels)
     }
 
+    const toggleSentiment = () => {
+        setDisplay({...display, sentimentOn: !display.sentimentOn})
+    }
+    useEffect(() => {
+        if (display && display.sentimentEnabled) {
+            setDisplay({...display, sentimentOn: true})
+        }
+    }, [])
+
     return(
         <Container className={classes.root}>
             <div className={classes.row}>
@@ -161,16 +186,28 @@ const Controller = ({type, control, setControl, sortOptions=null, allLabels=null
                     : null
                 }
             </div>
-            {control.labels
-                ? <div className={classes.row}>
-                    {Object.entries(control.labels).map(([key, value]) => (
-                        <Attribute type='label' value={key} active={value}
-                                onClick={() => handleLabel(key, !value)} />
-                    ))}
-                    <div style={{flexGrow: 1}} />
-                </div>
-                : null
-            }
+            <div className={classes.row}>
+                {control.labels
+                    ? <>
+                        {Object.entries(control.labels).map(([key, value]) => (
+                            <Attribute type='label' value={key} active={value}
+                                    onClick={() => handleLabel(key, !value)} />
+                        ))}
+                    </>
+                    : null
+                }
+                <div style={{flexGrow: 1}} />
+                {display && display.sentimentEnabled
+                    ? <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        <RedSwitch
+                            checked={display.sentimentOn}
+                            onChange={toggleSentiment}
+                        />
+                        <Typography className={classes.body1}>Sentiment</Typography>
+                    </div>
+                    : null
+                }
+            </div>
         </Container>
     )
 }
