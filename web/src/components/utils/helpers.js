@@ -29,4 +29,22 @@ const capitalize = (text) => {
     return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export {postData, thousands_separator, capitalize}
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+const formatTimestamp = (timestamp, type='time') => {
+    const ms = Date.parse(timestamp)
+    const date = new Date(ms)
+    switch (type) {
+        case 'time': return date.toLocaleString()
+        case 'date': {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options)
+        }
+        default: return timestamp
+    }
+}
+
+export {postData, thousands_separator, capitalize,
+        numberWithCommas, formatTimestamp}

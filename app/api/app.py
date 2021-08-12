@@ -272,7 +272,7 @@ def analyze_comments():
     max_retries = 10
 
     # Total number of NEW comments to be returned
-    max_comments = int(request_data['nComments'])
+    max_comments = int(request_data['maxComments'])
 
     # Get comments from YT in this order
     sort = None if not 'sort' in request_data else request_data['sort']
@@ -347,7 +347,10 @@ def analyze_comments():
     for field in ['subs_list', 'labels_list', 'ignore_list']:
         if c[field]:
             args[field] = c[field]
-    raw_topics = cluster(**args)
+    clustered = cluster(**args)
+    raw_topics = clustered['topics']
+    labels = clustered['labels']
+
     video_topics = [{
         'token': token,
         'toks': toks,
@@ -365,6 +368,7 @@ def analyze_comments():
         'next_page_token': next_page_token,
         'last_scan': timestamp,
         'topics': video_topics,
+        'labels': labels,
         'last_refresh': timestamp,
     }
     db.set_video(video_id, reset_video)
@@ -425,7 +429,11 @@ def refresh_video():
     for field in ['subs_list', 'labels_list', 'ignore_list']:
         if c[field]:
             args[field] = c[field]
-    raw_topics = cluster(**args)
+
+    clustered = cluster(**args)
+    raw_topics = clustered['topics']
+    labels = clustered['labels']
+
     video_topics = [{
         'token': token,
         'toks': toks,
@@ -440,6 +448,7 @@ def refresh_video():
     reset_video = {
         'db_comments': len(all_comments),
         'topics': video_topics,
+        'labels': labels,
         'last_refresh': timestamp,
     }
     result = db.set_video(video_id, reset_video)

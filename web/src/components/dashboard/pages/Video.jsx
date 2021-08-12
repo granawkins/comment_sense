@@ -1,16 +1,16 @@
 import { useState, useEffect, createContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
-import Grid from '@material-ui/core/Grid'
-import Card from '@material-ui/core/Card'
 
 import { postData } from '../../utils/helpers'
 import VideoPlayer from "./player/VideoPlayer.jsx"
-import Controller from "./Controller.jsx"
 import Topics from "./Topics.jsx"
+import LoadingCircle from '../../utils/LoadingCircle'
+import ErrorPage from '../../utils/ErrorPage'
 
 const styles = (theme) => ({
     root: {
+        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -20,75 +20,104 @@ const styles = (theme) => ({
     },
 })
 
-const ControllerContext = createContext({sentimentOn: true})
-
-const VideoPage = ({classes}) => {
+const Video = ({user, channel, classes}) => {
 
     const { videoId } = useParams()
-    const [videoData, setVideoData] = useState(null)
-    const [commentsAnalyzed, setCommentsAnalyzed] = useState(0)
-    const [commentsTotal, setCommentsTotal] = useState("...")
-    const [pageToken, setPageToken] = useState(null)
-    const [loading, setLoading] = useState(false)
-
-    const [sentimentOn, setSentimentOn] = useState(true)
-    const toggleSentiment = () => {
-        setSentimentOn(!sentimentOn)
-    }
+    const [video, setVideo] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [hasError, setHasError] = useState(false)
 
     useEffect(() => {
-        fetch(`/api/video/${videoId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.video_data) {
-                    console.log("No video data.")
-                } else {
-                    setVideoData(data.video_data)
-                    let fields = Object.keys(data.video_data)
-                    setCommentsTotal(fields.includes('comments') ? data.video_data.comments : 0)
-                    setCommentsAnalyzed(fields.includes('n_analyzed') ? data.video_data.n_analyzed : 0)
-                    setPageToken(fields.includes('next_page_token') ? data.video_data.next_page_token : null)
-                }
-            })
+        setIsLoading(true)
+        try {
+            fetch(`/api/video/${videoId}`)
+                // const data = {
+                //   error: String,
+                //   videoData: {
+                //     channel_id: "UCtinbF-Q-fVthA0qrFQTgXQ"
+                //     channel_title: "CaseyNeistat"
+                //     created: "Fri, 06 Aug 2021 18:57:48 GMT"
+                //     db_comments: 441
+                //     dislikes: "1301"
+                //     id: "TXLUafBNjnc"
+                //     labels: null
+                //     last_refresh: "2021-08-07 20:01:39.093248"
+                //     last_scan: "2021-08-07 15:40:25.671196"
+                //     likes: "60557"
+                //     next_page_token: "QURTSl9pME0yLU54V1RkWm1KVXd5ZXJGYnk0OGp6cDVHSnpLbWt4Rmw0VU1HQ0NjM0haVThteXZraEZZTk4ydXZfX0Y2SnhOQzg3RXhyY2QyaFVheGM0S3JQSWJVdHhTMFh6SE8xOTdmckpOMGVUWW5zVTZQR0pPaXllQ1FQclMxem5rQnMzMk1kRnpVa19CWHV6SzhMSHMwSWlxU3JfWFc4Mmpoclc2SUZGZjNTY01WdzktVmY0dl9VNnVwdlNFV21FZXdzekVMbVFDVDJneEQtUENycG1oc0V0SlRKMHc2VWRhNWJKdjR5TjFqN1lKMzROMlgwcmdGazA2NU9UN3VmSzNqbEdSRTFsZm1OQndIM2ViNnVvaU4zZ0pkN1JxaGVWQWRRbF9vWFFWNzFOZ0M0V3VWeHlyUHJCR2Z2dkNpX0V5NGhrRmNpdDJTSDlCVmlnbDd6YTc4eUp6cVVGNXFiMDFWM1lsRTRpVld4bUZ3N2ZVX0JHZU5wLUtNcFBmU3VuLXUtbmFOZVBwMFVxcEhyQ1ZvbXF2akJKRWU5anpGdV9tVHhuaGNJTnprNUhpY1dYbGtzTENVV0cyNjE5S0NCVV9CWTQtMGJzZ05BdWZ4QnpBUGJOSDJZN1ZoeGh5WGhjTS1rdFkwZkNXVEtON1AtNWZaM0hXNDF1OWN3Y2QwQ2J0ZkhwbFpiTjJJMVB4bkk4V0NrTjNrV1lvanJtbWpxWmZ5bEdxcFoybXBqR2VDZWd6Q19EOVRSbmJqM1kwaUlYU0s5Rl91ZXBRV0dMVVg1VzZEVkhJSjRaTkRfRFpUNFd3WjNkM2dIaGRMdHB0YjVRU3RFYldqVnhrcVZELWNNTXpBNVVpbXdUNUhKbTl5SkdsYTdFZzd5LThpbkQ2VUd4MjRkY0p0NmVlVzFwQV93Qjlkb0tIaGVZSmJwM3FaRmhxS0hBS1p4OHh1YW5QSGtRRkhINXFkZVNZWDZQUWJrQ21uWFRUU01rdVFKdk8zcEFXb3p1bzU5UkNvWkVYbm0wNUV1Qy1UbUkxcHNTMGtrNERvbFNJamx1eXpwcEcxaVV5QmJ1eHVsWTZFSkpOX2J3ZVdEdTFsT3Ftbm9lOWxFNTA4UXQwRmdOakJRZ2RQZjM3UWdWU0RmdU1vMlRPUXZGdnFPbjVtaWdUVEtuSXdBVFZlQmtUdmZwOUxlejh0TTkxcThwcmNNLVotN3J0N3ktVWVuM3QyeXoxdFpHWnoyV2VjQUVlcDBzdFNrZDdRWnBPdnNkMk9sclRKbTlLTHpyUE9WT09UVVowaTlIX2xuUFlxU2VtY20tNkxYM3Z6RnpkYlVzVk14QWdaR0JXdjhsZFFBZE1TTklOdTZwZV9JZE5NTkkzRXFkYmlETTg4SldFaU1HRmpmVzZsRnJuQURtLTROYnhtbi1iRVc1VDhHRHM5R2szTy1ybk85T0JWRFJ6U2VrSUNybXhGTVlielZZVzRtdndmc1NtVXFjemprWGhTRHp1YjJxVEs0elpTZjNlVzNGU2V1OUQ2eGRxY2ZlcUFZTkVqcTdwU3gxM19FNndTTTBOejBPam1DRkNpQzMtMUt2OGUwb1ZKZzZHemZuTmY2MjZOS05TZ2xJWXlSZDdYdw=="
+                //     published: "26 October, 2020"
+                //     thumbnail: "https://i.ytimg.com/vi/TXLUafBNjnc/mqdefault.jpg"
+                //     title: "the SURPRISE of her life!!!"
+                //     total_comments: "2875"
+                // }}
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.video_data) {
+                        console.log("No video data.")
+                    } else {
+                        setVideo(data.video_data)
+                    }
+                    setIsLoading(false)
+                })
+        }
+        catch(e) {
+            console.log(`Error fetching video: ${e}`)
+            setHasError(true)
+            setIsLoading(false)
+        }
     }, [])
 
-    const analyze = (commentsTarget) => {
-        setLoading(true)
-        postData('/api/analyze', {
-            videoData: {...videoData, 'next_page_token': pageToken},
-            nComments: commentsTarget
-        }).then(data => {
-            setLoading(false)
-            setCommentsAnalyzed(data.video_data['n_analyzed'])
-            setPageToken(data.video_data['next_page_token'])
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const analyze = async () => {
+        setIsAnalyzing(true)
+        const request_data = {
+            user,
+            videoId,
+            maxComments: 100,
+            resetToken: null,
+            sort: null,
+        }
+        console.log(request_data)
+        postData('/api/analyze_comments', request_data).then(data => {
+            if (data.error) {
+                setHasError(true)
+                setIsAnalyzing(false)
+                console.log(`Error analyzing videos: ${data.error}`)
+            } else if (data.video) {
+                setVideo({...video, ...data.video})
+                setIsAnalyzing(false)
+            }
         })
     }
 
+    const [placeholder, setPlaceholder] = useState("")
+    useEffect(() => {
+        if (isLoading) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (hasError) {
+            setPlaceholder(<ErrorPage />)
+        } else {
+            setPlaceholder("")
+        }
+    }, [isLoading, hasError])
+
     return(
-        <Grid container className={classes.root} direction="column">
-            <Card>
-                <VideoPlayer videoData={videoData} />
-                <Controller
-                    commentsAnalyzed={commentsAnalyzed}
-                    commentsTotal={commentsTotal}
-                    loading={loading}
-                    analyze={analyze}
-                    sentimentOn={sentimentOn}
-                    toggleSentiment={toggleSentiment}
-                />
-            </Card>
-            <ControllerContext.Provider value={{sentimentOn: sentimentOn}}>
-                <Topics
-                    videoId={videoId}
-                    commentsAnalyzed={commentsAnalyzed}
-                    loadingComments={loading}
-                />
-            </ControllerContext.Provider>
-        </Grid>
+        <div className={classes.root}>
+            {isLoading || hasError
+                ? placeholder
+                : <>
+                    <VideoPlayer video={video} />
+                    <Topics
+                        user={user}
+                        page='video'
+                        video={video}
+                        analyze={analyze}
+                        grayout={isAnalyzing}
+                    />
+                </>
+            }
+        </div>
     )
 }
 
-const Video = withStyles(styles)(VideoPage)
-
-
-export {Video, ControllerContext}
+export default withStyles(styles)(Video)

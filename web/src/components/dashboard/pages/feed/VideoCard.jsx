@@ -7,52 +7,57 @@ import CardMedia from '@material-ui/core/CardMedia';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/styles';
-import { postData } from '../../../utils/helpers';
+import { postData, formatTimestamp } from '../../../utils/helpers';
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
         height: '100%',
         padding: '0',
         margin: '10px 0 0 0',
         boxSizing: 'border-box',
         width: '100%',
-        // [theme.breakpoints.up('sm')]: {
-        //     width: '480px',
-        // },
-        // [theme.breakpoints.up('md')]: {
-        //     width: '700px',
-        // },
     },
     link: {
         width: '100%',
         height: '100%',
         color: 'inherit',
         textDecoration: 'none',
-        // flexDirection: 'row',
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        // display: 'flex',
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
+        gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr',
         gridAutoRows: '1fr',
+        [theme.breakpoints.up('md')]: {
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gridAutoRows: '1fr',
+        },
     },
     cover: {
-        gridColumn: '1',
+        gridColumn: '1 / span 2',
         height: 'auto',
         marginBottom: '0',
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        [theme.breakpoints.up('md')]: {
+            gridColumn: '1 / span 1'
+        },
+
     },
     details: {
         height: '100%',
-        gridColumn: '2 / span 2',
+        gridColumn: '3 / span 3',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '8px 16px',
+        justifyContent: 'flex-start',
+        padding: '2px 8px',
         boxSizing: 'border-box',
+        fontSize: '90%',
+        [theme.breakpoints.up('md')]: {
+            gridColumn: '2 / span 2',
+            padding: '8px 16px',
+            fontSize: '100%',
+        },
     },
     actionArea: {
         alignItems: 'flex-start',
@@ -64,67 +69,42 @@ const styles = (theme) => ({
         flexDirection: 'column',
         alignItems: 'stretch',
     },
-    channelImage: {
-        borderRadius: '50%',
-        maxHeight: '90px',
-        margin: '5%',
-        width: 'auto',
-    }
+    csRed: {
+        color: theme.palette.csRed.main
+    },
 })
 
-const VideoCard = ({type, data, inactive, classes}) => {
+const VideoCard = ({video, classes}) => {
 
     const [pageUrl, setPageUrl] = useState("#")
-    const [title, setTitle] = useState("")
-    const [infoFields, setInfoFields] = useState([])
-    const [dbInfo, setDbInfo] = useState("")
     useEffect(() => {
-        switch (type) {
-            case 'channel': {
-                setTitle(data.channelTitle)
-                setInfoFields([`${data.description}`])
-                break
-            }
-            case 'video': {
-                setTitle(data.title)
-                setInfoFields([`${data.channelTitle} | ${data.published}`, data.description])
-                setPageUrl("../dashboard/video/" + data.id)
-                break
-            }
-            case 'blog': {
-                setTitle(data.title)
-                setInfoFields([`${data.created}`, `${data.excerpt}`])
-                setPageUrl("../blog/" + data.permalink)
-            }
-            default: break
-        }
-        if (Object.keys(data).includes("n_analyzed")) {
-            setDbInfo(<Typography variant='body1' color='secondary'>{data.n_analyzed} comments analyzed</Typography>)
-        }
+        console.log(video)
+        setPageUrl("../dashboard/video/" + video.id)
     }, [])
-    // Compile data fields into flexbox
-
-    // Get info from database
 
     return (
         <Card className={classes.root}>
             <CardActionArea className={classes.actionArea}>
-                <Link to={inactive ? '#' : pageUrl} className={classes.link}>
+                <Link to={pageUrl} className={classes.link}>
                     <div className={classes.cover}>
-                        {data.thumbnail
+                        {video.thumbnail
                             ? <CardMedia
-                                className={type === 'channel' ? classes.channelImage : ""}
                                 component='img'
-                                src={data.thumbnail}
-                                title={title}
+                                src={video.thumbnail}
+                                title={video.title}
                             />
                             : null
                         }
                     </div>
                     <div className={classes.details}>
-                        <Typography variant='body1' style={{fontWeight: '400', fontSize: '1.2em'}}>{title}</Typography>
-                        {infoFields.map(field => <Typography variant='caption' key={field}>{field}</Typography>)}
-                        {dbInfo}
+                        <Typography noWrap className={classes.h6} dangerouslySetInnerHTML={{__html: video.title}}></Typography>
+                        <Typography className={classes.body1}>{formatTimestamp(video.published, 'date')}</Typography>
+                        {video.db_comments > 0
+                            ? <Typography className={`${classes.body1} ${classes.csRed}`}>
+                                {video.db_comments} comments analyzed
+                            </Typography>
+                            : null
+                        }
                     </div>
                 </Link>
             </CardActionArea>

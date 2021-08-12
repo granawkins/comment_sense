@@ -405,18 +405,21 @@ class Database():
         raise RuntimeError(f"Error updating comment data in database: {e}")
 
 
-  def get_comment(self, id):
+  def get_comment(self, id, search=None):
     """Return all comment data from database
 
     """
     self.refresh()
     try:
-      self.cursor.execute("SELECT * FROM comments WHERE id = %s", (id, ))
+      if search:
+        self.cursor.execute("SELECT * FROM comments WHERE id = %s AND text LIKE CONCAT('%', %s, '%')", (id, search, ))
+      else:
+        self.cursor.execute("SELECT * FROM comments WHERE id = %s", (id, ))
       response = self.cursor.fetchall()
     except:
       raise RuntimeError(f"Error fetching comment data from database.")
     if len(response) == 0:
-      return {'status': 'comment not found'}
+      return {'status': 'comment not found', 'comment': None}
     else:
       comment = response[0]
       for field in self.comment_json_fields:
@@ -440,8 +443,9 @@ class Database():
       converted = True
       result = []
       for id in comment_ids:
-        db_comment = self.get_comment(id)
-        result.append(db_comment['comment'])
+        db_comment = self.get_comment(id, search)
+        if db_comment['comment']:
+          result.append(db_comment['comment'])
     else:
       sql = "SELECT * FROM COMMENTS"
       args = []
@@ -523,10 +527,16 @@ class Database():
       active_labels = [key for key, value in labels.items() if value]
       if len(active_labels) > 0:
         def has_label(topic):
-          for label in topic['label']:
-            if label in active_labels:
+          if video_id:
+            if topic['label'] in active_labels:
               return True
-          return False
+            else:
+              return False
+          else:
+            for label in topic['label']:
+              if label in active_labels:
+                return True
+            return False
         topics = list(filter(has_label, topics))
 
     if not all:

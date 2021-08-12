@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 import { useParams, Switch, Route } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
 import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 
 import ReactiveDrawer from './Drawer'
 import Videos from './pages/Videos'
+import Video from './pages/Video'
 import Topics from './pages/Topics'
 import { postData, capitalize } from '../utils/helpers'
 import LoadingCircle from '../utils/LoadingCircle';
@@ -171,7 +170,7 @@ const Dashboard = ({classes}) => {
                             <Topics user={user} channel={channel} page='channel' key='topics' />
                         </Route>
                         <Route exact path={`/dashboard/video/:videoId`}>
-                            {/* <Feed user={user} type='topics' key='video' /> */}
+                            <Video user={user} channel={channel} key='video' />
                         </Route>
                         <Route exact path={`/dashboard/settings`}>
                             Settings

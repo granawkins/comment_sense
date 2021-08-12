@@ -105,7 +105,7 @@ const Feed = ({query, control, render, classes}) => {
 
     // Reset feed when control changes
     useEffect(() => {
-        // console.log(`Feed is ${observing} observing; Control is ${JSON.stringify(control)}`)
+        console.log(`Feed is ${observing} observing; Control is ${JSON.stringify(control)}`)
         if (observing) {
             if (pageNumber === 1) {
                 handleLoad()

@@ -8,6 +8,7 @@ import { thousands_separator } from '../../../utils/helpers.js'
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
         padding: '5px 0',
         display: 'flex',
@@ -23,43 +24,30 @@ const styles = (theme) => ({
     },
 })
 
-const Details = ({ videoData, classes }) => {
-
-    const [views, setViews] = useState(0)
-    const [published, setPublished] = useState("")
-    const [likes, setLikes] = useState(0)
-    const [dislikes, setDislikes] = useState(0)
-    useEffect(() => {
-        if (videoData) {
-            setViews(thousands_separator(videoData.views))
-            setPublished(videoData.published)
-            setLikes(thousands_separator(videoData.likes))
-            setDislikes(thousands_separator(videoData.dislikes))
-        }
-    }, [videoData])
+const Details = ({ video, classes }) => {
 
     return(
         <div className={classes.root}>
             <div className={classes.line}>
-                <VisibilityIcon style={{padding: '0px 10px'}}/>
-                <Typography noWrap={true}>
-                    {views}
+                <VisibilityIcon style={{paddingLeft: '10px'}}/>
+                <Typography noWrap={true} className={classes.body1}>
+                    {video.views}
                 </Typography>
             </div>
             <div className={classes.line}>
                 <ScheduleIcon style={{padding: '0px 10px'}}/>
-                <Typography variant="body1" noWrap={true}>
-                    {published}
+                <Typography className={classes.body1} noWrap={true}>
+                    {video.published}
                 </Typography>
             </div>
             <div className={classes.line}>
                 <ThumbUpAltIcon style={{padding: '0px 10px'}}/>
-                <Typography variant="body1" >
-                    {likes}
+                <Typography className={classes.body1} >
+                    {video.likes}
                 </Typography>
                 <ThumbDownAltIcon style={{padding: '0px 10px'}}/>
-                <Typography variant="body1" >
-                    {dislikes}
+                <Typography className={classes.body1} >
+                    {video.dislikes}
                 </Typography>
             </div>
         </div>

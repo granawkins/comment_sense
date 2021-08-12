@@ -56,11 +56,7 @@ const styles = (theme) => ({
 
 const TopicBar = ({token, score, max, sentiment, classes}) => {
 
-    let context = useContext(ControllerContext)
     const [sentimentOn, setSentimentOn] = useState(true)
-    useEffect(() => {
-        setSentimentOn(context.sentimentOn)
-    }, [context])
 
     const [xScore, setXScore] = useState(0)
     const [xPos, setXPos] = useState(0)

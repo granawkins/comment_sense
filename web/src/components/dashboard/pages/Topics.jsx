@@ -1,19 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, createContext } from 'react'
 import { withStyles } from '@material-ui/core/styles'
+import { fade } from '@material-ui/core/styles/colorManipulator'
 
 import Controller from './Controller'
 import Feed from './feed/Feed'
 import TopicCard from './feed/TopicCard'
 
-import { postData } from '../../utils/helpers'
+import { postData, thousands_separator, formatTimestamp } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle'
 import ErrorPage from '../../utils/ErrorPage'
-
-const formatDate = (timestamp) => {
-    const ms = Date.parse(timestamp)
-    const date = new Date(ms)
-    return date.toLocaleString()
-}
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -24,10 +19,20 @@ const styles = (theme) => ({
         margin: '0',
         padding: '0',
     },
+    grayout: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 1000,
+        backgroundColor: fade(theme.palette.primary.main, 0.5),
+    },
 })
 
 // Rendered only after dashboard has a valid channel object
-const Topics = ({user, channel, video=null, page, classes}) => {
+const Topics = ({user, page, channel=null, video=null, analyze=null,
+                 grayout=null, classes}) => {
 
     const [dbComments, setDBComments] = useState(null)
     const [dbVideos, setDBVideos] = useState(null)
@@ -39,12 +44,12 @@ const Topics = ({user, channel, video=null, page, classes}) => {
             setDBComments(channel.db_comments)
             setDBVideos(channel.total_videos ? channel.total_videos : "?")
             setAllLabels(channel.labels ? channel.labels : null)
-            setLastRefresh(channel.last_refresh ? formatDate(channel.last_refresh) : null)
+            setLastRefresh(channel.last_refresh ? formatTimestamp(channel.last_refresh) : null)
         } else if (video && page === 'video') {
             setDBComments(video.db_comments)
             setTotalComments(video.total_comments)
             setAllLabels(video.labels ? video.labels : null)
-            setLastRefresh(video.last_refresh ? formatDate(video.last_refresh) : null)
+            setLastRefresh(video.last_refresh ? formatTimestamp(video.last_refresh) : null)
         }
     }, [channel, video])
 
@@ -59,9 +64,15 @@ const Topics = ({user, channel, video=null, page, classes}) => {
     const [actionMessage, setActionMessage] = useState("")
     useEffect(() => {
         if (page === 'channel') {
-            setActionMessage(`${dbComments} comments, ${dbVideos} videos`)
+            setActionMessage(`
+                ${thousands_separator(dbComments)} comments,
+                ${thousands_separator(dbVideos)} videos
+            `)
         } else if (page === 'video') {
-            setActionMessage(`${dbComments} comments / ${totalComments} total`)
+            setActionMessage(`
+                ${thousands_separator(dbComments)} comments /
+                ${thousands_separator(totalComments)} total
+            `)
         }
     }, [dbComments, dbVideos, totalComments])
 
@@ -85,7 +96,7 @@ const Topics = ({user, channel, video=null, page, classes}) => {
             }
             */
             setDBComments(response.db_comments)
-            setLastRefresh(formatDate(response.last_refresh))
+            setLastRefresh(formatTimestamp(response.last_refresh))
             setPageLoading(false)
         }
         catch {
@@ -105,6 +116,7 @@ const Topics = ({user, channel, video=null, page, classes}) => {
     }
     const render = (topic, maxScore=0) => {
         return <TopicCard
+            videoId={video ? video.id : null}
             topic={topic}
             max={maxScore}
             key={topic.token}
@@ -131,6 +143,8 @@ const Topics = ({user, channel, video=null, page, classes}) => {
                     control={control}
                     setControl={setControl}
                     actionMessage={actionMessage}
+                    action={analyze}
+                    actionLabel={'ANALYZE'}
                     allLabels={allLabels}
                     refresh={refresh}
                     lastRefresh={lastRefresh}
@@ -142,6 +156,10 @@ const Topics = ({user, channel, video=null, page, classes}) => {
                     control={control}
                     render={render}
                 />}
+            {grayout
+                ? <div className={classes.grayout} />
+                : null
+            }
         </div>
     )
 }

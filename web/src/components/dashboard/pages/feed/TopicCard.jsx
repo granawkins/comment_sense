@@ -59,7 +59,7 @@ const TopicCard = ({videoId=null, topic, max, classes}) => {
                 setLabels(<Attribute type='label' value={topic.label} />)
                 setCommentIds(topic.comments)
             } else {
-                setLabels(topic.label.map(l => <Attribute type='label' value={l} />))
+                setLabels(<Attribute type='label' value={topic.label} />)
                 setVideoIds(topic.videos.map(v => v[0]))
                 let newCommentIds = []
                 topic.videos.forEach(v => {

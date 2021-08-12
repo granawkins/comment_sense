@@ -21,12 +21,17 @@ const styles = (theme) => ({
 })
 
 // Rendered only after dashboard has a valid channel object
-const Comments = ({user, channel, videoId=null, commentIds=[], control={}, classes}) => {
+const Comments = ({user, channel, videoId=null, commentIds=[], classes}) => {
+
+    const [control, setControl] = useState({})
+    useEffect(() => {
+        setControl({pageSize: 10, search: "", sort: 'top'})
+    }, [])
 
     // Tells the Feed where to get items, and how to render them.
     const query = {
         api: '/api/comments',
-        data: {user, pageSize: 10, commentIds},
+        data: {user, commentIds},
     }
     const render = (comment) => {
         return <CommentCard comment={comment} key={comment.id} />
@@ -49,11 +54,20 @@ const Comments = ({user, channel, videoId=null, commentIds=[], control={}, class
         <div className={classes.root}>
             {pageLoading || hasError
                 ? placeholder
-                : <Feed
-                    query={query}
-                    control={control}
-                    render={render}
-                />}
+                : <>
+                    <Controller
+                        type='comments'
+                        control={control}
+                        setControl={setControl}
+                        sortOptions={['recent', 'oldest', 'top']}
+                    />
+                    <Feed
+                        query={query}
+                        control={control}
+                        render={render}
+                    />
+                </>
+            }
         </div>
     )
 }

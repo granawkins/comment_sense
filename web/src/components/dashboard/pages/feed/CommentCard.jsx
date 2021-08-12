@@ -37,11 +37,7 @@ let styles = (theme) => ({
 
 const CommentCard = ({comment, classes}) => {
 
-    let context = useContext(ControllerContext)
     const [sentimentOn, setSentimentOn] = useState(true)
-    useEffect(() => {
-        setSentimentOn(context.sentimentOn)
-    }, [context])
 
     const [color, setColor] = useState("")
     const [leftPad, setLeftPad] = useState('5px')

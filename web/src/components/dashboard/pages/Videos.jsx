@@ -82,7 +82,7 @@ const Videos = ({user, channel, classes}) => {
         data: {user, pageSize: 10},
     }
     const render = (video) => {
-        return <VideoCard type='video' data={video} key={video.id} />
+        return <VideoCard video={video} key={video.id} />
     }
 
     const [placeholder, setPlaceholder] = useState("")

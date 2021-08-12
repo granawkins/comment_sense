@@ -192,7 +192,13 @@ def cluster(comment_topics, n_topics=200, user_subs=[], user_labs=[]):
         all_parsed.append((token, toks_reduced, label, n, all_likes, all_sentiment, commentIds_reduced))
     all_sorted = sorted(all_parsed, key=lambda e: e[3], reverse=True)
 
-    return all_sorted[:n_topics]
+    new_topics = all_sorted[:n_topics]
+    all_labels = []
+    for t in new_topics:
+        if t[2] not in all_labels:
+            all_labels.append(t[2])
+
+    return {'topics': new_topics, 'labels': all_labels}
 
 def cluster_videos(videos):
     all_topics = {}
