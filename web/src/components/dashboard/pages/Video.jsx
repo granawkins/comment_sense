@@ -2,13 +2,24 @@ import { useState, useEffect, createContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 
-import { postData } from '../../utils/helpers'
+import Button from '@material-ui/core/Button'
+import Typography from '@material-ui/core/Typography'
+import TextField from '@material-ui/core/TextField'
+import Dialog from '@material-ui/core/Dialog'
+import DialogTitle from '@material-ui/core/DialogTitle'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogActions from '@material-ui/core/DialogActions'
+
+import { postData, thousands_separator } from '../../utils/helpers'
 import VideoPlayer from "./VideoPlayer.jsx"
 import Topics from "./Topics.jsx"
 import LoadingCircle from '../../utils/LoadingCircle'
 import ErrorPage from '../../utils/ErrorPage'
+import ActionControl from './ActionControl'
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
         position: 'relative',
         display: 'flex',
@@ -27,6 +38,7 @@ const Video = ({user, channel, classes}) => {
     const [isLoading, setIsLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
 
+    // On load, get video data from database and youtube
     useEffect(() => {
         setIsLoading(true)
         try {
@@ -55,6 +67,7 @@ const Video = ({user, channel, classes}) => {
                     if (!data.video_data) {
                         console.log("No video data.")
                     } else {
+                        console.log(`Video page initializing to ${data.video_data.total_comments}`)
                         setVideo(data.video_data)
                     }
                     setIsLoading(false)
@@ -67,15 +80,15 @@ const Video = ({user, channel, classes}) => {
         }
     }, [])
 
+    // Get new comments from youtube, analyze all, then re-cluster
     const [isAnalyzing, setIsAnalyzing] = useState(false)
-    const analyze = async () => {
+    const analyze = async (maxComments=100, resetToken=false) => {
         setIsAnalyzing(true)
         const request_data = {
             user,
             videoId,
-            maxComments: 100,
-            resetToken: null,
-            sort: null,
+            maxComments,
+            resetToken,
         }
         console.log(request_data)
         postData('/api/analyze_comments', request_data).then(data => {
@@ -84,11 +97,15 @@ const Video = ({user, channel, classes}) => {
                 setIsAnalyzing(false)
                 console.log(`Error analyzing videos: ${data.error}`)
             } else if (data.video) {
+                console.log(`Analyze function updating to ${data.video.total_comments}`)
                 setVideo({...video, ...data.video})
                 setIsAnalyzing(false)
             }
         })
     }
+
+    // Create a popup menu with details/options for analyze
+    const [actionOpen, setActionOpen] = useState(false)
 
     const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
@@ -111,8 +128,19 @@ const Video = ({user, channel, classes}) => {
                         user={user}
                         page='video'
                         video={video}
-                        analyze={analyze}
+                        analyze={() => setActionOpen(true)}
                         grayout={isAnalyzing}
+                    />
+                    <ActionControl
+                        // isOpen, handleClose, actionTitle, remaining, quota, verb, actionLabel, action
+                        isOpen={actionOpen}
+                        handleClose={() => setActionOpen(false)}
+                        actionTitle="Analyze Comments"
+                        remaining={video ? video.total_comments - video.db_comments : 0}
+                        quota={user.quota}
+                        verb="Analyze"
+                        actionLabel="ANALYZE NOW"
+                        action={analyze}
                     />
                 </>
             }

@@ -48,8 +48,9 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
             setAllLabels(channel.labels ? channel.labels : null)
             setLastRefresh(channel.last_refresh ? formatTimestamp(channel.last_refresh) : null)
         } else if (video && page === 'video') {
+            console.log(video)
             setDBComments(video.db_comments)
-            setTotalComments(video.total_comments)
+            setTotalComments(parseInt(video.total_comments))
             setAllLabels(video.labels ? video.labels : null)
             setLastRefresh(video.last_refresh ? formatTimestamp(video.last_refresh) : null)
         }

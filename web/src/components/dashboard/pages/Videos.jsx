@@ -4,10 +4,10 @@ import { withStyles } from '@material-ui/core/styles'
 import Controller from './Controller'
 import Feed from './feed/Feed'
 import VideoCard from './feed/VideoCard'
-
-import { postData } from '../../utils/helpers'
+import { postData, thousands_separator } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle'
 import ErrorPage from '../../utils/ErrorPage'
+import ActionControl from './ActionControl'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -18,6 +18,20 @@ const styles = (theme) => ({
         margin: '0',
         padding: '0',
     },
+    row: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        margin: '10px 0',
+    },
+    error: {
+        color: theme.palette.csRed.main,
+    },
+    csRed: {
+        color: 'white',
+        backgroundColor: theme.palette.csRed.main,
+    }
 })
 
 // Rendered only after dashboard has a valid channel object
@@ -36,20 +50,23 @@ const Videos = ({user, channel, classes}) => {
     // Action Messaage is displayed on top of the controller, next to action button
     const [actionMessage, setActionMessage] = useState("")
     useEffect(() => {
-        setActionMessage(`${dbVideos} scanned / ${totalVideos} videos`)
+        setActionMessage(`
+            ${thousands_separator(dbVideos)} scanned /
+            ${thousands_separator(totalVideos)} videos`
+        )
     }, [dbVideos, totalVideos])
 
     // ScanVideos is the primary action for the videos page.
     const [pageLoading, setPageLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
-    const scanVideos = async () => {
+    const scanVideos = async (maxVideos=100, resetToken=false) => {
         setPageLoading(true)
         try {
             const response = await postData('/api/scan_videos', {
                 user, // must contain valid channelId
+                maxVideos: maxVideos, // target number of videos to add
+                resetToken: resetToken, // start the next scan over from the beginning
                 publishedAfter: null,
-                resetToken: null, // start the next scan over from the beginning
-                maxVideos: 100, // target number of videos to add
             })
             /*
             const response = {
@@ -69,6 +86,9 @@ const Videos = ({user, channel, classes}) => {
             setPageLoading(false)
         }
     }
+
+    // Handle ActionControl popup menu
+    const [actionOpen, setActionOpen] = useState(false)
 
     // Contains controller settings. Controller updates, Feed adds to api call.
     const [control, setControl] = useState(null)
@@ -105,7 +125,7 @@ const Videos = ({user, channel, classes}) => {
                     control={control}
                     setControl={setControl}
                     actionMessage={actionMessage}
-                    action={scanVideos}
+                    action={() => setActionOpen(true)}
                     actionLabel="SCAN NOW"
                     sortOptions={['recent', 'oldest', 'top']}
                 />}
@@ -116,6 +136,17 @@ const Videos = ({user, channel, classes}) => {
                     control={control}
                     render={render}
                 />}
+            <ActionControl
+                // isOpen, handleClose, actionTitle, remaining, quota, verb, actionLabel, action
+                isOpen={actionOpen}
+                handleClose={() => setActionOpen(false)}
+                actionTitle="Scan Videos"
+                remaining={totalVideos - dbVideos}
+                quota={user.quota}
+                verb="Scan"
+                actionLabel="SCAN NOW"
+                action={scanVideos}
+            />
         </div>
     )
 }

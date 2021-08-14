@@ -270,7 +270,7 @@ def analyze_comments():
     video_id = request_data['videoId']
 
     # Abandon the next_page_token stored in the video and start over form page 1.
-    reset_token = None if not 'resetToken' in request_data else request_data['resetToken']
+    reset_token = None if 'resetToken' not in request_data else request_data['resetToken']
     max_retries = 10
 
     # Total number of NEW comments to be returned

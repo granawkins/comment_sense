@@ -7,7 +7,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
-import Switch from '@material-ui/core/Switch'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import SortIcon from '@material-ui/icons/Sort';
@@ -15,21 +14,9 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 
 import Attribute from './feed/Attribute'
 import { capitalize } from '../../utils/helpers'
+import RedSwitch from '../../utils/RedSwitch'
 
-const switchStyles = (theme) => ({
-    switchBase: {
-        '&$checked': {
-          color: theme.palette.csRed.main,
-        },
-        '&$checked + $track': {
-          backgroundColor: theme.palette.csRed.main,
-        },
-      },
-      checked: {},
-      track: {},
-})
 
-const RedSwitch = withStyles(switchStyles)(Switch)
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -62,12 +49,6 @@ const styles = (theme) => ({
     search: {
         flexGrow: '1',
     },
-    spacer: {
-        width: '100px',
-    },
-    sort: {
-        minWidth: '120px',
-    },
     sortIcon: {
         height: '100%',
     },
@@ -76,6 +57,11 @@ const styles = (theme) => ({
 const Controller = ({type, control, setControl, display=null, setDisplay=null, sortOptions=null,
                     allLabels=null, actionMessage=null, action=null, actionLabel=null,
                     refresh=null, lastRefresh=null, classes}) => {
+
+    // Create a popup menu with details/options for main action
+    const handleAction = () => {
+
+    }
 
     // Update control (in parent) when sort and local variables are changed
     const [search, setSearch] = useState("")
@@ -127,6 +113,7 @@ const Controller = ({type, control, setControl, display=null, setDisplay=null, s
         setLabels(newLabels)
     }
 
+    // If sentiment is enabled for user, show toggle and turn on by default
     const toggleSentiment = () => {
         setDisplay({...display, sentimentOn: !display.sentimentOn})
     }
@@ -213,10 +200,3 @@ const Controller = ({type, control, setControl, display=null, setDisplay=null, s
 }
 
 export default withStyles(styles)(Controller)
-
-{/* <Switch
-        checked={sentimentOn}
-        onChange={toggleSentiment}
-        color='secondary'
-    />
-    <Typography color='black'>Sentiment</Typography> */}

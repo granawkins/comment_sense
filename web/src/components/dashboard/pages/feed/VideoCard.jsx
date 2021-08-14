@@ -7,7 +7,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/styles';
-import { postData, formatTimestamp } from '../../../utils/helpers';
+import { postData, formatTimestamp, thousands_separator } from '../../../utils/helpers';
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -76,16 +76,10 @@ const styles = (theme) => ({
 
 const VideoCard = ({video, classes}) => {
 
-    const [pageUrl, setPageUrl] = useState("#")
-    useEffect(() => {
-        console.log(video)
-        setPageUrl("../dashboard/video/" + video.id)
-    }, [])
-
     return (
         <Card className={classes.root}>
             <CardActionArea className={classes.actionArea}>
-                <Link to={pageUrl} className={classes.link}>
+                <Link to={"../dashboard/video/" + video.id} className={classes.link}>
                     <div className={classes.cover}>
                         {video.thumbnail
                             ? <CardMedia
@@ -101,7 +95,7 @@ const VideoCard = ({video, classes}) => {
                         <Typography className={classes.body1}>{formatTimestamp(video.published, 'date')}</Typography>
                         {video.db_comments > 0
                             ? <Typography className={`${classes.body1} ${classes.csRed}`}>
-                                {video.db_comments} comments analyzed
+                                {thousands_separator(video.db_comments)} comments analyzed
                             </Typography>
                             : null
                         }

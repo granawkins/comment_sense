@@ -64,7 +64,7 @@ const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle
 
     const drawer = (
         <div className={classes.drawer}>
-            <Link to={`../dashboard`} className={classes.link}>
+            <Link to={`../../dashboard`} className={classes.link}>
                 <div className={classes.logoBox}>
                     <Typography className={classes.logoText}>Comment</Typography>
                     <Typography className={`${classes.logoText} ${classes.csRed}`}>Sense</Typography>

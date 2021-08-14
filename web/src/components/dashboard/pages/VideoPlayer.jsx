@@ -106,7 +106,7 @@ const VideoPlayer = ({video, classes}) => {
                     <div className={classes.pair}>
                         <ScheduleIcon style={{paddingRight: '10px'}}/>
                         <Typography className={classes.body1} noWrap={true}>
-                            {formatTimestamp(video.published)}
+                            {formatTimestamp(video.published, 'date')}
                         </Typography>
                     </div>
                     <div className={classes.pair}>

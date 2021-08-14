@@ -60,7 +60,7 @@ const styles = (theme) => ({
 
 const Dashboard = ({classes}) => {
 
-    const user = {channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ', sentimentEnabled: true}
+    const user = {channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ', sentimentEnabled: true, quota: 10000}
     const params = useParams()
     const activePage = params.tab
 
