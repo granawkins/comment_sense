@@ -509,12 +509,14 @@ class Database():
     try:
       self.cursor.execute(sql, (ref, ))
       result = self.cursor.fetchall()
-      topics = json.loads(result[0]['topics'])
     except Exception as e:
       raise RuntimeError(f"Error fetching topics from database.")
+    if len(result) == 0:
+      return {'status': "video not found", 'topics': []}
+    if not result[0]['topics']:
+      return {'status': 'no topics in video', 'topics': []}
 
-    if not topics:
-      return {'error': "No topics found"}
+    topics = json.loads(result[0]['topics'])
 
     if search:
       def search_topic(topic):

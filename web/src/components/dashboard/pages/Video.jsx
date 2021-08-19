@@ -34,12 +34,14 @@ const styles = (theme) => ({
 const Video = ({user, channel, classes}) => {
 
     const { videoId } = useParams()
+    const [channelId, setChannelId] = useState(null)
     const [video, setVideo] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [hasError, setHasError] = useState(false)
 
     // On load, get video data from database and youtube
     useEffect(() => {
+        setChannelId(channel.id)
         setIsLoading(true)
         try {
             fetch(`/api/video/${videoId}`)
@@ -85,7 +87,7 @@ const Video = ({user, channel, classes}) => {
     const analyze = async (maxComments=100, resetToken=false) => {
         setIsAnalyzing(true)
         const request_data = {
-            user,
+            channelId,
             videoId,
             maxComments,
             resetToken,

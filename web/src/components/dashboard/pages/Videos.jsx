@@ -38,10 +38,12 @@ const styles = (theme) => ({
 const Videos = ({user, channel, classes}) => {
 
     // const videoId = useParams().videoId
+    const [channelId, setChannelId] = useState(null)
     const [dbVideos, setDBVideos] = useState(null)
     const [totalVideos, setTotalVideos] = useState(null)
     useEffect(() => {
         if (channel) {
+            setChannelId(channel.id)
             setDBVideos(channel.db_videos)
             setTotalVideos(channel.total_videos ? channel.total_videos : "?")
         }
@@ -63,7 +65,8 @@ const Videos = ({user, channel, classes}) => {
         setPageLoading(true)
         try {
             const response = await postData('/api/scan_videos', {
-                user, // must contain valid channelId
+                user,
+                channelId,
                 maxVideos: maxVideos, // target number of videos to add
                 resetToken: resetToken, // start the next scan over from the beginning
                 publishedAfter: null,
@@ -99,7 +102,7 @@ const Videos = ({user, channel, classes}) => {
     // Tells the Feed where to get items, and how to render them.
     const query = {
         api: '/api/videos',
-        data: {user, pageSize: 10},
+        data: {channelId, pageSize: 10},
     }
     const render = (video) => {
         return <VideoCard video={video} key={video.id} />

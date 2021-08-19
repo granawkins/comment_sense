@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { withStyles } from '@material-ui/core/styles'
 import * as Router from 'react-router-dom'
 
@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
+import Login from '../account/Login';
 
 const styles = (theme) => ({
   root: {
@@ -39,6 +40,9 @@ const styles = (theme) => ({
 })
 
 const Navbar = ({classes}) => {
+
+  const [loginOpen, setLoginOpen] = useState(false)
+
   return (
     <div className={classes.root}>
       <Box className={classes.container}>
@@ -52,9 +56,10 @@ const Navbar = ({classes}) => {
         </Router.Link>
         <div className={classes.enter}>
           <Button className={classes.enterButton}>Signup</Button>
-          <Button className={classes.enterButton}>Login</Button>
+          <Button className={classes.enterButton} onClick={() => setLoginOpen(true)}>Login</Button>
         </div>
       </Box>
+      <Login isOpen={loginOpen} setIsOpen={setLoginOpen} />
     </div>
   );
 }

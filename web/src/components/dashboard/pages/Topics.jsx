@@ -36,6 +36,7 @@ const TopicContext = createContext()
 const Topics = ({user, page, channel=null, video=null, analyze=null,
                  grayout=null, classes}) => {
 
+    const [channelId, setChannelId] = useState(null)
     const [dbComments, setDBComments] = useState(null)
     const [dbVideos, setDBVideos] = useState(null)
     const [totalComments, setTotalComments] = useState(null)
@@ -43,12 +44,13 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
     const [allLabels, setAllLabels] = useState(null)
     useEffect(() => {
         if (channel && page === 'channel') {
+            setChannelId(channel.id)
             setDBComments(channel.db_comments)
             setDBVideos(channel.total_videos ? channel.total_videos : "?")
             setAllLabels(channel.labels ? channel.labels : null)
             setLastRefresh(channel.last_refresh ? formatTimestamp(channel.last_refresh) : null)
         } else if (video && page === 'video') {
-            console.log(video)
+            setChannelId(video.channel_id)
             setDBComments(video.db_comments)
             setTotalComments(parseInt(video.total_comments))
             setAllLabels(video.labels ? video.labels : null)
@@ -90,7 +92,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
         setPageLoading(true)
         try {
             const response = await postData(`/api/refresh_${page}`, {
-                user, // must contain valid channelId
+                channelId, // must contain valid channelId
                 videoId: video ? video.id : null,
             })
             /*
@@ -115,7 +117,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
     const query = {
         api: '/api/topics',
         data: {
-            user,
+            channelId,
             pageSize: 25,
             videoId: video ? video.id : null,
         },

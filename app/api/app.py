@@ -90,10 +90,7 @@ def scan_videos():
     """
     # Parse the request
     request_data = request.get_json()
-    user = request_data['user']
-    if 'channelId' not in user.keys():
-        return
-    channel_id = user['channelId']
+    channel_id = request_data['channelId']
     channel_id = check_channel(channel_id)
 
     published_after = None if not 'publishedAfter' in request_data.keys() else request_data['publishedAfter']
@@ -182,11 +179,8 @@ def scan_videos():
 @app.route('/api/videos', methods=['POST'])
 def videos():
     request_data = request.get_json()
-    user = request_data['user']
-    if 'channelId' not in user.keys():
-        return {'error': 'Cannot fetch videos, missing channel_id'}
     args = {
-        'channel_id': user['channelId'],
+        'channel_id': request_data['channelId'],
         'search': None if not 'search' in request_data else request_data['search'],
         'sort': None if not 'sort' in request_data else request_data['sort'],
     }
@@ -231,9 +225,8 @@ def comments():
             args['comment_ids'] = request_data['commentIds']
     elif 'videoId' in request_data:
         args['video_id']  = request_data['videoId']
-    elif 'user' in request_data:
-        if 'channelId' in request_data['user']:
-            args['channel_id'] = request_data['user']['channelId']
+    elif 'channelId' in request_data:
+        args['channel_id'] = request_data['channelId']
     if len(args) == 0:
         return {'error': 'No valid arguments supplied to api/comments'}
 
@@ -262,10 +255,7 @@ def analyze_comments():
     # ---STEP 1: GET COMMENTS FROM YOUTUBE
     # Parse the request
     request_data = request.get_json()
-    user = request_data['user']
-    if 'channelId' not in user.keys():
-        return
-    channel_id = user['channelId']
+    channel_id = request_data['channelId']
     channel_id = check_channel(channel_id)
     video_id = request_data['videoId']
 
@@ -382,13 +372,12 @@ def analyze_comments():
     del refreshed_video['topics']
     return {'video': refreshed_video}
 
-# BELOW NOT REVIEWED
 
 @app.route('/api/topics', methods=['POST'])
 def topics():
     request_data = request.get_json()
 
-    args = {'channel_id': request_data['user']['channelId']}
+    args = {'channel_id': request_data['channelId']}
     if 'videoId' in request_data:
         args['video_id'] = request_data['videoId']
     for field in ['search', 'labels', 'sort', 'all']:
@@ -415,7 +404,7 @@ def topics():
 def refresh_video():
     # Get all comments, cluster topics, reset db
     request_data = request.get_json()
-    channel_id = request_data['user']['channelId']
+    channel_id = request_data['channelId']
     video_id = request_data['videoId']
     db_comments = db.get_comments(channel_id, video_id, all=True)
     all_comments = db_comments['comments']
@@ -461,7 +450,7 @@ def refresh_video():
 def refresh_channel():
     # Get all comments, cluster topics, reset db
     request_data = request.get_json()
-    channel_id = request_data['user']['channelId']
+    channel_id = request_data['channelId']
     db_videos = db.get_videos(channel_id, all=True, all_data=True)
     if len(db_videos['videos']) == 0:
         return {'error': 'No videos for this channel'}
