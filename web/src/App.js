@@ -63,7 +63,7 @@ const App = ({classes}) => {
         console.log(`Unable to authenticate user`)
         setDashboard(<Redirect to='/' />)
       } else {
-        setDashboard(<Dashboard user={user} />)
+        setDashboard(<Dashboard auth0User={user} />)
       }
   }, [isLoading, isAuthenticated])
 

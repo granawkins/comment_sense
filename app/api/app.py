@@ -27,6 +27,49 @@ an = Analyzer(env, db)
 
 # USER
 
+
+@app.route('/api/user', methods=['POST'])
+def user():
+    """Return user data, include channel data if exists
+    """
+    request_data = request.get_json()
+    user_data = request_data['user']
+    user_id = user_data['id']
+
+    try:
+        db_data = db.get_user(user_id)
+    except Exception as e:
+        return {'error': f'Error loading user from Database: {e}'}
+
+    if 'user' not in db_data.keys():
+        try:
+            db.set_user(user_id, user_data)
+        except Exception as e:
+            return {'error': f"Error adding user to Database: {e}"}
+
+        db_user = db.get_user(user_id)
+    else:
+        db_user = db_data['user']
+
+    return {'user': db_user}
+
+
+@app.route('/api/set_user', methods=['POST'])
+def set_user():
+    """Update a user record"""
+    request_data = request.get_json()
+    user_id = request_data['userId']
+    user = request_data['user']
+
+    try:
+        db.set_user(user_id, user)
+        db_data = db.get_user(user_id)
+    except Exception as e:
+        return {'error': f"Error updating user in Database: {e}"}
+
+    return {'user': db_data['user']}
+
+
 def check_channel(channel_id):
     """Check if channel_id is correct. If not, try to get id for username.
     """
