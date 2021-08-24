@@ -23,6 +23,11 @@ class Database():
     self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
     self.cursor.execute(f"USE {name}")
 
+    self.createUsersTable()
+    self.user_fields =   ["id", "email", "email_verified", "nickname", "picture",
+                          "channel_id", "quota", "sentiment_on", "created"]
+    self.user_json_fields = []
+
     self.createChannelsTable()
     self.channel_fields = [
       "id", "title", "thumbnail", "created", "total_videos", "db_videos",
@@ -53,6 +58,109 @@ class Database():
         database=self.name,
       )
       self.cursor = self.db.cursor(dictionary=True)
+
+# USERS
+
+  def createUsersTable(self):
+    self.refresh()
+    self.cursor.execute("CREATE TABLE IF NOT EXISTS users ( "
+      "id VARCHAR(255) NOT NULL, "
+      "email VARCHAR(255) NOT NULL, "
+      "email_verified BOOLEAN NOT NULL, "
+      "nickname VARCHAR(255), "
+      "picture VARCHAR(255), "
+      "channel_id VARCHAR(255), "
+      "quota BIGINT, "
+      "sentiment_on BOOLEAN, "
+      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "PRIMARY KEY (`id`) "
+    ")")
+    self.db.commit()
+
+  def set_user(self, id, user_data):
+    """Create or update a user record
+
+    If user doesn't exist, add it with the data provided.
+    If user does exist, update with data provided.
+    """
+    # Validate input fields
+    data = {}
+    for field in user_data:
+      if field in self.user_json_fields:
+        data[field] = json.dumps(user_data[field])
+      elif field in self.user_fields:
+        data[field] = user_data[field]
+    if len(data) < 1:
+      raise NameError(f"No usable data provided to set {id}")
+
+    # Check if record exists
+    try:
+      self.refresh()
+      self.cursor.execute("SELECT * FROM users WHERE id = %s", (id, ))
+      current = self.cursor.fetchall()
+    except Exception as e:
+      raise RuntimeError(f"Error fetching user data from database.")
+
+    # Add new record
+    if len(current) == 0:
+      required_fields = ['id', 'email', 'email_verified']
+      for field in required_fields:
+        if field not in data.keys():
+          raise RuntimeError(f"User is missing a required field")
+
+      placeholders = ", ".join(['%s'] * len(data))
+      columns = ", ".join(data.keys())
+      sql = "INSERT INTO users ( %s ) VALUES ( %s )" % (columns, placeholders)
+      try:
+        self.cursor.execute(sql, list(data.values()))
+        self.db.commit()
+        return {'status': 'Added new user to database'}
+      except Exception as e:
+        raise RuntimeError(f"Error writing new user data to database: {e}")
+
+    # Update existing record
+    elif len(current) == 1:
+      sql = "UPDATE users SET "
+      args = []
+      for field in data:
+        if (data[field] == None) or (data[field] == 'null'):
+          sql += f"{field} = NULL, "
+        else:
+          sql += f"{field} = %s, "
+          args.append(data[field])
+      sql = sql[:-2]
+      sql += " WHERE id = %s"
+      try:
+        injected = list(args) + [id] if len(args) > 0 else (id, )
+        self.cursor.execute(sql, injected)
+        self.db.commit()
+        return {'status': 'Updated user successfully.'}
+      except Exception as e:
+        raise RuntimeError(f"Error updating user data in database: {e}")
+
+
+  def get_user(self, id):
+    """Return all user data from database
+
+    """
+    self.refresh()
+    try:
+      self.cursor.execute("SELECT * FROM users WHERE id = %s", (id, ))
+      response = self.cursor.fetchall()
+    except:
+      raise RuntimeError(f"Error fetching user data from database.")
+    if len(response) == 0:
+      return {'status': 'User not found'}
+    else:
+      user = response[0]
+      for field in user:
+        if user[field] == 'null':
+          user[field] = None
+      for field in self.user_json_fields:
+        if field in user and user[field] is not None:
+          user[field] = json.loads(user[field])
+      return {'status': 'Fetched user data successfully.', 'user': user}
+
 
 # CHANNELS
 
