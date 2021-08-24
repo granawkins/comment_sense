@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, Switch, Route } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
+
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import Drawer from '@material-ui/core/Drawer'
@@ -58,9 +60,7 @@ const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle
         handleDrawerToggle('closed')
     }, [activePage])
 
-    useEffect(() => {
-        // console.log(channel)
-    }, [])
+    const { logout } = useAuth0()
 
     const drawer = (
         <div className={classes.drawer}>
@@ -92,6 +92,11 @@ const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle
                         </ListItem>
                     </Link>
                 ))}
+                <ListItem button key={'logout'} onClick={logout}>
+                    <Typography classes={{root: classes.h6}}>
+                        Logout
+                    </Typography>
+                </ListItem>
             </List>
             <Footer align='col' />
         </div>

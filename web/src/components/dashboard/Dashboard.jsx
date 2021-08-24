@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Switch, Route } from 'react-router-dom';
+
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
@@ -58,9 +59,8 @@ const styles = (theme) => ({
     },
 })
 
-const Dashboard = ({classes}) => {
+const Dashboard = ({user, classes}) => {
 
-    const user = {channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ', sentimentEnabled: true, quota: 10000}
     const params = useParams()
     const activePage = params.tab
 
@@ -69,6 +69,15 @@ const Dashboard = ({classes}) => {
     const [channel, setChannel] = useState(null)
     useEffect(() => {
         setDashboardLoading(true)
+
+        // Add extra fields to user (for demo)
+        user = {
+            ...user,
+            channelId: 'UCtinbF-Q-fVthA0qrFQTgXQ',
+            sentimentEnabled: true,
+            quota: 10000
+        }
+
         // Get channel data from youtube
         const getChannel = async () => {
             try {
@@ -123,7 +132,7 @@ const Dashboard = ({classes}) => {
         }
     }, [dashboardLoading, hasError])
 
-    const drawerItems = ['videos', 'topics', 'settings', 'logout']
+    const drawerItems = ['videos', 'topics', 'settings']
     const [mobileOpen, setMobileOpen] = useState(false)
     const handleDrawerToggle = (target=null) => {
         switch (target) {

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { withStyles } from '@material-ui/core/styles'
 import * as Router from 'react-router-dom'
+import { useAuth0 } from '@auth0/auth0-react';
 
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
 import Link from '@material-ui/core/Link'
 import Button from '@material-ui/core/Button'
-import Login from '../account/Login';
 
 const styles = (theme) => ({
   root: {
@@ -41,7 +41,7 @@ const styles = (theme) => ({
 
 const Navbar = ({classes}) => {
 
-  const [loginOpen, setLoginOpen] = useState(false)
+  const { loginWithRedirect } = useAuth0();
 
   return (
     <div className={classes.root}>
@@ -55,11 +55,11 @@ const Navbar = ({classes}) => {
           </Link>
         </Router.Link>
         <div className={classes.enter}>
-          <Button className={classes.enterButton}>Signup</Button>
-          <Button className={classes.enterButton} onClick={() => setLoginOpen(true)}>Login</Button>
+          <Button className={classes.enterButton} onClick={loginWithRedirect}>
+            Signup / Login
+          </Button>
         </div>
       </Box>
-      <Login isOpen={loginOpen} setIsOpen={setLoginOpen} />
     </div>
   );
 }
