@@ -22,8 +22,8 @@ const Landing = ({classes}) => {
         <div className={classes.root}>
             <Navbar />
             <Splash />
-            <Pricing />
-            <Footer />
+            {/* <Pricing />
+            <Footer /> */}
         </div>
     )
 }

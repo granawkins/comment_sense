@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack://src/App.css"],"names":[],"mappings":"AAAA,EACI,QACJ,CAEA,GACI,uBAAqB,CAArB,oBAAqB,CACrB,sBAAmB,CAAnB,kBACJ","file":"main.73d1f079.chunk.css","sourcesContent":["* {\n    margin: 0;\n}\n\nh6 {\n    margin-block-start: 0;\n    margin-block-end: 0;\n}"]}

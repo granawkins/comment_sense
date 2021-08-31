@@ -1,10 +1,15 @@
+import { useState, useEffect } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import * as Router from 'react-router-dom'
 import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import CheckIcon from '@material-ui/icons/Check';
+
+import Waitlist from './Waitlist'
+
 import iPhoneFrame from '../../assets/iphone-frame.png'
 import demoGif from '../../assets/demo-gif.gif'
+
 
 const styles = (theme) => ({
     root: {
@@ -126,6 +131,8 @@ const styles = (theme) => ({
 
 const Splash = ({classes}) => {
 
+    const [showWaitlist, setShowWaitlist] = useState(false)
+
     const ctaButtons = (
         <>
             <Router.Link to={'/dashboard'} className={classes.link}>
@@ -133,20 +140,21 @@ const Splash = ({classes}) => {
                     id="demo"
                     variant='contained'
                     className={`${classes.ctaButton} ${classes.ctaRed}`}
-                    onClick={() => {}}
+                    // onClick={() => {}}
                 >DEMO</Button>
             </Router.Link>
             <Button
                 id="freeTrial"
                 variant='contained'
                 className={`${classes.ctaButton} ${classes.ctaDark}`}
-                onClick={() => {}}
-            >FREE TRIAL</Button>
+                onClick={() => setShowWaitlist(true)}
+            >JOIN WAIT LIST</Button>
         </>
     )
 
     return(
         <div className={classes.root}>
+            <Waitlist isOpen={showWaitlist} setIsOpen={setShowWaitlist} />
             <div className={classes.content}>
                 <div className={classes.textBlock}>
                     <Typography variant='h1' style={{fontFamily: 'Roboto'}}>

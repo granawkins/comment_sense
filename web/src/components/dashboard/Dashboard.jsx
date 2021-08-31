@@ -60,31 +60,29 @@ const styles = (theme) => ({
     },
 })
 
+const DEFAULT_USER = {
+    id: 'DEMO',
+    email: 'DEMO',
+    email_verified: true,
+    nickname: 'CaseyNeistat',
+    picture: 'https://yt3.ggpht.com/ytc/AKedOLSlIk2U5RbHKVYAcjXjRHGI2vQGLH2g_ZzLxMDyvA=s240-c-k-c0x00ffffff-no-rj',
+    channel_id: 'UCtinbF-Q-fVthA0qrFQTgXQ',
+    quota: 10000,
+    sentiment_on: true,
+}
+
 const Dashboard = ({auth0User, classes}) => {
 
     const params = useParams()
     const activePage = params.tab
-    const [dashboardLoading, setDashboardLoading] = useState({})
+    const [dashboardLoading, setDashboardLoading] = useState(true)
     const [hasError, setHasError] = useState(false)
 
     const [user, setUser] = useState(null)
-    const getUser = async () => {
+    const getUser = async (user) => {
         setDashboardLoading(true)
         try {
-            const response = await postData('/api/user', {
-                user: {
-                    id: auth0User.sub,
-                    email: auth0User.email,
-                    email_verified: auth0User.email_verified,
-                    nickname: auth0User.nickname,
-                    picture: auth0User.picture,
-                }
-            })
-            /*
-            const response = {user: {
-
-            }}
-            */
+            const response = await postData('/api/user', {user})
             if (!response.user) {
                 setDashboardLoading(false)
                 setHasError(true)
@@ -103,7 +101,17 @@ const Dashboard = ({auth0User, classes}) => {
     }
 
     useEffect(() => {
-        getUser()
+        if (auth0User) {
+            getUser({
+                id: auth0User.sub,
+                email: auth0User.email,
+                email_verified: auth0User.email_verified,
+                nickname: auth0User.nickname,
+                picture: auth0User.picture,
+            })
+        } else {
+            getUser(DEFAULT_USER)
+        }
     }, [auth0User])
 
     const [unlinked, setUnlinked] = useState(false)
@@ -112,14 +120,14 @@ const Dashboard = ({auth0User, classes}) => {
         if (!user || hasError) {
             return null
         }
-        if (!user.channel_id) {
+        if (auth0User && !user.channel_id) {
             setDashboardLoading(false)
             setUnlinked(true)
             return null
         }
         try {
             setDashboardLoading(true)
-            const response = await postData('/api/channel', {channelId: user.channelId})
+            const response = await postData('/api/channel', {channelId: user.channel_id})
             /*
             const response = {channel: {
                 created: "Fri, 06 Aug 2021 18:52:49 GMT"
@@ -158,13 +166,11 @@ const Dashboard = ({auth0User, classes}) => {
     }
 
     useEffect(() => {
-        console.log(user)
         getChannel()
     }, [user])
 
     const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
-        console.log(`loading: ${dashboardLoading}; error: ${hasError}; unlinked: ${unlinked};`)
         if (dashboardLoading) {
             setPlaceholder(<LoadingCircle />)
         } else if (hasError) {
@@ -194,10 +200,11 @@ const Dashboard = ({auth0User, classes}) => {
     return(
         <div className={classes.root}>
 
-
             {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
             <ReactiveDrawer drawerItems={drawerItems} activePage={activePage} channel={channel}
                             mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
+
+            {/* Page title */}
             <div className={classes.content}>
                 <div className={classes.titleLine}>
                     <IconButton
@@ -213,6 +220,8 @@ const Dashboard = ({auth0User, classes}) => {
                         {capitalize(activePage)}
                     </Typography>
                 </div>
+
+                {/* Page content */}
                 {dashboardLoading || hasError || unlinked
                     ? placeholder
                     : <Switch>

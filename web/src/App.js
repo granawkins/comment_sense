@@ -59,9 +59,9 @@ const App = ({classes}) => {
   useEffect(() => {
       if (isLoading) {
         setDashboard(<LoadingCircle />)
-      } else if (!isAuthenticated) {
-        console.log(`Unable to authenticate user`)
-        setDashboard(<Redirect to='/' />)
+      // } else if (!isAuthenticated) {
+      //   console.log(`Unable to authenticate user`)
+      //   setDashboard(<Redirect to='/' />)
       } else {
         setDashboard(<Dashboard auth0User={user} />)
       }
@@ -72,27 +72,23 @@ const App = ({classes}) => {
       <div className={classes.root} style={{backgroundColor: theme.palette.primary.main}}>
         <Router>
           <Switch>
+            {/* Logged in uers are sent to the dashbaord with their auth0User.
+                If not logged in, dashboard reverts to default user (Casey). */}
             <Route path='/dashboard/:tab'>
               {dashboard}
             </Route>
             <Route path='/dashboard'>
               <Redirect to='/dashboard/videos' />
             </Route>
+
             <Route path='/:page'>
               <Placeholder />
             </Route>
+
             <Route path='/'>
               <Landing />
             </Route>
-            {/*
-            <Route path='/admin' exact component={() => <Admin />} />
-            <Route path='/admin/:tab' exact component={() => <Admin />} />
-            <Route path='/blog' exact component={() => <BlogFeed />} />
-            <Route path='/blog/:permalink' exact component={() => <BlogDisplay />} />
-            <Route path='/contact' exact component={() => <Contact />} />
-            <Route path='/privacy' exact component={() => <Placeholder pageName='Privacy Policy' />} />
-            <Route path='/terms' exact component={() => <Placeholder pageName='Terms of Service' />} />
-            */}
+
           </Switch>
         </Router>
       </div>

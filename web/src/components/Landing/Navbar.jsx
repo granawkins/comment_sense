@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core/styles'
 import * as Router from 'react-router-dom'
 import { useAuth0 } from '@auth0/auth0-react';
@@ -41,7 +41,16 @@ const styles = (theme) => ({
 
 const Navbar = ({classes}) => {
 
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect } = useAuth0()
+
+  const [showSignIn, setShowSignIn] = useState(false)
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'l') {
+        setShowSignIn(true)
+      }
+    })
+  }, [])
 
   return (
     <div className={classes.root}>
@@ -55,9 +64,12 @@ const Navbar = ({classes}) => {
           </Link>
         </Router.Link>
         <div className={classes.enter}>
-          <Button className={classes.enterButton} onClick={loginWithRedirect}>
-            Signup / Login
-          </Button>
+          {showSignIn
+            ? <Button className={classes.enterButton} onClick={loginWithRedirect}>
+              Login
+            </Button>
+            : null
+          }
         </div>
       </Box>
     </div>

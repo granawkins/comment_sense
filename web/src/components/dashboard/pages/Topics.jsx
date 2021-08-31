@@ -64,7 +64,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
     const [display, setDisplay] = useState(null)
     useEffect(() => {
         setControl({pageSize: 25, search: ""})
-        setDisplay({sentimentEnabled: user.sentimentEnabled, sentimentOn: false})
+        setDisplay({sentimentEnabled: user.sentiment_on, sentimentOn: false})
     }, [])
 
 
