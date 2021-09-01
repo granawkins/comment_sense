@@ -1,0 +1,796 @@
+[
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Radio Intense",
+        "text": "Phenomenal, at least with you we can travel :)",
+        "likes": "501",
+        "replies": 10,
+        "id": "724662ff2bacc2ea",
+        "topics": [
+            [
+                "",
+                6,
+                6,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                7,
+                7,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.2333333333333333
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Achouri Chedi",
+        "text": "give the drone guy a medal ! <3",
+        "likes": "440",
+        "replies": 10,
+        "id": "933b41f8def2c574",
+        "topics": [
+            [
+                "drone guy",
+                2,
+                4,
+                "NOUN_CHUNK"
+            ],
+            [
+                "medal",
+                5,
+                6,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 1.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Reinhardt Buhr",
+        "text": "What FPV drone did you guys get?",
+        "likes": "32",
+        "replies": 9,
+        "id": "66c76e8848354c83",
+        "topics": [
+            [
+                "fpv drone",
+                1,
+                3,
+                "NOUN_CHUNK"
+            ],
+            [
+                "guys",
+                5,
+                6,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "PJ Fesharaki",
+        "text": "That drop and drone fly by at ",
+        "likes": "124",
+        "replies": 0,
+        "id": "95d9cea4c7c29845",
+        "topics": [
+            [
+                "drop",
+                1,
+                2,
+                "NOUN_CHUNK"
+            ],
+            [
+                "drone",
+                3,
+                4,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.8
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Alexandre",
+        "text": "9:25",
+        "likes": "50",
+        "replies": 2,
+        "id": "345c47302f0222a1",
+        "topics": [],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "OURGRND",
+        "text": "TRACKLIST : ",
+        "likes": "437",
+        "replies": 32,
+        "id": "aff02d1b5edde095",
+        "topics": [
+            [
+                "tracklist",
+                0,
+                1,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "monchen",
+        "text": "I just can't STOP listening to this! Gives me chills, energy, happy feelings all at once. Phenomenal work Cercle Music and Innellea. Love you guys - thanks for producing wonderful sets like this!",
+        "likes": "38",
+        "replies": 1,
+        "id": "4b64fef382d3fcd3",
+        "topics": [
+            [
+                "cercle music",
+                23,
+                25,
+                "ORG"
+            ],
+            [
+                "",
+                1,
+                1,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                11,
+                11,
+                "NOUN_CHUNK"
+            ],
+            [
+                "chills",
+                11,
+                12,
+                "NOUN_CHUNK"
+            ],
+            [
+                "energy",
+                13,
+                14,
+                "NOUN_CHUNK"
+            ],
+            [
+                "happy feelings",
+                15,
+                17,
+                "NOUN_CHUNK"
+            ],
+            [
+                "phenomenal work",
+                21,
+                23,
+                "NOUN_CHUNK"
+            ],
+            [
+                "cercle music",
+                23,
+                25,
+                "NOUN_CHUNK"
+            ],
+            [
+                "innellea",
+                26,
+                27,
+                "NOUN_CHUNK"
+            ],
+            [
+                "guys",
+                30,
+                31,
+                "NOUN_CHUNK"
+            ],
+            [
+                "wonderful sets",
+                35,
+                37,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.6
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Chirag Bhati",
+        "text": "We need a set in the  himalayas.",
+        "likes": "16",
+        "replies": 0,
+        "id": "59cf4cc055444f0a",
+        "topics": [
+            [
+                "",
+                1,
+                1,
+                "NOUN_CHUNK"
+            ],
+            [
+                "set",
+                3,
+                4,
+                "NOUN_CHUNK"
+            ],
+            [
+                "himalayas",
+                7,
+                8,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Raghav Khandelwal",
+        "text": "Anyone from Rajasthan, India and feeling proud ? ",
+        "likes": "92",
+        "replies": 13,
+        "id": "bd9fe85a6e1336e8",
+        "topics": [
+            [
+                "rajasthan",
+                2,
+                3,
+                "GPE"
+            ],
+            [
+                "india",
+                4,
+                5,
+                "GPE"
+            ],
+            [
+                "",
+                1,
+                1,
+                "NOUN_CHUNK"
+            ],
+            [
+                "rajasthan",
+                2,
+                3,
+                "NOUN_CHUNK"
+            ],
+            [
+                "india",
+                4,
+                5,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.8
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Rishabh Kaushal",
+        "text": "Thanks to Cercle for choosing the historic city of Jaisalmer as the venue.",
+        "likes": "155",
+        "replies": 5,
+        "id": "bfd62f0c172360a0",
+        "topics": [
+            [
+                "cercle",
+                2,
+                3,
+                "ORG"
+            ],
+            [
+                "jaisalmer",
+                9,
+                10,
+                "GPE"
+            ],
+            [
+                "thanks",
+                0,
+                1,
+                "NOUN_CHUNK"
+            ],
+            [
+                "cercle",
+                2,
+                3,
+                "NOUN_CHUNK"
+            ],
+            [
+                "historic city",
+                6,
+                8,
+                "NOUN_CHUNK"
+            ],
+            [
+                "jaisalmer",
+                9,
+                10,
+                "NOUN_CHUNK"
+            ],
+            [
+                "venue",
+                12,
+                13,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.1
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Marcos Wellington",
+        "text": "There are no bad sets at Cercle, amazing !!!",
+        "likes": "68",
+        "replies": 1,
+        "id": "ffafac25436d8eeb",
+        "topics": [
+            [
+                "cercle",
+                6,
+                7,
+                "FAC"
+            ],
+            [
+                "bad sets",
+                3,
+                5,
+                "NOUN_CHUNK"
+            ],
+            [
+                "cercle",
+                6,
+                7,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.6749999999999999
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "rubbad",
+        "text": "THIS DRONE FOOTAGE IS SO FUCKING COOL",
+        "likes": "10",
+        "replies": 0,
+        "id": "78683dcfa3bf8d32",
+        "topics": [
+            [
+                "drone footage",
+                1,
+                3,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.35
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Drone Media Jodhpur Ankush Publicity",
+        "text": "Hello Team Cercle, thanks for this amazing opportunity to fly drone with you guys. Alex and Filip has done amazing work flying drone. Hope to do next event soon with you guys. Love from Jodhpur.",
+        "likes": "4",
+        "replies": 0,
+        "id": "263885ddf8c80233",
+        "topics": [
+            [
+                "alex",
+                16,
+                17,
+                "PERSON"
+            ],
+            [
+                "filip",
+                18,
+                19,
+                "PERSON"
+            ],
+            [
+                "jodhpur",
+                38,
+                39,
+                "GPE"
+            ],
+            [
+                "hello team cercle, thanks",
+                0,
+                5,
+                "NOUN_CHUNK"
+            ],
+            [
+                "amazing opportunity",
+                7,
+                9,
+                "NOUN_CHUNK"
+            ],
+            [
+                "drone",
+                11,
+                12,
+                "NOUN_CHUNK"
+            ],
+            [
+                "guys",
+                14,
+                15,
+                "NOUN_CHUNK"
+            ],
+            [
+                "alex",
+                16,
+                17,
+                "NOUN_CHUNK"
+            ],
+            [
+                "filip",
+                18,
+                19,
+                "NOUN_CHUNK"
+            ],
+            [
+                "amazing work",
+                21,
+                23,
+                "NOUN_CHUNK"
+            ],
+            [
+                "drone",
+                24,
+                25,
+                "NOUN_CHUNK"
+            ],
+            [
+                "event",
+                30,
+                31,
+                "NOUN_CHUNK"
+            ],
+            [
+                "guys",
+                34,
+                35,
+                "NOUN_CHUNK"
+            ],
+            [
+                "love",
+                36,
+                37,
+                "NOUN_CHUNK"
+            ],
+            [
+                "jodhpur",
+                38,
+                39,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.45
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Dimitris Ioannidis",
+        "text": "Those Cercle' aesthetics......Fenomenal!!",
+        "likes": "2",
+        "replies": 0,
+        "id": "206daf68071a89b9",
+        "topics": [
+            [
+                "cercle' aesthetics",
+                1,
+                4,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "A lex A",
+        "text": "Drone pilot is also an artist. Crazy production.",
+        "likes": "37",
+        "replies": 0,
+        "id": "14d54e18c498beef",
+        "topics": [
+            [
+                "drone pilot",
+                0,
+                2,
+                "NOUN_CHUNK"
+            ],
+            [
+                "artist",
+                5,
+                6,
+                "NOUN_CHUNK"
+            ],
+            [
+                "crazy production",
+                7,
+                9,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": -0.6
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Andr\u00e9 Pereira",
+        "text": "This is art!! Amazing job as always!! The shots are incredible and Innellea builds an incredible set alongside the course.",
+        "likes": "30",
+        "replies": 0,
+        "id": "19e2274995e6adc7",
+        "topics": [
+            [
+                "innellea",
+                16,
+                17,
+                "PERSON"
+            ],
+            [
+                "art",
+                2,
+                3,
+                "NOUN_CHUNK"
+            ],
+            [
+                "amazing job",
+                5,
+                7,
+                "NOUN_CHUNK"
+            ],
+            [
+                "shots",
+                12,
+                13,
+                "NOUN_CHUNK"
+            ],
+            [
+                "innellea",
+                16,
+                17,
+                "NOUN_CHUNK"
+            ],
+            [
+                "incredible set",
+                19,
+                21,
+                "NOUN_CHUNK"
+            ],
+            [
+                "course",
+                23,
+                24,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.9125000000000001
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Man With No Name",
+        "text": "Jaisalmer Fort is situated in the city of Jaisalmer, in the Indian state of Rajasthan. It is believed to be one of the very few \"living forts\" in the world, as nearly one fourth of the old city's population still resides within the fort. Lovely set Innelea, thank you Cercle for showing a part of my country I have not yet visited.",
+        "likes": "26",
+        "replies": 0,
+        "id": "0f0f8785e41f6305",
+        "topics": [
+            [
+                "jaisalmer fort",
+                0,
+                2,
+                "FAC"
+            ],
+            [
+                "jaisalmer",
+                8,
+                9,
+                "GPE"
+            ],
+            [
+                "indian",
+                12,
+                13,
+                "NORP"
+            ],
+            [
+                "rajasthan",
+                15,
+                16,
+                "GPE"
+            ],
+            [
+                "one",
+                22,
+                23,
+                "CARDINAL"
+            ],
+            [
+                "nearly one fourth",
+                36,
+                39,
+                "CARDINAL"
+            ],
+            [
+                "innelea",
+                53,
+                54,
+                "PERSON"
+            ],
+            [
+                "cercle",
+                57,
+                58,
+                "PERSON"
+            ],
+            [
+                "jaisalmer fort",
+                0,
+                2,
+                "NOUN_CHUNK"
+            ],
+            [
+                "city",
+                6,
+                7,
+                "NOUN_CHUNK"
+            ],
+            [
+                "jaisalmer",
+                8,
+                9,
+                "NOUN_CHUNK"
+            ],
+            [
+                "indian state",
+                12,
+                14,
+                "NOUN_CHUNK"
+            ],
+            [
+                "rajasthan",
+                15,
+                16,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                18,
+                18,
+                "NOUN_CHUNK"
+            ],
+            [
+                "\"living forts",
+                27,
+                30,
+                "NOUN_CHUNK"
+            ],
+            [
+                "world",
+                33,
+                34,
+                "NOUN_CHUNK"
+            ],
+            [
+                "nearly one fourth",
+                36,
+                39,
+                "NOUN_CHUNK"
+            ],
+            [
+                "old city population",
+                41,
+                45,
+                "NOUN_CHUNK"
+            ],
+            [
+                "fort",
+                49,
+                50,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                57,
+                57,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                62,
+                62,
+                "NOUN_CHUNK"
+            ],
+            [
+                "country",
+                64,
+                65,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                66,
+                66,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.088
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Ruf Rugged n raw",
+        "text": "\u0415\u0431\u0430\u0442\u0438 \u0434\u0440\u043c\u0430\u045a\u0435\u0442\u043e . \u0426\u0430\u0440\u0441\u043a\u0438 \u0441\u0435\u0442 ! \u0420\u0435\u0441\u043f\u0435\u043a\u0442 \u043e\u0434 \u041c\u0430\u043a\u0435\u0434\u043e\u043d\u0438\u0458\u0430",
+        "likes": "2",
+        "replies": 0,
+        "id": "7aa9070336bd2ae0",
+        "topics": [],
+        "sentiment": 0.0
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "josue gonzalez",
+        "text": "Magnificent set! honestly I had never heard this boy but he surprised me, he has an impressive talent, his music is fascinating and amazing",
+        "likes": "18",
+        "replies": 0,
+        "id": "a709d85b9e3644d5",
+        "topics": [
+            [
+                "",
+                5,
+                5,
+                "NOUN_CHUNK"
+            ],
+            [
+                "boy",
+                9,
+                10,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                12,
+                12,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                14,
+                14,
+                "NOUN_CHUNK"
+            ],
+            [
+                "",
+                16,
+                16,
+                "NOUN_CHUNK"
+            ],
+            [
+                "impressive talent",
+                18,
+                20,
+                "NOUN_CHUNK"
+            ],
+            [
+                "music",
+                22,
+                23,
+                "NOUN_CHUNK"
+            ]
+        ],
+        "sentiment": 0.6666666666666666
+    },
+    {
+        "videoId": "H318p92hfFI",
+        "author": "Saumil Patel",
+        "text": "49:00",
+        "likes": 0,
+        "replies": 0,
+        "id": "6055e1a92f6fdf34",
+        "topics": [
+            [
+                "49:00",
+                0,
+                1,
+                "TIME"
+            ]
+        ],
+        "sentiment": 0.0
+    }
+]
