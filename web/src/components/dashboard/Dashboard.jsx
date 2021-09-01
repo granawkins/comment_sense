@@ -127,6 +127,7 @@ const Dashboard = ({auth0User, classes}) => {
         }
         try {
             setDashboardLoading(true)
+            console.log(`Getting channel for ${user.channel_id}`)
             const response = await postData('/api/channel', {channelId: user.channel_id})
             /*
             const response = {channel: {

@@ -20,8 +20,13 @@ class Database():
     self.cursor = self.db.cursor(dictionary=True)
 
     # Setup Database
-    self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
-    self.cursor.execute(f"USE {name}")
+    sql = "CREATE DATABASE IF NOT EXISTS %s"
+    if (env == 'desktop'):
+      self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
+      self.cursor.execute(f"USE {name}")
+    else:
+      self.cursor.execute("CREATE DATABASE IF NOT EXISTS comment_sense")
+      self.cursor.execute("USE comment_sense")
 
     self.createUsersTable()
     self.user_fields =   ["id", "email", "email_verified", "nickname", "picture",
@@ -555,7 +560,7 @@ class Database():
         if db_comment['comment']:
           result.append(db_comment['comment'])
     else:
-      sql = "SELECT * FROM COMMENTS"
+      sql = "SELECT * FROM comments"
       args = []
       if parent_id:
         sql += " WHERE parent = %s"

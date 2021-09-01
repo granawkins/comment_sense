@@ -48,13 +48,13 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
             setDBComments(channel.db_comments)
             setDBVideos(channel.total_videos ? channel.total_videos : "?")
             setAllLabels(channel.labels ? channel.labels : null)
-            setLastRefresh(channel.last_refresh ? formatTimestamp(channel.last_refresh) : null)
+            setLastRefresh(channel.last_refresh ? formatTimestamp(channel.last_refresh) : 'never')
         } else if (video && page === 'video') {
             setChannelId(video.channel_id)
             setDBComments(video.db_comments)
             setTotalComments(parseInt(video.total_comments))
             setAllLabels(video.labels ? video.labels : null)
-            setLastRefresh(video.last_refresh ? formatTimestamp(video.last_refresh) : null)
+            setLastRefresh(video.last_refresh ? formatTimestamp(video.last_refresh) : 'never')
         }
     }, [channel, video])
 

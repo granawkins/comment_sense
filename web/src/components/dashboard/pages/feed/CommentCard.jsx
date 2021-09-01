@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Card, withStyles, Typography } from '@material-ui/core'
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
-import ReplyIcon from '@material-ui/icons/Reply';
 import { TopicContext } from '../Topics'
 
 import { thousands_separator, postData } from '../../../utils/helpers'
@@ -81,7 +80,6 @@ const CommentCard = ({comment, showRelatives=true, classes}) => {
                 if (response.error) {
                     console.log(`Error getting comment replies: ${response.error}`)
                 } else if (response.items) {
-                    console.log(`Found ${response.items.length} replies`)
                     setReplies(response.items.map(c => <SubComment comment={c} showRelatives={false} />))
                 }
             }
@@ -101,7 +99,6 @@ const CommentCard = ({comment, showRelatives=true, classes}) => {
                 if (response.error) {
                     console.log(`Error getting comment parent: ${response.error}`)
                 } else if (response.items) {
-                    console.log(`Found ${response.items.length} parent`)
                     setParent(response.items.map(c => <SubComment comment={c} showRelatives={false} />))
                 }
             }

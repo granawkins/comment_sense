@@ -11,14 +11,14 @@ from id_hash import hash
 logger = logging.getLogger('cs_api')
 logger.setLevel(logging.DEBUG)
 # Set custom logger for all comment_sense calls
-cs = logging.FileHandler('api/logs/cs_logs.log')
+cs = logging.FileHandler('logs/cs_logs.log')
 cs.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 cs.setFormatter(formatter)
 logger.addHandler(cs)
 
-env='desktop'
-db_name = 'cs_test_4'
+env='docker'
+db_name = 'comment-sense'
 
 app = Flask(__name__)
 yt = YouTube()

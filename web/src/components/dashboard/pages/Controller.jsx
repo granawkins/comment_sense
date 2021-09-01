@@ -58,11 +58,6 @@ const Controller = ({type, control, setControl, display=null, setDisplay=null, s
                     allLabels=null, actionMessage=null, action=null, actionLabel=null,
                     refresh=null, lastRefresh=null, classes}) => {
 
-    // Create a popup menu with details/options for main action
-    const handleAction = () => {
-
-    }
-
     // Update control (in parent) when sort and local variables are changed
     const [search, setSearch] = useState("")
     const [sort, setSort] = useState(null)
