@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-d
 import { ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
 
-import { useAuth0 } from '@auth0/auth0-react'
+// import { useAuth0 } from '@auth0/auth0-react'
 
 import getTheme from './theme.js'
 import Landing from "./components/landing/Landing.jsx"
@@ -41,7 +41,20 @@ const styles = (theme) => ({
 
 const App = ({classes}) => {
 
-  let { user, isAuthenticated, isLoading } = useAuth0()
+  // let { user, isAuthenticated, isLoading } = useAuth0()
+  // const [dashboard, setDashboard] = useState(null)
+  // useEffect(() => {
+  //     if (isLoading) {
+  //       setDashboard(<LoadingCircle />)
+  //     // } else if (!isAuthenticated) {
+  //     //   console.log(`Unable to authenticate user`)
+  //     //   setDashboard(<Redirect to='/' />)
+  //     } else {
+  //       setDashboard(<Dashboard auth0User={user} />)
+  //     }
+  // }, [isLoading, isAuthenticated])
+
+  // // AUTH0 USER STRUCTURE:
   // const user = {
   //   email: "granthawkins88@gmail.com",
   //   email_verified: true,
@@ -55,25 +68,12 @@ const App = ({classes}) => {
   //   updated_at: "2021-08-24T02:01:47.992",
   // }
 
-  const [dashboard, setDashboard] = useState(null)
-  useEffect(() => {
-      if (isLoading) {
-        setDashboard(<LoadingCircle />)
-      // } else if (!isAuthenticated) {
-      //   console.log(`Unable to authenticate user`)
-      //   setDashboard(<Redirect to='/' />)
-      } else {
-        setDashboard(<Dashboard auth0User={user} />)
-      }
-  }, [isLoading, isAuthenticated])
-
+  const dashboard = <Dashboard auth0User={null} />
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root} style={{backgroundColor: theme.palette.primary.main}}>
         <Router>
           <Switch>
-            {/* Logged in uers are sent to the dashbaord with their auth0User.
-                If not logged in, dashboard reverts to default user (Casey). */}
             <Route path='/dashboard/:tab'>
               {dashboard}
             </Route>
