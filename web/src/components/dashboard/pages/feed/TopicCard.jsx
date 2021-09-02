@@ -67,7 +67,6 @@ const TopicCard = ({videoId=null, topic, max, sentimentOn=false, classes}) => {
                 })
                 setCommentIds(newCommentIds)
             }
-            console.log(topic)
             setToks(topic.toks.map(tok => <Attribute type='tok' value={tok} />))
         }
     }

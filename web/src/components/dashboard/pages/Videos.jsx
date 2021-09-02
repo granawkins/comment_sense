@@ -35,7 +35,7 @@ const styles = (theme) => ({
 })
 
 // Rendered only after dashboard has a valid channel object
-const Videos = ({user, channel, classes}) => {
+const Videos = ({user, setUser, channel, classes}) => {
 
     // const videoId = useParams().videoId
     const [channelId, setChannelId] = useState(null)
@@ -82,7 +82,7 @@ const Videos = ({user, channel, classes}) => {
             */
             setDBVideos(response.db_videos)
             setTotalVideos(response.total_videos)
-            console.log(response.new_quota)
+            setUser({...user, quota: response.new_quota})
             setPageLoading(false)
         }
         catch {
@@ -146,7 +146,7 @@ const Videos = ({user, channel, classes}) => {
                 handleClose={() => setActionOpen(false)}
                 actionTitle="Scan Videos"
                 remaining={totalVideos - dbVideos}
-                quota={user.quota}
+                quota={user ? user.quota : null}
                 verb="Scan"
                 actionLabel="SCAN NOW"
                 action={scanVideos}

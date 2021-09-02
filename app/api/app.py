@@ -71,6 +71,7 @@ def set_user():
 
     return {'user': db_data['user']}
 
+
 def spend_quota(user_id, amount, type):
     # Get the current quota
     db_user = db.get_user(user_id)
@@ -81,9 +82,9 @@ def spend_quota(user_id, amount, type):
     # Calculate new and check not negative
     def price(amount, type):
         if type == 'videos':
-            return 1
+            return amount
         elif type == 'comments':
-            return 0.1 * amount
+            return amount
         else:
             return 0
     cost = price(amount, type)
@@ -99,6 +100,7 @@ def spend_quota(user_id, amount, type):
         return {'status': 'Updated quota successfully'}
     except Exception as e:
         return {'error': f'Error updating user in db: {e}'}
+
 
 def check_channel(channel_id):
     """Check if channel_id is correct. If not, try to get id for username.

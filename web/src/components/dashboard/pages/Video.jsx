@@ -31,7 +31,7 @@ const styles = (theme) => ({
     },
 })
 
-const Video = ({user, channel, classes}) => {
+const Video = ({user, setUser, channel, classes}) => {
 
     const { videoId } = useParams()
     const [channelId, setChannelId] = useState(null)
@@ -100,7 +100,7 @@ const Video = ({user, channel, classes}) => {
                 console.log(`Error analyzing videos: ${data.error}`)
             } else if (data.video) {
                 setVideo({...video, ...data.video})
-                console.log(data.new_quota)
+                setUser({...user, quota: data.new_quota})
                 setIsAnalyzing(false)
             }
         })

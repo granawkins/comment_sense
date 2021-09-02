@@ -15,12 +15,37 @@ import { thousands_separator } from '../../utils/helpers'
 
 const styles = (theme) => ({
     ...theme.typography,
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        margin: '30px',
+    },
     row: {
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'space-between',
         alignItems: 'center',
-        margin: '10px 0',
+        width: '100%',
+        maxWidth: '300px',
+        flexWrap: 'wrap',
+        [theme.breakpoints.up('sm')]: {
+            flexDirection: 'row',
+        }
+    },
+    inputLine: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '5px',
+    },
+    head: {
+        maxWidth: '600px',
+        marginBottom: '30px',
+    },
+    bold: {
+        fontWeight: '600',
     },
     error: {
         color: theme.palette.csRed.main,
@@ -60,56 +85,80 @@ const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb
         handleClose()
     }
 
+    const [cost, setCost] = useState(0) // how much user's quota will be reduced (estimate)
+    const [loadtime, setLoadtime] = useState(0) // how many seconds will it take
+    useEffect(() => {
+        let _maxResults // how many results per youtube api call
+        let _perCall // the api quota for one call
+        if (verb === 'Analyze') {
+            _maxResults = 100
+            _perCall = 1
+        } else if (verb === 'Scan') {
+            _maxResults = 50
+            _perCall = 100
+        }
+        const _nCalls = Math.ceil(max / _maxResults) // est number of calls
+        setCost(_nCalls * _perCall)
+        setLoadtime(Math.round(5 + _nCalls * 0.9))
+    }, [max])
+
     return (
-        <Dialog open={isOpen} onClose={handleActionClose}>
-            <DialogTitle id="form-dialog-title">
-                <Typography className={classes.h5}>{actionTitle}</Typography>
-            </DialogTitle>
-            <DialogContent>
-                <div className={classes.row}>
-                    <Typography className={classes.body1}>Remaining:</Typography>
-                    <Typography className={classes.body1}>
-                        {thousands_separator(remaining)}
+        <Dialog open={isOpen} onClose={handleActionClose} fullWidth={true} maxWidth={'sm'}>
+            <DialogContent className={classes.root}>
+                <div className={`${classes.row} ${classes.head}`}>
+                    <Typography className={classes.h6}>
+                    {actionTitle}
                     </Typography>
-                </div>
-                <div className={classes.row}>
-                    <Typography className={classes.body1}>Quota:</Typography>
-                    <Typography className={classes.body1}>
-                        {thousands_separator(quota)}
-                    </Typography>
-                </div>
-                <div className={classes.row}>
-                    <Typography className={classes.body1}>Number to {verb}:</Typography>
-                    <TextField
-                        autoFocus
-                        margin="none"
-                        id="actionText"
-                        type="tel"
-                        inputProps={{min: 0,style: {width: '100px', textAlign: 'right'}}}
-                        onChange={handleMax}
-                        value={max}
-                    />
+                    <div className={classes.inputLine}>
+                        <TextField
+                            autoFocus
+                            margin="none"
+                            id="actionText"
+                            type="tel"
+                            inputProps={{min: 0,style: {width: '100px', textAlign: 'right'}}}
+                            className={classes.h6}
+                            onChange={handleMax}
+                            value={max}
+                        />
+                        <Typography className={classes.h6}>
+                            / {thousands_separator(remaining)}
+                        </Typography>
+                    </div>
+                    <Button onClick={handleActionConfirm} variant="contained" className={classes.csRed}>
+                        GO
+                    </Button>
                 </div>
                 {maxError
                     ? <Typography className={classes.error}>{maxError}</Typography>
                     : null
                 }
                 <div className={classes.row}>
-                    <Typography className={classes.body1}>Restart from Oldest:</Typography>
+                    <Typography className={classes.body1}>
+                        Est. time:
+                    </Typography>
+                    <Typography className={`${classes.body1} ${classes.bold}`}>
+                        {thousands_separator(loadtime)} seconds
+                    </Typography>
+                </div>
+                <div className={classes.row}>
+                    <Typography className={classes.body1}>
+                        Quota Cost:
+                    </Typography>
+                    <Typography className={`${classes.body1} ${classes.bold}`}>
+                        {thousands_separator(cost)} / {thousands_separator(quota)} Remaining
+                    </Typography>
+                </div>
+                <div className={classes.row}>
+                    <Typography className={classes.body1}>
+                        Restart from {verb === 'Scan' ? 'Newest' : 'Oldest'}:
+                    </Typography>
                     <RedSwitch
+                        size='small'
                         checked={resetToken}
                         onChange={() => setResetToken(!resetToken)}
                     />
                 </div>
             </DialogContent>
-            <DialogActions>
-            <Button onClick={handleActionClose} variant="contained" color="primary">
-                CANCEL
-            </Button>
-            <Button onClick={handleActionConfirm} variant="contained" className={classes.csRed}>
-                {actionLabel}
-            </Button>
-            </DialogActions>
         </Dialog>
     )
 
