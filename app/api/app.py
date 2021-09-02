@@ -513,5 +513,26 @@ def refresh_channel():
     return {'status': result, 'db_comments': new_channel['db_comments'],
             'last_refresh': timestamp}
 
+@app.route('/api/get_waitlist', methods=['POST'])
+def get_waitlist():
+    try:
+        response = db.get_waitlist()
+    except Exception as e:
+        return {'error': f'Error fetching waitlist: {e}'}
+    return {'items': response['waitlist']}
+
+@app.route('/api/add_waitlist', methods=['POST'])
+def add_waitlist():
+    request_data = request.get_json()
+    if 'email' not in request_data.keys():
+        return {'error': 'no email provided'}
+    email = request_data['email']
+
+    try:
+        db.set_waitlist(email)
+    except Exception as e:
+        return {'error': f"Error adding email to database: {e}"}
+    return {'status': f"Successfully added {email} to waitlist."}
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
