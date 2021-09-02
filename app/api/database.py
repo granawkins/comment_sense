@@ -680,12 +680,17 @@ class Database():
 
   def set_waitlist(self, email):
     self.refresh()
+    db_list = self.get_waitlist()
+    waitlist = db_list['waitlist']
+    for item in waitlist:
+      if item['email'] == email:
+        return {'error': f"{email} is already on waitlist"}
     try:
       self.cursor.execute("INSERT INTO waitlist ( email ) VALUES ( %s )", (email, ))
       self.db.commit()
-      return {'status': 'Added new user to database'}
+      return {'status': 'Added new email to waitlist'}
     except Exception as e:
-      raise RuntimeError(f"Error writing new user data to database: {e}")
+      raise RuntimeError(f"Error writing new email to database: {e}")
 
   def get_waitlist(self):
     self.refresh()

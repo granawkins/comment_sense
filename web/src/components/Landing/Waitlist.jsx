@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 
 import Button from '@material-ui/core/Button'
@@ -10,6 +10,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogActions from '@material-ui/core/DialogActions'
 
+import { postData } from '../utils/helpers'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -31,18 +32,24 @@ const validateEmail = (email) => {
 const Waitlist = ({isOpen, setIsOpen, classes}) => {
 
     // What to do with a valid address
-    const submit = () => {
-        console.log(email)
+    const [submtited, setSubmitted] = useState(false)
+    const [successful, setSuccessful] = useState(false)
+    const submit = async () => {
+        const response = await postData('/api/add_waitlist', {email: emailRef.current})
+        if (!response.error) {
+            setIsOpen(false)
+        } else {
+            console.log(response.error)
+        }
     }
 
     // Handle button clicks
     const [invalid, setInvalid] = useState(false)
     const handleActionSubmit = () => {
-        if (!validateEmail(email)) {
+        if (!validateEmail(emailRef.current)) {
             setInvalid(true)
         } else {
             submit()
-            setIsOpen(false)
         }
     }
     const handleActionClose = () => {
@@ -50,9 +57,12 @@ const Waitlist = ({isOpen, setIsOpen, classes}) => {
     }
 
     // Update email variable while you type
+    // useState to manage input field, useRef for listener (https://stackoverflow.com/a/55265764)
     const [email, setEmail] = useState("")
+    const emailRef = useRef(email)
     const handleEmail = (e) => {
         setEmail(e.target.value)
+        emailRef.current = e.target.value
         // Turn off the error message after they've updated it
         if (invalid) {
             setInvalid(false)
