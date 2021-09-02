@@ -30,7 +30,6 @@ an = Analyzer(env, db)
 
 # USER
 
-
 @app.route('/api/user', methods=['POST'])
 def user():
     """Return user data, include channel data if exists
@@ -72,6 +71,34 @@ def set_user():
 
     return {'user': db_data['user']}
 
+def spend_quota(user_id, amount, type):
+    # Get the current quota
+    db_user = db.get_user(user_id)
+    if 'user' not in db_user.keys():
+        return {'error': 'User not found'}
+    old_quota = db_user['user']['quota']
+
+    # Calculate new and check not negative
+    def price(amount, type):
+        if type == 'videos':
+            return 1
+        elif type == 'comments':
+            return 0.1 * amount
+        else:
+            return 0
+    cost = price(amount, type)
+    new_quota = old_quota - cost
+    if new_quota < 0:
+        return {'error': 'Insufficient quota'}
+
+    # Set the new quota
+    try:
+        response = db.set_user(user_id, {'quota': new_quota})
+        if 'error' in response:
+            return {'error': f'Error updating quota: {response["error"]}'}
+        return {'status': 'Updated quota successfully'}
+    except Exception as e:
+        return {'error': f'Error updating user in db: {e}'}
 
 def check_channel(channel_id):
     """Check if channel_id is correct. If not, try to get id for username.
@@ -136,6 +163,8 @@ def scan_videos():
     """
     # Parse the request
     request_data = request.get_json()
+    user = request_data['user']
+    user_id = user['id']
     channel_id = request_data['channelId']
     channel_id = check_channel(channel_id)
 
@@ -172,6 +201,11 @@ def scan_videos():
             args['published_after'] = published_after
         if next_page_token:
             args['next_page_token'] = next_page_token
+
+        spend = spend_quota(user_id, 50, 'videos')
+        if 'error' in spend.keys():
+            error = spend['error']
+            break
         logger.info(f"youtube_videos - {json.dumps(args)}")
 
         try:
@@ -218,8 +252,11 @@ def scan_videos():
     }
     db.set_channel(channel_id, reset_channel)
 
+    refreshed_user = db.get_user(user_id)
+    new_quota = refreshed_user['user']['quota']
+
     return {'db_videos': len(all_ids), 'next_page_token': next_page_token,
-            'total_videos': total_videos, 'end': end, 'error': error}
+            'total_videos': total_videos, 'end': end, 'error': error, 'new_quota': new_quota}
 
 
 @app.route('/api/videos', methods=['POST'])
@@ -301,6 +338,8 @@ def analyze_comments():
     # ---STEP 1: GET COMMENTS FROM YOUTUBE
     # Parse the request
     request_data = request.get_json()
+    user = request_data['user']
+    user_id = user['id']
     channel_id = request_data['channelId']
     channel_id = check_channel(channel_id)
     video_id = request_data['videoId']
@@ -335,6 +374,11 @@ def analyze_comments():
             args['next_page_token'] = next_page_token
         if sort:
             args['sort'] = sort
+
+        spend = spend_quota(user_id, 100, 'comments')
+        if 'error' in spend.keys():
+            error = spend['error']
+            break
         logger.info(f"youtube_comments - {json.dumps(args)}")
 
         try:
@@ -416,7 +460,10 @@ def analyze_comments():
     # by the feed when 'last_refresh' is updated on the front-end.
     refreshed_video = {**video, **reset_video}
     del refreshed_video['topics']
-    return {'video': refreshed_video}
+
+    refreshed_user = db.get_user(user_id)
+    new_quota = refreshed_user['user']['quota']
+    return {'video': refreshed_video, 'new_quota': new_quota}
 
 
 @app.route('/api/topics', methods=['POST'])

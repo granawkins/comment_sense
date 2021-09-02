@@ -56,8 +56,7 @@ class YouTube():
         }
         return {'channel': channel}
 
-    def videos(self, channel_id, published_after=None, next_page_token=None):
-        max_results=50
+    def videos(self, channel_id, max_results=50, published_after=None, next_page_token=None):
         args = {
             'part': ['snippet'],
             'channelId': channel_id,

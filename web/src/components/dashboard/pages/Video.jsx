@@ -87,20 +87,20 @@ const Video = ({user, channel, classes}) => {
     const analyze = async (maxComments=100, resetToken=false) => {
         setIsAnalyzing(true)
         const request_data = {
+            user,
             channelId,
             videoId,
             maxComments,
             resetToken,
         }
-        console.log(request_data)
         postData('/api/analyze_comments', request_data).then(data => {
             if (data.error) {
                 setHasError(true)
                 setIsAnalyzing(false)
                 console.log(`Error analyzing videos: ${data.error}`)
             } else if (data.video) {
-                console.log(`Analyze function updating to ${data.video.total_comments}`)
                 setVideo({...video, ...data.video})
+                console.log(data.new_quota)
                 setIsAnalyzing(false)
             }
         })

@@ -82,6 +82,7 @@ const Videos = ({user, channel, classes}) => {
             */
             setDBVideos(response.db_videos)
             setTotalVideos(response.total_videos)
+            console.log(response.new_quota)
             setPageLoading(false)
         }
         catch {
