@@ -53,6 +53,8 @@ class Database():
         "sentiment", "last_refresh"]
     self.comment_json_fields = ['topics']
 
+    self.createWaitlistTable()
+    self.waitlist_fields = ['email', 'created']
 
   def refresh(self):
     if not self.db.is_connected:
@@ -63,6 +65,30 @@ class Database():
         database=self.name,
       )
       self.cursor = self.db.cursor(dictionary=True)
+
+# WAITLIST
+
+  def createWaitlistTable(self):
+    self.refresh()
+    self.cursor.execute("CREATE TABLE IF NOT EXISTS waitlist ( "
+      "email VARCHAR(255) NOT NULL, "
+      "created TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
+    ")")
+
+  def set_waitlist(self, email):
+    self.refresh()
+    try:
+      self.cursor.execute("INSERT INTO waitlist ( email ) VALUES ( %s )", (email, ))
+      self.db.commit()
+      return {'status': 'Added new user to database'}
+    except Exception as e:
+      raise RuntimeError(f"Error writing new user data to database: {e}")
+
+  def get_waitlist(self):
+    self.refresh()
+    self.cursor.execute("SELECT * FROM waitlist")
+    response = self.cursor.fetchall()
+    return {'waitlist': response}
 
 # USERS
 
