@@ -11,6 +11,7 @@ import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogActions from '@material-ui/core/DialogActions'
 
 import { postData } from '../utils/helpers'
+import LoadingCircle from '../utils/LoadingCircle'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -32,15 +33,20 @@ const validateEmail = (email) => {
 const Waitlist = ({isOpen, setIsOpen, classes}) => {
 
     // What to do with a valid address
-    const [submtited, setSubmitted] = useState(false)
+    const [submitted, setSubmitted] = useState(false)
     const [successful, setSuccessful] = useState(false)
+    const [hasError, setHasError] = useState(false)
     const submit = async () => {
+        setSubmitted(true)
         const response = await postData('/api/add_waitlist', {email: emailRef.current})
         if (!response.error) {
-            setIsOpen(false)
+            setSuccessful(true)
         } else {
-            console.log(response.error)
+            setHasError(true)
         }
+        window.setTimeout(() => {
+            setIsOpen(false)
+        }, 1000)
     }
 
     // Handle button clicks
@@ -83,31 +89,60 @@ const Waitlist = ({isOpen, setIsOpen, classes}) => {
         }
     }, [isOpen])
 
+    const [placeholder, setPlaceholder] = useState(null)
+    useEffect(() => {
+        if (submitted && !successful && !hasError) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (successful) {
+            setPlaceholder(
+                <Typography className={classes.body1}>
+                    Success! We'll be in touch.
+                </Typography>
+            )
+        } else if (hasError) {
+            setPlaceholder(
+                <Typography className={classes.body1}>
+                    Error. Please try again later.
+                </Typography>
+            )
+        } else {
+            setPlaceholder(null)
+        }
+    }, [submitted, successful, hasError])
+
     return (
         <Dialog open={isOpen} onClose={handleActionClose}>
             <DialogTitle id="form-dialog-title">
                 <Typography className={classes.h5}>Join Waitlist</Typography>
             </DialogTitle>
             <DialogContent>
-                <TextField
-                    error={invalid ? true : false}
-                    helperText={invalid ? "Enter a valid email address" : ""}
-                    autoFocus
-                    placeholder="Enter email address"
-                    margin="none"
-                    type="email"
-                    onChange={handleEmail}
-                    value={email}
-                />
+                {placeholder
+                    ? placeholder
+                    : <TextField
+                        error={invalid ? true : false}
+                        helperText={invalid ? "Enter a valid email address" : ""}
+                        autoFocus
+                        placeholder="Enter email address"
+                        margin="none"
+                        type="email"
+                        onChange={handleEmail}
+                        value={email}
+                    />
+                }
             </DialogContent>
             <DialogActions>
-            <Button onClick={handleActionClose} variant="contained" color="primary">
-                CANCEL
-            </Button>
-            <Button type="submit" onClick={handleActionSubmit} variant="contained"
-                    className={classes.csRed}>
-                SUBMIT
-            </Button>
+                {placeholder
+                    ? null
+                    : <>
+                        <Button onClick={handleActionClose} variant="contained" color="primary">
+                            CANCEL
+                        </Button>
+                        <Button type="submit" onClick={handleActionSubmit} variant="contained"
+                                className={classes.csRed}>
+                            SUBMIT
+                        </Button>
+                    </>
+                }
             </DialogActions>
         </Dialog>
     )
