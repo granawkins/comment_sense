@@ -7,6 +7,7 @@ import IconButton from '@material-ui/core/IconButton'
 import MenuIcon from '@material-ui/icons/Menu'
 import { withStyles } from '@material-ui/core/styles'
 
+import UsersAdmin from './pages/UsersAdmin';
 import BlogAdmin from '../blog/BlogAdmin'
 import Feedback from './Feedback'
 import Logs from './Logs'
@@ -124,7 +125,7 @@ const Admin = ({userData, classes}) => {
                         <Typography>Please select a section.</Typography>
                     </Route>
                     <Route exact path={`/admin/users`}>
-                        {/* <UsersAdmin /> */}
+                        <UsersAdmin userData={userData} />
                     </Route>
                     <Route exact path={`/admin/logs`}>
                         <Logs />

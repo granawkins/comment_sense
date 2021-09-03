@@ -76,6 +76,17 @@ def set_user():
 
     return {'user': db_data['user']}
 
+@app.route('/api/get_users', methods=['POST'])
+def get_users():
+    request_data = request.get_json()
+    try:
+        response = db.get_users()
+        users = response['users']
+    except Exception as e:
+        return {'error': f"Error fetching users: {e}"}
+
+    return {'users': users}
+
 def hash_password(pw):
     salt = "808s"
     pw_db = pw + salt

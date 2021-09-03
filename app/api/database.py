@@ -175,6 +175,31 @@ class Database():
       return {'status': 'Fetched user data successfully.', 'user': user}
 
 
+  def get_users(self):
+    self.refresh()
+    try:
+      self.cursor.execute("SELECT * FROM users")
+      response = self.cursor.fetchall()
+    except:
+      raise RuntimeError(f"Error fetching users from database.")
+
+    fields = ['id', 'username', 'email', 'email_verified', 'quota',
+              'sentiment_on', 'channel_id']
+    users = []
+    for item in response:
+      user = item.copy()
+      for field in item:
+        if field not in fields:
+          del user[field]
+        else:
+          if item[field] == 'null':
+            user[field] = None
+          if field in self.user_json_fields and user[field] is not None:
+            user[field] = json.loads(item[field])
+      print(user)
+      users.append(user)
+    return {'users': users}
+
 # CHANNELS
 
   def createChannelsTable(self):
