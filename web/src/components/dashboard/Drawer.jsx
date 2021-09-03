@@ -40,6 +40,22 @@ const styles = (theme) => ({
         borderRadius: '50%',
         width: '100px',
     },
+    initialCircle: {
+        width: '100px',
+        height: '100px',
+        borderRadius: '50%',
+        backgroundColor: 'darkGray',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'canter',
+    },
+    initial: {
+        fontSize: '30pt',
+        width: '100%',
+        textAlign: 'center',
+    },
     csRed: {
         color: theme.palette.csRed.main,
     },
@@ -54,7 +70,32 @@ const styles = (theme) => ({
     }
 })
 
-const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle, channel, classes}) => {
+const ReactiveDrawer = ({section, drawerItems, activePage, mobileOpen,
+                         handleDrawerToggle, channel, classes}) => {
+
+    const [channelCard, setChannelCard] = useState(null)
+    useEffect(() => {
+        if (!channel) {
+            return
+        } else if (channel.thumbnail) {
+            setChannelCard(
+                <CardMedia
+                    className={classes.avatar}
+                    component='img'
+                    src={channel.thumbnail}
+                    title={channel.channel_title + 'Avatar'}
+                />
+            )
+        } else {
+            setChannelCard(
+                <div className={classes.initialCircle}>
+                    <Typography className={classes.initial}>
+                        {channel.channel_title.charAt(0)}
+                    </Typography>
+                </div>
+            )
+        }
+    }, [channel])
 
     useEffect(() => {
         handleDrawerToggle('closed')
@@ -70,21 +111,13 @@ const ReactiveDrawer = ({drawerItems, activePage, mobileOpen, handleDrawerToggle
                     <Typography className={`${classes.logoText} ${classes.csRed}`}>Sense</Typography>
                 </div>
             </Link>
-            {channel
-                ? <div className={classes.channelBox}>
-                        <CardMedia
-                        className={classes.avatar}
-                        component='img'
-                        src={channel.thumbnail}
-                        title={channel.channel_title + 'Avatar'}
-                    />
-                    <Typography classes={{root: classes.h6}}>{channel.channel_title}</Typography>
-                </div>
-                : null
-            }
+            <div className={classes.channelBox}>
+                {channelCard}
+                <Typography classes={{root: classes.h6}}>{channel.channel_title}</Typography>
+            </div>
             <List>
                 {drawerItems.map((text, index) => (
-                    <Link to={`/dashboard/${text}`} className={classes.link} key={text}>
+                    <Link to={`/${section}/${text}`} className={classes.link} key={text}>
                         <ListItem button key={text} selected={text === activePage}>
                             <Typography classes={{root: classes.h6}}>
                                 {capitalize(text)}

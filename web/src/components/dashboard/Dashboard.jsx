@@ -199,8 +199,14 @@ const Dashboard = ({auth0User, classes}) => {
         <div className={classes.root}>
 
             {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
-            <ReactiveDrawer drawerItems={drawerItems} activePage={activePage} channel={channel}
-                            mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
+            <ReactiveDrawer
+                section={'dashboard'}
+                drawerItems={drawerItems}
+                activePage={activePage}
+                channel={channel}
+                mobileOpen={mobileOpen}
+                handleDrawerToggle={handleDrawerToggle}
+            />
 
             {/* Page title */}
             <div className={classes.content}>

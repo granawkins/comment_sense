@@ -10,7 +10,9 @@ import Landing from "./components/landing/Landing.jsx"
 import Dashboard from "./components/dashboard/Dashboard.jsx"
 import Admin from "./components/admin/Admin.jsx"
 import Placeholder from "./components/Placeholder.jsx"
+import Login from './components/Login.jsx';
 import LoadingCircle from './components/utils/LoadingCircle.js';
+import { postData } from './components/utils/helpers.js';
 
 const theme = getTheme()
 
@@ -41,6 +43,11 @@ const styles = (theme) => ({
 
 const App = ({classes}) => {
 
+  const [usernames, setUsernames] = useState([])
+  useEffect(() => {
+
+  }, [])
+
   // GET USER - In future, replace with auth0
   // ref: https://stackoverflow.com/a/61178371
   const history = useHistory
@@ -65,8 +72,15 @@ const App = ({classes}) => {
               <Redirect to='/dashboard/videos' />
             </Route>
 
-            <Route path='/admin'>
+            <Route path='/admin/:tab'>
               <Admin userData={userData} />
+            </Route>
+            <Route path='/admin'>
+              <Redirect to='/admin/users' />
+            </Route>
+
+            <Route path='/u/:username'>
+              <Login />
             </Route>
 
             <Route path='/:page'>

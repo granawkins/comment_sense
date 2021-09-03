@@ -3,102 +3,140 @@ import { useState, useEffect } from 'react';
 import { Link, useRouteMatch, useParams, Switch, Route } from 'react-router-dom';
 
 import Typography from '@material-ui/core/Typography'
-import Drawer from '@material-ui/core/Drawer'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Toolbar from '@material-ui/core/Toolbar'
+import IconButton from '@material-ui/core/IconButton'
+import MenuIcon from '@material-ui/icons/Menu'
 import { withStyles } from '@material-ui/core/styles'
 
 import BlogAdmin from '../blog/BlogAdmin'
 import Feedback from './Feedback'
 import Logs from './Logs'
 import Login from '../Login'
+import ReactiveDrawer from '../dashboard/Drawer'
+import { capitalize } from '../utils/helpers';
 
-const drawerWidth = 240
+const drawerWidth = '240px'
 
 const styles = (theme) => ({
+    ...theme.typography,
     root: {
-        zIndex: 1,
         display: 'flex',
-    },
-    drawer: {
-        zIndex: 1,
-        flexShrink: 0,
-        width: drawerWidth,
-    },
-    drawerPaper: {
-        zIndex: 1,
-        width: drawerWidth,
-    },
-    drawerContainer: {
-        zIndex: 1,
-        overflow: 'auto',
+        flexDirection: 'column',
+        alignItems: 'center',
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        margin: 0,
+        [theme.breakpoints.up('md')]: {
+            alignItems: 'flex-start',
+        },
     },
     content: {
-        flexGrow: 1,
-        margin: '10px',
-    },
-    drawerLink: {
-        color: 'inherit',
-        textDecoration: 'none',
         width: '100%',
+        padding: theme.spacing(2),
+        [theme.breakpoints.up('sm')]: {
+            width: '80%',
+        },
+        [theme.breakpoints.up('md')]: {
+            width: `calc(100% - 240px)`,
+            maxWidth: '800px',
+            marginLeft: drawerWidth,
+        },
+        boxSizing: 'border-box',
     },
-    drawerItem: {
-
-    }
+    titleLine: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: 'inherit',
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+        [theme.breakpoints.up('md')]: {
+            marginRight: 0,
+            display: 'none',
+        },
+    },
 })
+
+const ADMIN_CHANNEL = {
+    thumbnail: null,
+    channel_title: 'Admin',
+}
 
 const Admin = ({userData, classes}) => {
 
-    useEffect(() => {
-        console.log(userData)
-    }, [userData])
-
-    // A drawer with two tabs: quota and blog
-    const { path, url } = useRouteMatch()
     const params = useParams()
-    const activeTab = params.tab
+    const activePage = params.tab
 
+    const drawerItems = ['users', 'logs', 'blog', 'contact', 'waitlist']
+    const [mobileOpen, setMobileOpen] = useState(false)
+    const handleDrawerToggle = (val=null) => {
+        if (val === 'open') {
+            setMobileOpen(true)
+        } else if (val === 'closed') {
+            setMobileOpen(false)
+        } else {
+            setMobileOpen(!mobileOpen)
+        }
+    }
+
+    // Redirect if userData is incorrect
     if (!userData) {
         return <Login page="admin" />
     }
-
+    if (userData.username !== "admin") {
+        return <Login page="admin" />
+    }
 
     return(
         <div className={classes.root}>
-            <Drawer
-                variant="permanent"
-                anchor="left"
-                className={classes.drawer}
-                classes={{paper: classes.drawerPaper}}
-            >
-                <Toolbar />
-                <div className={classes.drawerContainer}>
-                    <List>
-                    {['Blog', 'Logs', 'Feedback'].map((page) => (
-                        <ListItem button key={page} selected={page === activeTab}>
-                            <Link to={`/admin/${page}`} className={classes.drawerLink}>
-                                <ListItemText primary={page} />
-                            </Link>
-                        </ListItem>
-                    ))}
-                    </List>
-                </div>
-            </Drawer>
+
+            {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
+            <ReactiveDrawer
+                section={'admin'}
+                drawerItems={drawerItems}
+                activePage={activePage}
+                channel={ADMIN_CHANNEL}
+                mobileOpen={mobileOpen}
+                handleDrawerToggle={handleDrawerToggle}
+            />
+
+            {/* Page title */}
             <main className={classes.content}>
+                <div className={classes.titleLine}>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        className={classes.menuButton}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography variant="h3" noWrap>
+                        {capitalize(activePage)}
+                    </Typography>
+                </div>
+
                 <Switch>
                     <Route exact path='/admin'>
                         <Typography>Please select a section.</Typography>
                     </Route>
-                    <Route exact path={`/admin/blog`}>
-                        <BlogAdmin />
+                    <Route exact path={`/admin/users`}>
+                        {/* <UsersAdmin /> */}
                     </Route>
                     <Route exact path={`/admin/logs`}>
                         <Logs />
                     </Route>
-                    <Route exact path={`/admin/feedback`}>
+                    <Route exact path={`/admin/blog`}>
+                        <BlogAdmin />
+                    </Route>
+                    <Route exact path={`/admin/contact`}>
                         <Feedback />
+                    </Route>
+                    <Route exact path={`/admin/waitlist`}>
+                        {/* <WaitlistAdmin /> */}
                     </Route>
                 </Switch>
             </main>

@@ -45,16 +45,26 @@ const styles = (theme) => ({
 })
 
 const Login = ({page=null, classes}) => {
-
+    const params = useParams()
     const [username, setUsername] = useState("")
-    useEffect(() => {
-        if (page) {
-            setUsername(page)
-        }
-    }, [])
+    const [inputUsername, setInputUsername] = useState(true)
+    const [title, setTitle] = useState("")
     const handleUsername = (e) => {
         setUsername(e.target.value)
     }
+    useEffect(() => {
+        if (page) {
+            setUsername(page)
+            setInputUsername(false)
+            setTitle("Login to " + page)
+        } else if (params.username) {
+            setUsername(params.username)
+            setInputUsername(false)
+            setTitle("Login to " + params.username)
+        } else {
+            setTitle("Login")
+        }
+    }, [])
 
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -77,21 +87,20 @@ const Login = ({page=null, classes}) => {
             // If incorrect, show rejected
             setRejected(true)
             setIsLoading(false)
-            console.log(response)
         } else {
             // If correct, add userData to localStorage and go to page
             localStorage.setItem('userData', JSON.stringify(response.user))
             if (page) {
-                history.go(0)
+                history.go(0) // /admin just refreshes
             } else {
-                history.push('/dashboard')
+                history.push('../dashboard') // /u pages redirect to dashboard
             }
         }
     }
 
     const loginForm = (
         <>
-            {page ? null :
+            {!inputUsername ? null :
                 <div className={`${classes.row} ${classes.head}`}>
                     <Typography className={classes.body1}>Username:</Typography>
                     <TextField
@@ -130,7 +139,7 @@ const Login = ({page=null, classes}) => {
 
     return (
         <Dialog open>
-            <DialogTitle className={classes.centered}>Admin</DialogTitle>
+            <DialogTitle className={classes.centered}>{title}</DialogTitle>
             <DialogContent>
                 {isLoading
                     ? <LoadingCircle />
