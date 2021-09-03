@@ -13,7 +13,7 @@ import { withStyles } from '@material-ui/core/styles'
 import BlogAdmin from '../blog/BlogAdmin'
 import Feedback from './Feedback'
 import Logs from './Logs'
-import Placeholder from '../Placeholder'
+import Login from '../Login'
 
 const drawerWidth = 240
 
@@ -49,12 +49,21 @@ const styles = (theme) => ({
     }
 })
 
-const Admin = ({classes}) => {
+const Admin = ({userData, classes}) => {
+
+    useEffect(() => {
+        console.log(userData)
+    }, [userData])
 
     // A drawer with two tabs: quota and blog
     const { path, url } = useRouteMatch()
     const params = useParams()
     const activeTab = params.tab
+
+    if (!userData) {
+        return <Login page="admin" />
+    }
+
 
     return(
         <div className={classes.root}>

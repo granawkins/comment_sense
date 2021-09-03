@@ -5,7 +5,7 @@ from youtube import YouTube
 from database import Database
 from analyzer import Analyzer
 from clusterer import Clusterer, cluster, cluster_videos
-from id_hash import hash
+import hashlib
 
 # Initialize Logger
 logger = logging.getLogger('cs_api')
@@ -63,6 +63,11 @@ def set_user():
     user_id = request_data['userId']
     user = request_data['user']
 
+    if 'password' in user.keys():
+        pw_raw = user['password']
+        pw_hash = hash_password(pw_raw)
+        user['password'] = pw_hash
+
     try:
         db.set_user(user_id, user)
         db_data = db.get_user(user_id)
@@ -71,6 +76,35 @@ def set_user():
 
     return {'user': db_data['user']}
 
+def hash_password(pw):
+    salt = "808s"
+    pw_db = pw + salt
+    pw_en = hashlib.md5(pw_db.encode())
+    return pw_en.hexdigest()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    request_data = request.get_json()
+    username = None if 'username' not in request_data else request_data['username']
+    password = None if 'password' not in request_data else request_data['password']
+    if not username or not password:
+        return {'error': f"missing {'username' if not username else 'password'}"}
+    try:
+        response = db.get_user(username, by_username=True)
+        db_user = response['user']
+    except Exception as e:
+        return {'error': f"Error retrieving user from database: {e}"}
+
+    pw_hash = hash_password(password)
+    if pw_hash != db_user['password']:
+        return {'error': 'Incorrect password'}
+
+    user = {
+        'username': None if 'username' not in db_user.keys() else db_user['username'],
+        'picture': None if 'picture' not in db_user.keys() else db_user['picture'],
+        'channel_id': None if 'channel_id' not in db_user.keys() else db_user['channel_id']
+    }
+    return {'user': user}
 
 def spend_quota(user_id, amount, type):
     # Get the current quota
@@ -101,6 +135,7 @@ def spend_quota(user_id, amount, type):
     except Exception as e:
         return {'error': f'Error updating user in db: {e}'}
 
+# CHANNEL
 
 def check_channel(channel_id):
     """Check if channel_id is correct. If not, try to get id for username.
@@ -157,6 +192,7 @@ def channel():
         channel = data['channel']
         return {'channel': channel}
 
+# VIDEOS
 
 @app.route('/api/scan_videos', methods=['POST'])
 def scan_videos():
@@ -295,6 +331,7 @@ def video(video_id):
     del video_data['topics']
     return {'video_data': video_data}
 
+# COMMENTS
 
 @app.route('/api/comments', methods=['POST'])
 def comments():

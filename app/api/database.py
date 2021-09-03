@@ -20,7 +20,6 @@ class Database():
     self.cursor = self.db.cursor(dictionary=True)
 
     # Setup Database
-    sql = "CREATE DATABASE IF NOT EXISTS %s"
     if (env == 'desktop'):
       self.cursor.execute(f"CREATE DATABASE IF NOT EXISTS {name}")
       self.cursor.execute(f"USE {name}")
@@ -29,8 +28,8 @@ class Database():
       self.cursor.execute("USE comment_sense")
 
     self.createUsersTable()
-    self.user_fields =   ["id", "email", "email_verified", "nickname", "picture",
-                          "channel_id", "quota", "sentiment_on", "created"]
+    self.user_fields =   ["id", "email", "email_verified", "nickname", "username", "password",
+                          "picture", "channel_id", "quota", "sentiment_on", "created"]
     self.user_json_fields = []
 
     self.createChannelsTable()
@@ -76,6 +75,8 @@ class Database():
       "email VARCHAR(255) NOT NULL, "
       "email_verified BOOLEAN NOT NULL, "
       "nickname VARCHAR(255), "
+      "username VARCHAR(255), "
+      "password VARCHAR(255), "
       "picture VARCHAR(255), "
       "channel_id VARCHAR(255), "
       "quota BIGINT, "
@@ -147,14 +148,18 @@ class Database():
         raise RuntimeError(f"Error updating user data in database: {e}")
 
 
-  def get_user(self, id):
+  def get_user(self, id, by_username=False):
     """Return all user data from database
 
     """
     self.refresh()
     try:
-      self.cursor.execute("SELECT * FROM users WHERE id = %s", (id, ))
-      response = self.cursor.fetchall()
+      if by_username:
+        self.cursor.execute("SELECT * FROM users WHERE username = %s", (id, ))
+        response = self.cursor.fetchall()
+      else:
+        self.cursor.execute("SELECT * FROM users WHERE id = %s", (id, ))
+        response = self.cursor.fetchall()
     except:
       raise RuntimeError(f"Error fetching user data from database.")
     if len(response) == 0:

@@ -15,34 +15,16 @@ import { thousands_separator } from '../../utils/helpers'
 
 const styles = (theme) => ({
     ...theme.typography,
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        margin: '30px',
-    },
     row: {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-        maxWidth: '300px',
-        flexWrap: 'wrap',
-        [theme.breakpoints.up('sm')]: {
-            flexDirection: 'row',
-        }
-    },
-    inputLine: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '5px',
+        margin: '5px 0',
     },
     head: {
-        maxWidth: '600px',
-        marginBottom: '30px',
+        margin: '0',
     },
     bold: {
         fontWeight: '600',
@@ -53,7 +35,12 @@ const styles = (theme) => ({
     csRed: {
         color: 'white',
         backgroundColor: theme.palette.csRed.main,
-    }
+    },
+    centered: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
 })
 
 const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb,
@@ -103,35 +90,40 @@ const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb
     }, [max])
 
     return (
-        <Dialog open={isOpen} onClose={handleActionClose} fullWidth={true} maxWidth={'sm'}>
-            <DialogContent className={classes.root}>
+        <Dialog open={isOpen} onClose={handleActionClose}>
+            <DialogTitle className={classes.centered}>{actionTitle}</DialogTitle>
+            <DialogContent>
                 <div className={`${classes.row} ${classes.head}`}>
-                    <Typography className={classes.h6}>
-                    {actionTitle}
+                    <Typography className={classes.body1}>{verb}</Typography>
+                    <TextField
+                        error
+                        autoFocus
+                        margin="none"
+                        id="actionText"
+                        type="tel"
+                        inputProps={{min: 0,style: {width: '50px', textAlign: 'right'}}}
+                        className={classes.body1}
+                        onChange={handleMax}
+                        value={max}
+                    />
+                    <Typography className={classes.body1} style={{marginLeft: '5px'}}>
+                        / {thousands_separator(remaining)} remaining
                     </Typography>
-                    <div className={classes.inputLine}>
-                        <TextField
-                            autoFocus
-                            margin="none"
-                            id="actionText"
-                            type="tel"
-                            inputProps={{min: 0,style: {width: '100px', textAlign: 'right'}}}
-                            className={classes.h6}
-                            onChange={handleMax}
-                            value={max}
-                        />
-                        <Typography className={classes.h6}>
-                            / {thousands_separator(remaining)}
-                        </Typography>
-                    </div>
-                    <Button onClick={handleActionConfirm} variant="contained" className={classes.csRed}>
-                        GO
-                    </Button>
                 </div>
                 {maxError
                     ? <Typography className={classes.error}>{maxError}</Typography>
                     : null
                 }
+                <div className={classes.row}>
+                    <Typography className={classes.body1}>
+                        Restart from {verb === 'Scan' ? 'Newest' : 'Oldest'}:
+                    </Typography>
+                    <RedSwitch
+                        size='small'
+                        checked={resetToken}
+                        onChange={() => setResetToken(!resetToken)}
+                    />
+                </div>
                 <div className={classes.row}>
                     <Typography className={classes.body1}>
                         Est. time:
@@ -145,20 +137,18 @@ const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb
                         Quota Cost:
                     </Typography>
                     <Typography className={`${classes.body1} ${classes.bold}`}>
-                        {thousands_separator(cost)} / {thousands_separator(quota)} Remaining
+                        {thousands_separator(cost)} / {thousands_separator(quota)}
                     </Typography>
-                </div>
-                <div className={classes.row}>
-                    <Typography className={classes.body1}>
-                        Restart from {verb === 'Scan' ? 'Newest' : 'Oldest'}:
-                    </Typography>
-                    <RedSwitch
-                        size='small'
-                        checked={resetToken}
-                        onChange={() => setResetToken(!resetToken)}
-                    />
                 </div>
             </DialogContent>
+            <DialogActions className={classes.centered}>
+                <Button onClick={handleActionClose} variant="contained" color="secondary">
+                    Cancel
+                </Button>
+                <Button onClick={handleActionConfirm} variant="contained" className={classes.csRed}>
+                    GO
+                </Button>
+            </DialogActions>
         </Dialog>
     )
 
