@@ -11,7 +11,6 @@ import Dashboard from "./components/dashboard/Dashboard.jsx"
 import Admin from "./components/admin/Admin.jsx"
 import Placeholder from "./components/Placeholder.jsx"
 import Login from './components/Login.jsx';
-import LoadingCircle from './components/utils/LoadingCircle.js';
 import { postData } from './components/utils/helpers.js';
 
 const theme = getTheme()
@@ -59,14 +58,13 @@ const App = ({classes}) => {
     }
   }, [history])
 
-  const dashboard = <Dashboard auth0User={null} />
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root} style={{backgroundColor: theme.palette.primary.main}}>
         <Router>
           <Switch>
             <Route path='/dashboard/:tab'>
-              {dashboard}
+              {userData && <Dashboard auth0User={null} />}
             </Route>
             <Route path='/dashboard'>
               <Redirect to='/dashboard/videos' />

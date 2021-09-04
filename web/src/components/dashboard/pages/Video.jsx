@@ -2,18 +2,9 @@ import { useState, useEffect, createContext } from 'react'
 import { useParams } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles'
 
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
-import TextField from '@material-ui/core/TextField'
-import Dialog from '@material-ui/core/Dialog'
-import DialogTitle from '@material-ui/core/DialogTitle'
-import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import DialogActions from '@material-ui/core/DialogActions'
-
 import { postData, thousands_separator } from '../../utils/helpers'
-import VideoPlayer from "./VideoPlayer.jsx"
-import Topics from "./Topics.jsx"
+import VideoPlayer from "./VideoPlayer"
+import Topics from "./Topics"
 import LoadingCircle from '../../utils/LoadingCircle'
 import ErrorPage from '../../utils/ErrorPage'
 import ActionControl from './ActionControl'
@@ -69,7 +60,6 @@ const Video = ({user, setUser, channel, classes}) => {
                     if (!data.video_data) {
                         console.log("No video data.")
                     } else {
-                        console.log(`Video page initializing to ${data.video_data.total_comments}`)
                         setVideo(data.video_data)
                     }
                     setIsLoading(false)
@@ -84,8 +74,8 @@ const Video = ({user, setUser, channel, classes}) => {
 
     // Get new comments from youtube, analyze all, then re-cluster
     const [isAnalyzing, setIsAnalyzing] = useState(false)
-    const analyze = async (maxComments=100, resetToken=false) => {
-        setIsAnalyzing(true)
+    const analyze = async (maxComments=100, resetToken=false, loadtime=5) => {
+        setIsAnalyzing(loadtime)
         const request_data = {
             user,
             channelId,

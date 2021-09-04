@@ -101,7 +101,9 @@ const ReactiveDrawer = ({section, drawerItems, activePage, mobileOpen,
         handleDrawerToggle('closed')
     }, [activePage])
 
-    // const { logout } = useAuth0()
+    if (!channel) {
+        return null
+    }
 
     const drawer = (
         <div className={classes.drawer}>

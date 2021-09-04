@@ -2,10 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
 
-import LoadingCircle from '../../../utils/LoadingCircle.js'
-import ErrorPage from '../../../utils/ErrorPage.js'
-import EndPage from '../../../utils/EndPage.js'
-import { postData } from '../../../utils/helpers.js'
+import LoadingCircle from '../../../utils/LoadingCircle'
+import ErrorPage from '../../../utils/ErrorPage'
+import EndPage from '../../../utils/EndPage'
+import { postData } from '../../../utils/helpers'
 
 const styles = (theme) => ({
     root: {

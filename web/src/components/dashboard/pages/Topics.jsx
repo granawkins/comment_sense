@@ -8,6 +8,7 @@ import TopicCard from './feed/TopicCard'
 
 import { postData, thousands_separator, formatTimestamp } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle'
+import LoadingBar from '../../utils/LoadingBar'
 import ErrorPage from '../../utils/ErrorPage'
 
 const styles = (theme) => ({
@@ -170,7 +171,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
                 </TopicContext.Provider>
                 }
             {grayout
-                ? <div className={classes.grayout} />
+                ? <LoadingBar loadTime={grayout} />
                 : null
             }
         </div>

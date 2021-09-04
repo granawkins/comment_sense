@@ -18,6 +18,7 @@ import LoadingCircle from '../utils/LoadingCircle'
 
 const styles = (theme) => ({
     root: {
+        position: 'relative',
         height: '100%',
         width: '100%',
         margin: 0,

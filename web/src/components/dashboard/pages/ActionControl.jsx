@@ -63,15 +63,6 @@ const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb
         setMax(target)
     }
 
-    // Create a popup menu with details/options for analyze
-    const handleActionConfirm = () => {
-        action(max, resetToken)
-        handleClose()
-    }
-    const handleActionClose = () => {
-        handleClose()
-    }
-
     const [cost, setCost] = useState(0) // how much user's quota will be reduced (estimate)
     const [loadtime, setLoadtime] = useState(0) // how many seconds will it take
     useEffect(() => {
@@ -88,6 +79,15 @@ const ActionControl = ({isOpen, handleClose, actionTitle, remaining, quota, verb
         setCost(_nCalls * _perCall)
         setLoadtime(Math.round(5 + _nCalls * 0.9))
     }, [max])
+
+    // Create a popup menu with details/options for analyze
+    const handleActionConfirm = () => {
+        action(max, resetToken, loadtime)
+        handleClose()
+    }
+    const handleActionClose = () => {
+        handleClose()
+    }
 
     return (
         <Dialog open={isOpen} onClose={handleActionClose}>
