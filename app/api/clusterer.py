@@ -237,7 +237,6 @@ def cluster_videos(videos):
             all_topics[token] = new_topic
 
     for video in videos:
-        print(video.keys())
         if 'topics' in video:
             db_comments += video['db_comments']
             if video['topics']:

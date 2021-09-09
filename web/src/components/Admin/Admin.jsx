@@ -11,9 +11,10 @@ import UsersAdmin from './pages/UsersAdmin';
 import BlogAdmin from '../blog/BlogAdmin'
 import Feedback from './Feedback'
 import Logs from './Logs'
-import Login from '../Login'
 import ReactiveDrawer from '../dashboard/Drawer'
-import { capitalize } from '../utils/helpers';
+import LoadingCircle from '../utils/LoadingCircle';
+import ErrorPage from '../utils/ErrorPage';
+import { postData, capitalize } from '../utils/helpers';
 
 const drawerWidth = '240px'
 
@@ -65,7 +66,7 @@ const ADMIN_CHANNEL = {
     channel_title: 'Admin',
 }
 
-const Admin = ({userData, classes}) => {
+const Admin = ({auth0User, classes}) => {
 
     const params = useParams()
     const activePage = params.tab
@@ -82,13 +83,75 @@ const Admin = ({userData, classes}) => {
         }
     }
 
-    // Redirect if userData is incorrect
-    if (!userData) {
-        return <Login page="admin" />
+    const [isLoading, setIsLoading] = useState(true)
+    const [hasError, setHasError] = useState(false)
+    const [invalid, setInvalid] = useState(false)
+    const [userData, setUserData] = useState(null)
+    const getUser = async () => {
+        try {
+            const response = await postData('/api/user', {auth0User})
+            if (!response.user) {
+                setIsLoading(false)
+                setHasError(true)
+                if (response.error) {
+                    console.log(`Error loading user from database: ${response.error}`)
+                }
+            } else {
+                setUserData(response.user)
+                validateUser(response.user)
+            }
+        }
+        catch(e) {
+            setIsLoading(false)
+            setHasError(true)
+            console.log(`Error loading dashboard: ${e}`)
+        }
     }
-    if (userData.username !== "admin") {
-        return <Login page="admin" />
+    const validateUser = (user) => {
+        const ADMIN_USERS = ['google-oauth2|102946505160688760338']
+        if (ADMIN_USERS.includes(user.id)) {
+            setInvalid(true)
+            setIsLoading(false)
+        } else {
+            // TODO: Redirect
+            setIsLoading(false)
+            setInvalid(true)
+        }
     }
+
+    const routes = (
+        <Switch>
+            <Route exact path='/admin'>
+                <Typography>Please select a section.</Typography>
+            </Route>
+            <Route exact path={`/admin/users`}>
+                <UsersAdmin userData={userData} />
+            </Route>
+            <Route exact path={`/admin/logs`}>
+                <Logs />
+            </Route>
+            <Route exact path={`/admin/blog`}>
+                <BlogAdmin />
+            </Route>
+            <Route exact path={`/admin/contact`}>
+                <Feedback />
+            </Route>
+            <Route exact path={`/admin/waitlist`}>
+                {/* <WaitlistAdmin /> */}
+            </Route>
+        </Switch>
+    )
+
+    const [placeholder, setPlaceholder] = useState([])
+    useEffect(() => {
+        if (isLoading) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (hasError) {
+            setPlaceholder(<ErrorPage />)
+        } else if (invalid) {
+            setPlaceholder(<Typography>Active user is not Admin</Typography>)
+        }
+    }, [isLoading, hasError, invalid])
 
     return(
         <div className={classes.root}>
@@ -120,27 +183,12 @@ const Admin = ({userData, classes}) => {
                     </Typography>
                 </div>
 
-                <Switch>
-                    <Route exact path='/admin'>
-                        <Typography>Please select a section.</Typography>
-                    </Route>
-                    <Route exact path={`/admin/users`}>
-                        <UsersAdmin userData={userData} />
-                    </Route>
-                    <Route exact path={`/admin/logs`}>
-                        <Logs />
-                    </Route>
-                    <Route exact path={`/admin/blog`}>
-                        <BlogAdmin />
-                    </Route>
-                    <Route exact path={`/admin/contact`}>
-                        <Feedback />
-                    </Route>
-                    <Route exact path={`/admin/waitlist`}>
-                        {/* <WaitlistAdmin /> */}
-                    </Route>
-                </Switch>
             </main>
+
+            {isLoading || hasError || invalid
+                ? {placeholder}
+                : {routes}
+            }
         </div>
     )
 }

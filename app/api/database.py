@@ -28,8 +28,8 @@ class Database():
       self.cursor.execute("USE comment_sense")
 
     self.createUsersTable()
-    self.user_fields =   ["id", "email", "email_verified", "nickname", "username", "password",
-                          "picture", "channel_id", "quota", "sentiment_on", "created"]
+    self.user_fields =   ["id", "email", "email_verified", "nickname", "picture", "channel_id",
+                          "quota", "sentiment_on", "created"]
     self.user_json_fields = []
 
     self.createChannelsTable()
@@ -72,11 +72,9 @@ class Database():
     self.refresh()
     self.cursor.execute("CREATE TABLE IF NOT EXISTS users ( "
       "id VARCHAR(255) NOT NULL, "
-      "email VARCHAR(255) NOT NULL, "
-      "email_verified BOOLEAN NOT NULL, "
+      "email VARCHAR(255), "
+      "email_verified BOOLEAN, "
       "nickname VARCHAR(255), "
-      "username VARCHAR(255), "
-      "password VARCHAR(255), "
       "picture VARCHAR(255), "
       "channel_id VARCHAR(255), "
       "quota BIGINT, "
@@ -196,7 +194,6 @@ class Database():
             user[field] = None
           if field in self.user_json_fields and user[field] is not None:
             user[field] = json.loads(item[field])
-      print(user)
       users.append(user)
     return {'users': users}
 

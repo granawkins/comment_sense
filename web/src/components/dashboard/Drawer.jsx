@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, Switch, Route } from 'react-router-dom';
-// import { useAuth0 } from '@auth0/auth0-react';
+import { Link, useParams, Switch, Route } from 'react-router-dom'
+import { useAuth0 } from '@auth0/auth0-react'
 
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -73,6 +73,13 @@ const styles = (theme) => ({
 const ReactiveDrawer = ({section, drawerItems, activePage, mobileOpen,
                          handleDrawerToggle, channel, classes}) => {
 
+    const { logout } = useAuth0()
+    const logoutWithRedirect = () => {
+        logout({
+            returnTo: window.location.origin
+        })
+    }
+
     const [channelCard, setChannelCard] = useState(null)
     useEffect(() => {
         if (!channel) {
@@ -127,7 +134,7 @@ const ReactiveDrawer = ({section, drawerItems, activePage, mobileOpen,
                         </ListItem>
                     </Link>
                 ))}
-                <Link to={'/'} className={classes.link} key={'logout'}>
+                <Link onClick={logoutWithRedirect} className={classes.link} key={'logout'}>
                     <ListItem button key={'logout'}>
                         <Typography classes={{root: classes.h6}}>
                             Logout
