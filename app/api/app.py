@@ -37,22 +37,26 @@ def user():
     request_data = request.get_json()
     user_data = request_data['user']
     user_id = user_data['id']
+    cnx, cursor = db.get_cnx()
 
     try:
-        db_data = db.get_user(user_id)
+        db_data = db.get_user(cnx, cursor, user_id)
     except Exception as e:
+        db.close(cnx, cursor)
         return {'error': f'Error loading user from Database: {e}'}
 
     if 'user' not in db_data.keys():
         try:
-            db.set_user(user_id, user_data)
+            db.set_user(cnx, cursor, user_id, user_data)
         except Exception as e:
+            db.close(cnx, cursor)
             return {'error': f"Error adding user to Database: {e}"}
 
-        db_user = db.get_user(user_id)
+        db_user = db.get_user(cnx, cursor, user_id)
     else:
         db_user = db_data['user']
 
+    db.close(cnx, cursor)
     return {'user': db_user}
 
 
@@ -63,16 +67,14 @@ def set_user():
     user_id = request_data['userId']
     user = request_data['user']
 
-    if 'password' in user.keys():
-        pw_raw = user['password']
-        pw_hash = hash_password(pw_raw)
-        user['password'] = pw_hash
-
     try:
-        db.set_user(user_id, user)
-        db_data = db.get_user(user_id)
+        cnx, cursor = db.get_cnx()
+        db.set_user(cnx, cursor, user_id, user)
+        db_data = db.get_user(cnx, cursor, user_id)
     except Exception as e:
         return {'error': f"Error updating user in Database: {e}"}
+    finally:
+        db.close(cnx, cursor)
 
     return {'user': db_data['user']}
 
@@ -80,46 +82,19 @@ def set_user():
 def get_users():
     request_data = request.get_json()
     try:
-        response = db.get_users()
+        cnx, cursor = db.get_cnx()
+        response = db.get_users(cnx, cursor)
         users = response['users']
     except Exception as e:
         return {'error': f"Error fetching users: {e}"}
+    finally:
+        db.close(cnx, cursor)
 
     return {'users': users}
 
-def hash_password(pw):
-    salt = "808s"
-    pw_db = pw + salt
-    pw_en = hashlib.md5(pw_db.encode())
-    return pw_en.hexdigest()
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    request_data = request.get_json()
-    username = None if 'username' not in request_data else request_data['username']
-    password = None if 'password' not in request_data else request_data['password']
-    if not username or not password:
-        return {'error': f"missing {'username' if not username else 'password'}"}
-    try:
-        response = db.get_user(username, by_username=True)
-        db_user = response['user']
-    except Exception as e:
-        return {'error': f"Error retrieving user from database: {e}"}
-
-    pw_hash = hash_password(password)
-    if pw_hash != db_user['password']:
-        return {'error': 'Incorrect password'}
-
-    user = {
-        'username': None if 'username' not in db_user.keys() else db_user['username'],
-        'picture': None if 'picture' not in db_user.keys() else db_user['picture'],
-        'channel_id': None if 'channel_id' not in db_user.keys() else db_user['channel_id']
-    }
-    return {'user': user}
-
-def spend_quota(user_id, amount, type):
+def spend_quota(cnx, cursor, user_id, amount, type):
     # Get the current quota
-    db_user = db.get_user(user_id)
+    db_user = db.get_user(cnx, cursor, user_id)
     if 'user' not in db_user.keys():
         return {'error': 'User not found'}
     old_quota = db_user['user']['quota']
@@ -139,7 +114,7 @@ def spend_quota(user_id, amount, type):
 
     # Set the new quota
     try:
-        response = db.set_user(user_id, {'quota': new_quota})
+        response = db.set_user(cnx, cursor, user_id, {'quota': new_quota})
         if 'error' in response:
             return {'error': f'Error updating quota: {response["error"]}'}
         return {'status': 'Updated quota successfully'}
@@ -173,14 +148,17 @@ def channel():
         return {'error': 'No channel specified'}
     channel_id = request_data['channelId']
     channel_id = check_channel(channel_id)
+    cnx, cursor = db.get_cnx()
+
     # Try to get it from database.
     try:
-        data = db.get_channel(channel_id)
+        data = db.get_channel(cnx, cursor, channel_id)
     except Exception as e:
         return {'error': f'Error loading channel from Database: {e}'}
 
     if 'channel' in data.keys():
         channel = data['channel']
+        db.close(cnx, cursor)
         return {'channel': channel}
     else:
         # If not in database, get from YouTube
@@ -189,17 +167,22 @@ def channel():
         try:
             response = yt.channel(channel_id)
         except Exception as e:
+            db.close(cnx, cursor)
             return {'error': f'Error loading channel from YouTube: {e}'}
         if 'error' in response.keys():
+            db.close(cnx, cursor)
             return {'error': response['error']}
         channel = response['channel']
 
         # Add it to the database, then return the NEW (db) item
         try:
-            db.set_channel(channel_id, channel)
-            data = db.get_channel(channel_id)
+            db.set_channel(cnx, cursor, channel_id, channel)
+            data = db.get_channel(cnx, cursor, channel_id)
         except Exception as e:
             return {'error': f'Error adding YouTube video to database: {e}'}
+        finally:
+            db.close(cnx, cursor)
+
         channel = data['channel']
         return {'channel': channel}
 
@@ -229,8 +212,10 @@ def scan_videos():
     max_videos = None if not 'maxVideos' in request_data.keys() else int(request_data['maxVideos'])
 
     # Get existing channel data
-    db_channel = db.get_channel(channel_id)
+    cnx, cursor = db.get_cnx()
+    db_channel = db.get_channel(cnx, cursor, channel_id)
     if 'channel' not in db_channel:
+        db.close(cnx, cursor)
         return {'error': 'Channel not in database'}
     channel = db_channel['channel']
     next_page_token = None if ((reset_token) or ('next_page_token' not in channel.keys())) \
@@ -238,7 +223,7 @@ def scan_videos():
     total_videos = None if 'total_videos' not in channel else channel['total_videos']
 
     # Working variables
-    db_videos = db.get_videos(channel_id, all=True)
+    db_videos = db.get_videos(cnx, cursor, channel_id, all=True)
     all_ids = [video['id'] for video in db_videos['videos']]
     new_ids = []
     end = False
@@ -251,7 +236,7 @@ def scan_videos():
         if next_page_token:
             args['next_page_token'] = next_page_token
 
-        spend = spend_quota(user_id, 50, 'videos')
+        spend = spend_quota(cnx, cursor, user_id, 50, 'videos')
         if 'error' in spend.keys():
             error = spend['error']
             break
@@ -281,7 +266,7 @@ def scan_videos():
                 new_ids.extend(loop_ids)
                 for video in new_videos:
                     video['channel_id'] = channel_id
-                    db.set_video(video['id'], video)
+                    db.set_video(cnx, cursor, video['id'], video)
                 if (len(new_ids) >= max_videos) | (len(all_ids) == total_videos):
                     end = "Reached target number of videos"
 
@@ -299,10 +284,11 @@ def scan_videos():
         'next_page_token': next_page_token,
         'db_videos': len(all_ids)
     }
-    db.set_channel(channel_id, reset_channel)
+    db.set_channel(cnx, cursor, channel_id, reset_channel)
 
-    refreshed_user = db.get_user(user_id)
+    refreshed_user = db.get_user(cnx, cursor, user_id)
     new_quota = refreshed_user['user']['quota']
+    db.close(cnx, cursor)
 
     return {'db_videos': len(all_ids), 'next_page_token': next_page_token,
             'total_videos': total_videos, 'end': end, 'error': error, 'new_quota': new_quota}
@@ -323,7 +309,14 @@ def videos():
     if 'all' in request_data:
         args['all'] = request_data['all']
     logger.info(f"videos - {json.dumps(args)}")
-    db_data = db.get_videos(**args)
+    try:
+        cnx, cursor = db.get_cnx()
+        db_data = db.get_videos(cnx, cursor, **args)
+    except Exception as e:
+        return {'error': f"Error fetching videos from database: {e}"}
+    finally:
+        db.close(cnx, cursor)
+
     videos = db_data['videos']
     return {'items': videos}
 
@@ -331,14 +324,23 @@ def videos():
 @app.route('/api/video/<video_id>', methods=['GET'])
 def video(video_id):
     logger.info(f"video - {video_id}")
-    db_data = db.get_video(video_id)
-    db_video = db_data['video']
+    cnx, cursor = db.get_cnx()
+
+    try:
+        db_data = db.get_video(cnx, cursor, video_id)
+        db_video = db_data['video']
+    except Exception as e:
+        db.close(cnx, cursor)
+        return {'error': f"Error fetching video from db: {e}"}
+
     yt_video = yt.video(video_id)
     del yt_video['published'] # Prefer the format from the 'videos' function
 
     # This function will update the db fields which are timely and come from youtube
     video_data = {**db_video, **yt_video}
-    db.set_video(video_id, video_data)
+    db.set_video(cnx, cursor, video_id, video_data)
+    db.close(cnx, cursor)
+
     del video_data['topics']
     return {'video_data': video_data}
 
@@ -373,9 +375,13 @@ def comments():
         args['page'] = request_data['pageNumber']
 
     try:
-        db_comments = db.get_comments(**args)
+        cnx, cursor = db.get_cnx()
+        db_comments = db.get_comments(cnx, cursor, **args)
     except Exception as e:
         return {'error': f"Error getting comments from database: {e}"}
+    finally:
+        db.close(cnx, cursor)
+
     if 'error' in db_comments:
         return {'error': db_comments['error']}
     return {'items': db_comments['comments']}
@@ -405,15 +411,17 @@ def analyze_comments():
     sort = None if not 'sort' in request_data else request_data['sort']
 
     # Get existing video data
-    db_video = db.get_video(video_id)
+    cnx, cursor = db.get_cnx()
+    db_video = db.get_video(cnx, cursor, video_id)
     if 'video' not in db_video:
+        db.close(cnx, cursor)
         return {'error': 'Video not in database'}
     video = db_video['video']
     next_page_token = None if ((reset_token) or ('next_page_token' not in video.keys())) \
                       else video['next_page_token']
     total_comments = None if 'total_comments' not in video else video['total_comments']
 
-    db_comments = db.get_comments(video_id=video_id, all=True)
+    db_comments = db.get_comments(cnx, cursor, video_id=video_id, all=True)
     all_ids = [comment['id'] for comment in db_comments['comments']]
     new_comments = []
     end = False
@@ -425,7 +433,7 @@ def analyze_comments():
         if sort:
             args['sort'] = sort
 
-        spend = spend_quota(user_id, 100, 'comments')
+        spend = spend_quota(cnx, cursor, user_id, 100, 'comments')
         if 'error' in spend.keys():
             error = spend['error']
             break
@@ -462,7 +470,7 @@ def analyze_comments():
     logger.info(f"analyze - {video_id}, {len(new_comments)}")
     new_analyzed = an.analyze(new_comments)
     for c in new_analyzed:
-        db.set_comment(c['id'], c)
+        db.set_comment(cnx, cursor, c['id'], c)
 
     # --STEP 3: REFRESH VIDEO
     all_comments = new_comments + db_comments['comments']
@@ -472,8 +480,9 @@ def analyze_comments():
         'comment_topics': all_comments,
         'n_topics': n_topics,
     }
-    db_channel = db.get_channel(channel_id)
+    db_channel = db.get_channel(cnx, cursor, channel_id)
     if 'error' in db_channel:
+        db.close(cnx, cursor)
         return {'error': 'Error getting channel data for cluster.'}
     c = db_channel['channel']
     for field in ['subs_list', 'labels_list', 'ignore_list']:
@@ -503,7 +512,7 @@ def analyze_comments():
         'labels': labels,
         'last_refresh': timestamp,
     }
-    db.set_video(video_id, reset_video)
+    db.set_video(cnx, cursor, video_id, reset_video)
 
     # --STEP 5: RETURN
     # Return all fields except topics, which will be retrieved page-by-page
@@ -511,10 +520,14 @@ def analyze_comments():
     refreshed_video = {**video, **reset_video}
     del refreshed_video['topics']
 
-    refreshed_user = db.get_user(user_id)
+    refreshed_user = db.get_user(cnx, cursor, user_id)
     new_quota = refreshed_user['user']['quota']
+
+    db.close(cnx, cursor)
+
     return {'video': refreshed_video, 'new_quota': new_quota}
 
+# TOPICS
 
 @app.route('/api/topics', methods=['POST'])
 def topics():
@@ -536,9 +549,13 @@ def topics():
 
     try:
         logger.info(f"topics - {json.dumps(args)}")
-        db_topics = db.get_topics(**args)
+        cnx, cursor = db.get_cnx()
+        db_topics = db.get_topics(cnx, cursor, **args)
     except Exception as e:
         return {'error': f"Error getting topics from database: {e}"}
+    finally:
+        db.close(cnx, cursor)
+
     if 'error' in db_topics:
         return {'error': db_topics['error']}
     return {'items': db_topics['topics']}
@@ -549,15 +566,18 @@ def refresh_video():
     request_data = request.get_json()
     channel_id = request_data['channelId']
     video_id = request_data['videoId']
-    db_comments = db.get_comments(channel_id, video_id, all=True)
+    cnx, cursor = db.get_cnx()
+
+    db_comments = db.get_comments(cnx, cursor, channel_id, video_id, all=True)
     all_comments = db_comments['comments']
     n_topics = 200
     args = {
         'comment_topics': all_comments,
         'n_topics': n_topics,
     }
-    db_channel = db.get_channel(channel_id)
+    db_channel = db.get_channel(cnx, cursor, channel_id)
     if 'error' in db_channel:
+        db.close(cnx, cursor)
         return {'error': 'Error getting channel data for cluster.'}
     c = db_channel['channel']
     for field in ['subs_list', 'labels_list', 'ignore_list']:
@@ -585,7 +605,9 @@ def refresh_video():
         'labels': labels,
         'last_refresh': timestamp,
     }
-    result = db.set_video(video_id, reset_video)
+    result = db.set_video(cnx, cursor, video_id, reset_video)
+    db.close(cnx, cursor)
+
     return {"status": result, 'db_comments': len(all_comments),
             'last_refresh': timestamp}
 
@@ -594,8 +616,11 @@ def refresh_channel():
     # Get all comments, cluster topics, reset db
     request_data = request.get_json()
     channel_id = request_data['channelId']
-    db_videos = db.get_videos(channel_id, all=True, all_data=True)
+    cnx, cursor = db.get_cnx()
+
+    db_videos = db.get_videos(cnx, cursor, channel_id, all=True, all_data=True)
     if len(db_videos['videos']) == 0:
+        db.close(cnx, cursor)
         return {'error': 'No videos for this channel'}
     new_channel = cluster_videos(db_videos['videos'])
 
@@ -606,16 +631,24 @@ def refresh_channel():
         'labels': new_channel['labels'],
         'last_refresh': timestamp,
     }
-    result = db.set_channel(channel_id, reset_channel)
+    result = db.set_channel(cnx, cursor, channel_id, reset_channel)
+    db.close(cnx, cursor)
     return {'status': result, 'db_comments': new_channel['db_comments'],
             'last_refresh': timestamp}
+
+
+# OTHER
 
 @app.route('/api/get_waitlist', methods=['POST'])
 def get_waitlist():
     try:
-        response = db.get_waitlist()
+        cnx, cursor = db.get_cnx()
+        response = db.get_waitlist(cnx, cursor)
     except Exception as e:
         return {'error': f'Error fetching waitlist: {e}'}
+    finally:
+        db.close(cnx, cursor)
+
     return {'items': response['waitlist']}
 
 @app.route('/api/add_waitlist', methods=['POST'])
@@ -626,9 +659,13 @@ def add_waitlist():
     email = request_data['email']
 
     try:
-        db.set_waitlist(email)
+        cnx, cursor = db.get_cnx()
+        db.set_waitlist(cnx, cursor, email)
     except Exception as e:
         return {'error': f"Error adding email to database: {e}"}
+    finally:
+        db.close(cnx, cursor)
+
     return {'status': f"Successfully added {email} to waitlist."}
 
 if __name__ == "__main__":
