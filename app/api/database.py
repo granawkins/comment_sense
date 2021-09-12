@@ -20,12 +20,8 @@ class Database():
       password='CaseyNeistat' if self.env == 'desktop' else self.pw,
     )
     cursor = cnx.cursor(dictionary=True)
-    if (self.env == 'desktop'):
-      cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.name}")
-      cursor.execute(f"USE {self.name}")
-    else:
-      cursor.execute("CREATE DATABASE IF NOT EXISTS comment_sense")
-      cursor.execute("USE comment_sense")
+    cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.name}")
+    cursor.execute(f"USE {self.name}")
     cursor.close()
     cnx.close()
 
@@ -35,7 +31,7 @@ class Database():
       pool_name="cs_pool",
       pool_size=8,
       pool_reset_session=True,
-      host='localhost',
+      host="localhost" if self.env == 'desktop' else 'db',
       database=name,
       user="root",
       password='CaseyNeistat' if self.env == 'desktop' else self.pw)
