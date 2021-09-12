@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Redirect, Switch, useHistory } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
-import { useAuth0 } from '@auth0/auth0-react'
+// import { useAuth0 } from '@auth0/auth0-react'
 
 import getTheme from './theme.js'
 import Landing from "./components/landing/Landing.jsx"
@@ -55,13 +55,14 @@ const styles = (theme) => ({
 
 const App = ({classes}) => {
 
-  let { user } = useAuth0()
-  const [auth0User, setAuth0User] = useState(null)
-  useEffect(() => {
-      if (user) {
-        setAuth0User(user)
-      }
-  }, [user])
+  const auth0User = null
+  // let { user } = useAuth0()
+  // const [auth0User, setAuth0User] = useState(null)
+  // useEffect(() => {
+  //     if (user) {
+  //       setAuth0User(user)
+  //     }
+  // }, [user])
 
   return (
     <ThemeProvider theme={theme}>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core/styles'
 import * as Router from 'react-router-dom'
-import { useAuth0 } from '@auth0/auth0-react'
+import { useHistory } from 'react-router';
+// import { useAuth0 } from '@auth0/auth0-react'
 
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
@@ -41,7 +42,11 @@ const styles = (theme) => ({
 
 const Navbar = ({classes}) => {
 
-  const { loginWithRedirect } = useAuth0()
+  // const { loginWithRedirect } = useAuth0()
+  const history = useHistory()
+  const loginWithRedirect = () => {
+    history.push('/')
+  }
 
   const [showSignIn, setShowSignIn] = useState(false)
   useEffect(() => {

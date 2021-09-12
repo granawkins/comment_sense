@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, Switch, Route } from 'react-router-dom'
-import { useAuth0 } from '@auth0/auth0-react'
+import { Link, useHistory } from 'react-router-dom'
+// import { useAuth0 } from '@auth0/auth0-react'
 
 import { withStyles } from '@material-ui/core/styles'
 import Typography from '@material-ui/core/Typography'
@@ -73,11 +73,15 @@ const styles = (theme) => ({
 const ReactiveDrawer = ({section, drawerItems, activePage, mobileOpen,
                          handleDrawerToggle, channel, classes}) => {
 
-    const { logout } = useAuth0()
+    // const { logout } = useAuth0()
+    // const logoutWithRedirect = () => {
+    //     logout({
+    //         returnTo: window.location.origin
+    //     })
+    // }
+    const history = useHistory()
     const logoutWithRedirect = () => {
-        logout({
-            returnTo: window.location.origin
-        })
+        history.push("/")
     }
 
     const [channelCard, setChannelCard] = useState(null)
