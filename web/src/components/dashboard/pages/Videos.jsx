@@ -4,11 +4,10 @@ import { withStyles } from '@material-ui/core/styles'
 import Controller from './Controller'
 import Feed from './feed/Feed'
 import VideoCard from './feed/VideoCard'
-import { postData, thousands_separator } from '../../utils/helpers'
-import LoadingCircle from '../../utils/LoadingCircle'
+import { postData, thousands_separator, formatTimestamp } from '../../utils/helpers'
 import LoadingBar from '../../utils/LoadingBar'
 import ErrorPage from '../../utils/ErrorPage'
-import ActionControl from './ActionControl'
+import ScanVideos from '../welcome/ScanVideos'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -36,36 +35,40 @@ const styles = (theme) => ({
 })
 
 // Rendered only after dashboard has a valid channel object
-const Videos = ({user, setUser, channel, classes}) => {
+const Videos = ({user, setUser, channel, setChannel, classes}) => {
 
-    // const videoId = useParams().videoId
     const [channelId, setChannelId] = useState(null)
     const [dbVideos, setDBVideos] = useState(null)
     const [totalVideos, setTotalVideos] = useState(null)
+    const [lastScan, setLastScan] = useState(null)
+    const [scanOpen, setScanOpen] = useState(false)
     useEffect(() => {
         if (channel) {
             setChannelId(channel.id)
+            setTotalVideos(channel.total_videos)
             setDBVideos(channel.db_videos)
-            setTotalVideos(channel.total_videos ? channel.total_videos : "?")
+            setLastScan(channel.last_scan ? formatTimestamp(channel.last_scan) : 'never')
+            if (channel.db_videos === 0) {
+                setScanOpen(true)
+            }
         }
     }, [channel])
 
     // Action Messaage is displayed on top of the controller, next to action button
+    const [loadtime, setLoadtime] = useState(null)
     const [actionMessage, setActionMessage] = useState("")
     useEffect(() => {
-        setActionMessage(`
-            ${thousands_separator(dbVideos)} scanned /
-            ${thousands_separator(totalVideos)} videos`
-        )
+        setLoadtime(5 + Math.ceil((totalVideos - dbVideos) / 50))
+        setActionMessage(`${thousands_separator(dbVideos)} scanned / ${thousands_separator(totalVideos)} videos`)
     }, [dbVideos, totalVideos])
 
     // ScanVideos is the primary action for the videos page.
     const [grayout, setGrayout] = useState(null)
     const [hasError, setHasError] = useState(false)
-    const scanVideos = async (maxVideos=100, resetToken=false, loadtime=5) => {
+    const refresh = async () => {
         setGrayout(loadtime)
         try {
-            const response = await postData('/api/scan_videos', {
+            const response = await postData('/api/refresh_videos', {
                 user,
                 channelId,
                 uploads_playlist: channel.uploads_playlist,
@@ -73,15 +76,23 @@ const Videos = ({user, setUser, channel, classes}) => {
             /*
             const response = {
                 db_videos: Integer,
-                next_page_token: String,
                 total_videos: Integer,
                 end: String,
                 error: String,
+                new_quota: Integer,
+                last_scan: timestamp
             }
             */
-            setDBVideos(response.db_videos)
             setTotalVideos(response.total_videos)
+            setDBVideos(response.db_videos)
+            setLastScan(formatTimestamp(response.last_scan))
             setUser({...user, quota: response.new_quota})
+            setChannel({
+                ...channel,
+                db_videos: dbVideos,
+                total_videos: totalVideos,
+            })
+            setControl({...control, dbVideos})
             setGrayout(false)
         }
         catch {
@@ -90,13 +101,10 @@ const Videos = ({user, setUser, channel, classes}) => {
         }
     }
 
-    // Handle ActionControl popup menu
-    const [actionOpen, setActionOpen] = useState(false)
-
     // Contains controller settings. Controller updates, Feed adds to api call.
     const [control, setControl] = useState(null)
     useEffect(() => {
-        setControl({search: "", sort: "recent"})
+        setControl({search: "", sort: "recent", dbVideos})
     }, [])
 
     // Tells the Feed where to get items, and how to render them.
@@ -110,17 +118,15 @@ const Videos = ({user, setUser, channel, classes}) => {
 
     return(
         <div className={classes.root}>
-            {!control
-                ? null
-                : <Controller
-                    type='videos'
-                    control={control}
-                    setControl={setControl}
-                    actionMessage={actionMessage}
-                    action={() => setActionOpen(true)}
-                    actionLabel="SCAN NOW"
-                    sortOptions={['recent', 'oldest', 'top']}
-                />}
+            {control && <Controller
+                type='videos'
+                control={control}
+                setControl={setControl}
+                actionMessage={actionMessage}
+                refresh={refresh}
+                lastRefresh={lastScan}
+                sortOptions={['recent', 'oldest', 'top']}
+            />}
             {hasError
                 ? <ErrorPage />
                 : <Feed
@@ -128,18 +134,12 @@ const Videos = ({user, setUser, channel, classes}) => {
                     control={control}
                     render={render}
                 />}
-            <ActionControl
-                // isOpen, handleClose, actionTitle, remaining, quota, verb, actionLabel, action
-                isOpen={actionOpen}
-                handleClose={() => setActionOpen(false)}
-                actionTitle="Scan Videos"
-                remaining={totalVideos - dbVideos}
-                quota={user ? user.quota : null}
-                verb="Scan"
-                actionLabel="SCAN NOW"
-                action={scanVideos}
-            />
             {grayout && <LoadingBar loadTime={grayout} />}
+            {scanOpen && <ScanVideos
+                close={() => setScanOpen(false)}
+                refresh={refresh}
+                loadtime={loadtime}
+            />}
         </div>
     )
 }

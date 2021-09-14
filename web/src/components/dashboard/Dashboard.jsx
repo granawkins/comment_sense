@@ -10,7 +10,7 @@ import ReactiveDrawer from './Drawer'
 import Videos from './pages/Videos'
 import Video from './pages/Video'
 import Topics from './pages/Topics'
-import ConnectChannel from './pages/ConnectChannel'
+import ConnectChannel from './welcome/ConnectChannel'
 import { postData, capitalize } from '../utils/helpers'
 import LoadingCircle from '../utils/LoadingCircle';
 import ErrorPage from '../utils/ErrorPage';
@@ -231,7 +231,8 @@ const Dashboard = ({auth0User, classes}) => {
                     ? placeholder
                     : <Switch>
                         <Route exact path={`/dashboard/videos`}>
-                            <Videos user={user} setUser={setUser} channel={channel} key='videos'/>
+                            <Videos user={user} setUser={setUser} channel={channel}
+                                    setChannel={setChannel} key='videos'/>
                         </Route>
                         <Route exact path={`/dashboard/topics`}>
                             <Topics user={user} channel={channel} page='channel' key='topics' />

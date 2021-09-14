@@ -59,7 +59,6 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
         }
     }, [channel, video])
 
-
     // Contains controller settings. Controller updates, Feed adds to api call.
     const [control, setControl] = useState(null)
     const [display, setDisplay] = useState(null)
@@ -145,21 +144,19 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
 
     return(
         <div className={classes.root}>
-            {!control || !display
-                ? null
-                : <Controller
-                    type='topics'
-                    control={control}
-                    setControl={setControl}
-                    display={display}
-                    setDisplay={setDisplay}
-                    actionMessage={actionMessage}
-                    action={analyze}
-                    actionLabel={'ANALYZE'}
-                    allLabels={allLabels}
-                    refresh={refresh}
-                    lastRefresh={lastRefresh}
-                />}
+            {control && display && <Controller
+                type='topics'
+                control={control}
+                setControl={setControl}
+                display={display}
+                setDisplay={setDisplay}
+                actionMessage={actionMessage}
+                action={analyze}
+                actionLabel={'ANALYZE'}
+                allLabels={allLabels}
+                refresh={refresh}
+                lastRefresh={lastRefresh}
+            />}
             {pageLoading || hasError
                 ? placeholder
                 : <TopicContext.Provider value={{display}}>
@@ -170,10 +167,7 @@ const Topics = ({user, page, channel=null, video=null, analyze=null,
                     />
                 </TopicContext.Provider>
                 }
-            {grayout
-                ? <LoadingBar loadTime={grayout} />
-                : null
-            }
+            {grayout && <LoadingBar loadTime={grayout} />}
         </div>
     )
 }

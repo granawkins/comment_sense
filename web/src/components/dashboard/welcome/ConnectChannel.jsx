@@ -60,7 +60,6 @@ const ConnectChannel = ({user, setUser, classes}) => {
             }
             else {
                 setChannels(response.channels)
-                console.log(response.channels)
                 setIsLoading(false)
             }
         }
@@ -76,7 +75,6 @@ const ConnectChannel = ({user, setUser, classes}) => {
         setIsLoading(true)
         try {
             const response = await postData('/api/set_channel', {user, channel})
-            console.log(response)
             setUser({...user, channelId: channel.id})
             history.go(0)
         }

@@ -121,7 +121,10 @@ const Controller = ({type, control, setControl, display=null, setDisplay=null, s
     return(
         <Container className={classes.root}>
             <div className={classes.row}>
+                {/* Counter */}
                 <Typography className={classes.body1}>{actionMessage}</Typography>
+
+                {/* Main button (e.g. ANALYZE) */}
                 {actionLabel && action
                     ? <Button
                         onClick={action}
@@ -130,64 +133,64 @@ const Controller = ({type, control, setControl, display=null, setDisplay=null, s
                     >{actionLabel}</Button>
                     : null
                 }
-                {lastRefresh && refresh
-                ? <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                    <Typography className={classes.body1}>Last updated {lastRefresh}</Typography>
-                    <IconButton onClick={refresh}>
-                        <RefreshIcon className={classes.sortIcon} />
-                    </IconButton>
-                </div>
-                : null
-                }
-            </div>
-            <div className={classes.row}>
-                <TextField
-                  placeholder="Search"
-                  classes={{
-                      root: `${classes.h6} ${classes.search}`,
-                  }}
-                  inputProps={{ 'aria-label': 'search' }}
-                  onChange={handleSearch}
-                />
-                {sortOptions
-                    ? <>
-                        <IconButton onClick={handleSortClick}>
-                            <SortIcon className={classes.sortIcon} />
+
+                {/* Refresh */}
+                {lastRefresh && refresh &&
+                    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                        <Typography className={classes.body1}>Last updated {lastRefresh}</Typography>
+                        <IconButton onClick={refresh}>
+                            <RefreshIcon className={classes.sortIcon} />
                         </IconButton>
-                        <Menu keepMounted anchorEl={anchorEl} open={sortOpen} onClose={handleSortClose}>
-                            {sortOptions.map(option => (
-                                <MenuItem
-                                    key={option}
-                                    data-value={option}
-                                    onClick={handleSort}
-                                    selected={option === sort}
-                                >{capitalize(option)}</MenuItem>
-                            ))}
-                        </Menu>
-                    </>
-                    : null
+                    </div>
                 }
             </div>
             <div className={classes.row}>
-                {control.labels
-                    ? <>
-                        {Object.entries(control.labels).map(([key, value]) => (
-                            <Attribute type='label' value={key} active={value}
-                                    onClick={() => handleLabel(key, !value)} />
+                {/* Search bar */}
+                <TextField
+                    placeholder="Search"
+                    classes={{
+                        root: `${classes.h6} ${classes.search}`,
+                    }}
+                    inputProps={{ 'aria-label': 'search' }}
+                    onChange={handleSearch}
+                />
+
+                {/* Sort button */}
+                {sortOptions && <>
+                    <IconButton onClick={handleSortClick}>
+                        <SortIcon className={classes.sortIcon} />
+                    </IconButton>
+                    <Menu keepMounted anchorEl={anchorEl} open={sortOpen} onClose={handleSortClose}>
+                        {sortOptions.map(option => (
+                            <MenuItem
+                                key={option}
+                                data-value={option}
+                                onClick={handleSort}
+                                selected={option === sort}
+                            >{capitalize(option)}</MenuItem>
                         ))}
-                    </>
-                    : null
-                }
+                    </Menu>
+                </>}
+            </div>
+            <div className={classes.row}>
+                {/* Attribute selector (e.g. LABEL) */}
+                {control.labels && <>
+                    {Object.entries(control.labels).map(([key, value]) => (
+                        <Attribute type='label' value={key} active={value}
+                                onClick={() => handleLabel(key, !value)} />
+                    ))}
+                </>}
+
+                {/* Sentiment switch */}
                 <div style={{flexGrow: 1}} />
-                {display && display.sentimentEnabled
-                    ? <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                {display && display.sentimentEnabled &&
+                    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                         <RedSwitch
                             checked={display.sentimentOn}
                             onChange={toggleSentiment}
                         />
                         <Typography className={classes.body1}>Sentiment</Typography>
                     </div>
-                    : null
                 }
             </div>
         </Container>

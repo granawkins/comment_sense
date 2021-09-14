@@ -1,4 +1,4 @@
-import json, re, sys, os, datetime
+import json, math, datetime
 import logging
 from flask import Flask, render_template, request, redirect, url_for
 from youtube import YouTube
@@ -21,7 +21,7 @@ logger.addHandler(cs)
 # db_name = 'comment_sense'
 
 env="desktop"
-db_name = 'cs_test_8'
+db_name = 'cs_test_10'
 
 app = Flask(__name__)
 yt = YouTube()
@@ -201,8 +201,8 @@ def channel():
 
 # VIDEOS
 
-@app.route('/api/scan_videos', methods=['POST'])
-def scan_videos():
+@app.route('/api/refresh_videos', methods=['POST'])
+def refresh_videos():
     """Return all videos from from a YouTube playlist.
 
     """
@@ -220,6 +220,7 @@ def scan_videos():
     db_videos = db.get_videos(cnx, cursor, channel_id, all=True)
     all_ids = [video['id'] for video in db_videos['videos']]
     total_videos = len(db_videos)
+    total_scanned = 0
     new_ids = []
     end = False
     error = False
@@ -252,6 +253,7 @@ def scan_videos():
         if len(resp_videos) == 0:
             end = "No videos returned"
         else:
+            total_scanned += len(resp_videos)
             # Don't consider videos that are already in database
             new_videos = [v for v in resp_videos if v['id'] not in all_ids]
             if len(new_videos) == 0:
@@ -262,13 +264,15 @@ def scan_videos():
                 for video in new_videos:
                     video['channel_id'] = channel_id
                     db.set_video(cnx, cursor, video['id'], video)
-                if len(all_ids) >= total_videos:
-                    end = "Reached target number of videos"
+
+            if len(all_ids) >= total_videos:
+                end = "Reached target number of videos"
 
     # Update database entry
+    timestamp = datetime.datetime.now()
     reset_channel = {
         'total_videos': total_videos,
-        'last_scan': datetime.datetime.now(),
+        'last_scan': timestamp,
         'db_videos': len(all_ids)
     }
     db.set_channel(cnx, cursor, channel_id, reset_channel)
@@ -278,7 +282,7 @@ def scan_videos():
     db.close(cnx, cursor)
 
     return {'db_videos': len(all_ids), 'total_videos': total_videos,
-            'end': end, 'error': error, 'new_quota': new_quota}
+            'end': end, 'error': error, 'new_quota': new_quota, 'last_scan': timestamp}
 
 
 @app.route('/api/videos', methods=['POST'])
