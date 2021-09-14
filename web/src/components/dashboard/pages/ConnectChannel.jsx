@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react'
 // import { useAuth0 } from '@auth0/auth0-react'
 import { withStyles } from '@material-ui/core/styles'
+import { useHistory } from 'react-router'
 
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import Dialog from '@material-ui/core/Dialog'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import DialogContent from '@material-ui/core/DialogContent'
-import DialogContentText from '@material-ui/core/DialogContentText'
-import DialogActions from '@material-ui/core/DialogActions'
+import TextField from '@material-ui/core/TextField'
+
+import ChannelCard from './ChannelCard'
+import ErrorPage from '../../utils/ErrorPage'
+import LoadingCircle from '../../utils/LoadingCircle'
+import { postData } from '../../utils/helpers'
 
 // import { gapi, loadAuth2 } from 'gapi-script'
 
@@ -30,14 +35,98 @@ const styles = (theme) => ({
     }
 })
 
-const ConnectChannel = ({classes}) => {
+const ConnectChannel = ({user, setUser, classes}) => {
+    const history = useHistory()
 
-    // const { logout } = useAuth0()
-    const logout = () => {
-        console.log("logout")
+    // 1. Get a list of channels
+    //    a) text-input username, get by username
+    //    b) OAuth 2 token, get mine=true
+    const [username, setUsername] = useState(null)
+    const handleUsername = e => {
+        setUsername(e.target.value)
     }
 
-    const CLIENT_ID = '116695775417-h8su8m4k9u9vvkfrssor92st63q0ui3k.apps.googleusercontent.com'
+    const [channels, setChannels] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [hasError, setHasError] = useState(false)
+    const getChannels = async () => {
+        setIsLoading(true)
+        try {
+            const response = await postData('/api/get_channels', {username})
+            if (response.error || !response.channels) {
+                setHasError(true)
+                console.log(response.error)
+                setIsLoading(false)
+            }
+            else {
+                setChannels(response.channels)
+                console.log(response.channels)
+                setIsLoading(false)
+            }
+        }
+        catch {
+            console.log('error loading channels')
+            setIsLoading(false)
+        }
+    }
+
+    // 2. Select channel
+    // 3. Update user, redirect back to dashboard
+    const connectChannel = async (channel) => {
+        setIsLoading(true)
+        try {
+            const response = await postData('/api/set_channel', {user, channel})
+            console.log(response)
+            setUser({...user, channelId: channel.id})
+            history.go(0)
+        }
+        catch {
+            console.log("Error connecting channel")
+            setIsLoading(false)
+        }
+    }
+
+    return (
+        <Dialog open={true}>
+            <DialogTitle id="form-dialog-title">
+                <Typography className={classes.h5}>Connect your YouTube Channel</Typography>
+            </DialogTitle>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="none"
+                    type="text"
+                    id="username"
+                    placeholder="Enter YouTube username"
+                    // inputProps={{min: 0,style: {width: '50px', textAlign: 'right'}}}
+                    className={classes.body1}
+                    onChange={handleUsername}
+                    value={username}
+                />
+                <Button onClick={getChannels}>GET CHANNELS</Button>
+                {isLoading && <LoadingCircle />}
+                {hasError && <ErrorPage />}
+                {channels && channels.map(channel => {
+                    return <ChannelCard channel={channel} connectChannel={connectChannel} />
+                })}
+            </DialogContent>
+            {/* <DialogActions>
+                <Button onClick={() => {}}>Sign In with Google</Button>
+                <Button onClick={logout}>Logout</Button>
+            </DialogActions> */}
+        </Dialog>
+    )
+
+}
+
+export default withStyles(styles)(ConnectChannel)
+
+
+
+
+
+
+    // const CLIENT_ID = '116695775417-h8su8m4k9u9vvkfrssor92st63q0ui3k.apps.googleusercontent.com'
 
     // const signIn = async() => {
     //     await window.gapi.auth2.getAuthInstance()
@@ -100,21 +189,3 @@ const ConnectChannel = ({classes}) => {
     //     clientId: CLIENT_ID,
     //     isSignedIn: true,
     // })
-
-    return (
-        <Dialog open={true}>
-            <DialogTitle id="form-dialog-title">
-                <Typography className={classes.h5}>Connect your YouTube Channel</Typography>
-            </DialogTitle>
-            <DialogContent>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={() => {}}>Sign In with Google</Button>
-                <Button onClick={logout}>Logout</Button>
-            </DialogActions>
-        </Dialog>
-    )
-
-}
-
-export default withStyles(styles)(ConnectChannel)

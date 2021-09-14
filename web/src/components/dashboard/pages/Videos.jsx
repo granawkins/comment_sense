@@ -68,9 +68,7 @@ const Videos = ({user, setUser, channel, classes}) => {
             const response = await postData('/api/scan_videos', {
                 user,
                 channelId,
-                maxVideos: maxVideos, // target number of videos to add
-                resetToken: resetToken, // start the next scan over from the beginning
-                publishedAfter: null,
+                uploads_playlist: channel.uploads_playlist,
             })
             /*
             const response = {

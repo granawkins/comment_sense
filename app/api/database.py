@@ -37,6 +37,7 @@ class Database():
       password='CaseyNeistat' if self.env == 'desktop' else self.pw)
 
     self.build_database()
+    self.set_demo_user()
 
   # Get a new pooled connection to the database. This primarily used by Flask
   # in app.py to execute a single API call.
@@ -60,7 +61,7 @@ class Database():
     self.createChannelsTable(cnx, cursor)
     self.channel_fields = [
       "id", "title", "thumbnail", "created", "total_videos", "db_videos",
-      "last_scan", "next_page_token", "db_comments", "topics", "labels", "last_refresh",
+      "last_scan", "uploads_playlist", "db_comments", "topics", "labels", "last_refresh",
       "subs_list", "labels_list", "ignore_list"]
     self.channel_json_fields = ['topics', 'labels', 'subs_list', 'labels_list', 'ignore_list']
 
@@ -81,6 +82,17 @@ class Database():
     self.waitlist_fields = ['email', 'created']
     self.close(cnx, cursor)
 
+  def set_demo_user(self):
+    demo_user = {
+      'id': 'DEMO',
+      'nickname': 'CaseyNeistat',
+      'picture': 'https://yt3.ggpht.com/ytc/AKedOLSlIk2U5RbHKVYAcjXjRHGI2vQGLH2g_ZzLxMDyvA=s240-c-k-c0x00ffffff-no-rj',
+      'quota': 10000,
+      'sentiment_on': True,
+    }
+    cnx, cursor = self.get_cnx()
+    self.set_user(cnx, cursor, 'DEMO', demo_user)
+    self.close(cnx, cursor)
 
 # USERS
 
@@ -124,11 +136,6 @@ class Database():
 
     # Add new record
     if len(current) == 0:
-      required_fields = ['id', 'email', 'email_verified']
-      for field in required_fields:
-        if field not in data.keys():
-          raise RuntimeError(f"User is missing a required field")
-
       placeholders = ", ".join(['%s'] * len(data))
       columns = ", ".join(data.keys())
       sql = "INSERT INTO users ( %s ) VALUES ( %s )" % (columns, placeholders)
@@ -223,7 +230,7 @@ class Database():
       "total_videos INT, "
       "db_videos INT, "
       "last_scan VARCHAR(32), "
-      "next_page_token VARCHAR(32), "
+      "uploads_playlist VARCHAR(32), "
 
       # Updated with app/refresh_channel()
       "db_comments INT, "

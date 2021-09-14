@@ -62,13 +62,6 @@ const styles = (theme) => ({
 
 const DEFAULT_USER = {
     id: 'DEMO',
-    email: 'DEMO',
-    email_verified: true,
-    nickname: 'CaseyNeistat',
-    picture: 'https://yt3.ggpht.com/ytc/AKedOLSlIk2U5RbHKVYAcjXjRHGI2vQGLH2g_ZzLxMDyvA=s240-c-k-c0x00ffffff-no-rj',
-    channel_id: 'UCtinbF-Q-fVthA0qrFQTgXQ',
-    quota: 10000,
-    sentiment_on: true,
 }
 
 const Dashboard = ({auth0User, classes}) => {
@@ -91,7 +84,6 @@ const Dashboard = ({auth0User, classes}) => {
                 }
             } else {
                 setUser(response.user)
-                getChannel(response.user)
             }
         }
         catch(e) {
@@ -101,20 +93,27 @@ const Dashboard = ({auth0User, classes}) => {
         }
     }
 
-    const [unlinked, setUnlinked] = useState(false)
+    useEffect(() => {
+        if (auth0User) {
+            getUser({
+                id: auth0User.sub,
+                email: auth0User.email,
+                email_verified: auth0User.email_verified,
+                nickname: auth0User.nickname,
+                picture: auth0User.picture,
+            })
+        } else {
+            getUser(DEFAULT_USER)
+        }
+    }, [auth0User])
+
     const [channel, setChannel] = useState(null)
     const getChannel = async (user) => {
-        if (!user || hasError) {
-            return null
-        }
-        if (auth0User && !user.channel_id) {
-            setDashboardLoading(false)
-            setUnlinked(true)
-            return null
-        }
         try {
             setDashboardLoading(true)
-            const response = await postData('/api/channel', {channelId: user.channel_id})
+            const payload = {channelId: user.channel_id}
+            console.log(payload)
+            const response = await postData('/api/channel', payload)
             /*
             const response = {channel: {
                 created: "Fri, 06 Aug 2021 18:52:49 GMT"
@@ -152,20 +151,22 @@ const Dashboard = ({auth0User, classes}) => {
         }
     }
 
-
+    const [unlinked, setUnlinked] = useState(false)
     useEffect(() => {
-        if (auth0User) {
-            getUser({
-                id: auth0User.sub,
-                email: auth0User.email,
-                email_verified: auth0User.email_verified,
-                nickname: auth0User.nickname,
-                picture: auth0User.picture,
-            })
-        } else {
-            getUser(DEFAULT_USER)
+        if (!user || hasError) {
+            // If user comes back null, show error
+            setDashboardLoading(false)
+            return
+        } else if (!user.channel_id) {
+            // If user is not linked to channel, show ConnectChannel component
+            setDashboardLoading(false)
+            setUnlinked(true)
+        } else if (!channel) {
+            // If channel isn't connected yet, getChannel.
+            // **User is updated by other compoents, namely quota & total_videos, which shouldn't reload page
+            getChannel(user)
         }
-    }, [auth0User])
+    }, [user])
 
     const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
@@ -174,7 +175,7 @@ const Dashboard = ({auth0User, classes}) => {
         } else if (hasError) {
             setPlaceholder(<ErrorPage />)
         } else if (unlinked) {
-            setPlaceholder(<ConnectChannel />)
+            setPlaceholder(<ConnectChannel user={user} setUser={setUser} />)
         } else {
             setPlaceholder("")
         }

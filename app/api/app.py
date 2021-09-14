@@ -17,11 +17,11 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 cs.setFormatter(formatter)
 logger.addHandler(cs)
 
-env='docker'
-db_name = 'comment_sense'
+# env='docker'
+# db_name = 'comment_sense'
 
-# env="desktop"
-# db_name = 'cs_test_5'
+env="desktop"
+db_name = 'cs_test_8'
 
 app = Flask(__name__)
 yt = YouTube()
@@ -123,74 +123,87 @@ def spend_quota(cnx, cursor, user_id, amount, type):
 
 # CHANNEL
 
-def check_channel(channel_id):
-    """Check if channel_id is correct. If not, try to get id for username.
-    """
-    new_id = None
-    is_channel = re.search(r'[0-9A-Za-z_-]{21}[AQgw]', channel_id)
-    if not is_channel:
-        try:
-            searched_id = yt.get_id(channel_id)
-            new_id = searched_id
-        except Exception as e:
-            return {'error': f'Error with channelId {channel_id}: {e}'}
-    else:
-        new_id = channel_id
-    return new_id
+@app.route('/api/get_channels', methods=['POST'])
+def get_channels():
+    # Take YT username from request
+    request_data = request.get_json()
+    if 'username' not in request_data.keys():
+        return {'error': 'Must provide username'}
+    username = request_data['username']
 
+    # Get channels for username
+    # channel={id, title, thumbnail, uploads_playlist}
+    channels_data = yt.get_channels(username)
+    channels = channels_data['channels']
+    if len(channels) == 0:
+        return {'error': 'No channels found for username'}
+
+    # Get data for each channel
+    all_data = []
+    for channel in channels:
+        channel_data = yt.channel(channel['id'])
+        if 'channel' in channel_data.keys():
+            all_data.append({
+                **channel,
+                'total_videos': channel_data['channel']['total_videos']
+            })
+
+    # Return list of channels w/ data
+    return {'channels': all_data}
+
+@app.route('/api/set_channel', methods=['POST'])
+def set_channel():
+    # Validate channel data
+    request_data = request.get_json()
+    user = request_data['user']
+    user_id = user['id']
+    channel = request_data['channel']
+    for item in ['id', 'title', 'uploads_playlist', 'total_videos']:
+        if item not in channel.keys():
+            return {'error': f'Channel missing {item} field'}
+    channel_id = channel['id']
+
+    try:
+        # Add the channel
+        cnx, cursor = db.get_cnx()
+        db.set_channel(cnx, cursor, channel_id, channel)
+        # Update the user to include channelId
+        db.set_user(cnx, cursor, user_id, {'channel_id': channel_id})
+        return {'status': 'successfully set channel'}
+    except Exception as e:
+        return {'error': f'Error setting channel: {e}'}
+    finally:
+        db.close(cnx, cursor)
 
 @app.route('/api/channel', methods=['POST'])
 def channel():
-    """Return channel data. If not in db, get from youtube and add to db.
+    """Return channel data. If not in db, check for data and add to db. If not data, return none.
+
     """
     request_data = request.get_json()
     if 'channelId' not in request_data.keys():
         return {'error': 'No channel specified'}
     channel_id = request_data['channelId']
-    channel_id = check_channel(channel_id)
-    cnx, cursor = db.get_cnx()
 
     # Try to get it from database.
     try:
+        cnx, cursor = db.get_cnx()
         data = db.get_channel(cnx, cursor, channel_id)
     except Exception as e:
         return {'error': f'Error loading channel from Database: {e}'}
-
-    if 'channel' in data.keys():
-        channel = data['channel']
+    finally:
         db.close(cnx, cursor)
-        return {'channel': channel}
-    else:
-        # If not in database, get from YouTube
-        # TODO: If allow searching by username instead of channel_id
-        logger.info(f"youtube_channel - {channel_id}")
-        try:
-            response = yt.channel(channel_id)
-        except Exception as e:
-            db.close(cnx, cursor)
-            return {'error': f'Error loading channel from YouTube: {e}'}
-        if 'error' in response.keys():
-            db.close(cnx, cursor)
-            return {'error': response['error']}
-        channel = response['channel']
 
-        # Add it to the database, then return the NEW (db) item
-        try:
-            db.set_channel(cnx, cursor, channel_id, channel)
-            data = db.get_channel(cnx, cursor, channel_id)
-        except Exception as e:
-            return {'error': f'Error adding YouTube video to database: {e}'}
-        finally:
-            db.close(cnx, cursor)
+    if 'channel' not in data.keys():
+        return {'error': 'Channel not in database'}
 
-        channel = data['channel']
-        return {'channel': channel}
+    return {'channel': data['channel']}
 
 # VIDEOS
 
 @app.route('/api/scan_videos', methods=['POST'])
 def scan_videos():
-    """Search YouTube videos by channelId and return results
+    """Return all videos from from a YouTube playlist.
 
     """
     # Parse the request
@@ -198,59 +211,43 @@ def scan_videos():
     user = request_data['user']
     user_id = user['id']
     channel_id = request_data['channelId']
-    channel_id = check_channel(channel_id)
+    playlist_id = request_data['uploads_playlist']
 
-    published_after = None if not 'publishedAfter' in request_data.keys() else request_data['publishedAfter']
-
-    # Abandon the next_page_token stored in channel and start over from page 1. Max_retries determines
-    reset_token = None if not 'resetToken' in request_data.keys() else request_data['resetToken']
-    # how many empty pages to cycle through looking for new videos.
-    max_retries = 10
-
-    # The target number of new videos. If it's the first scan, this is equal to the total videos returned.
-    # If reset_token is called, this number doesn't include videos seen but already in database.
-    max_videos = None if not 'maxVideos' in request_data.keys() else int(request_data['maxVideos'])
-
-    # Get existing channel data
+    # Initialize database connection
     cnx, cursor = db.get_cnx()
-    db_channel = db.get_channel(cnx, cursor, channel_id)
-    if 'channel' not in db_channel:
-        db.close(cnx, cursor)
-        return {'error': 'Channel not in database'}
-    channel = db_channel['channel']
-    next_page_token = None if ((reset_token) or ('next_page_token' not in channel.keys())) \
-                      else channel['next_page_token']
-    total_videos = None if 'total_videos' not in channel else channel['total_videos']
 
     # Working variables
     db_videos = db.get_videos(cnx, cursor, channel_id, all=True)
     all_ids = [video['id'] for video in db_videos['videos']]
+    total_videos = len(db_videos)
     new_ids = []
     end = False
     error = False
-    while not end and not error and max_retries > 0:
-        # Create request
-        args = {'channel_id': channel_id}
-        if published_after:
-            args['published_after'] = published_after
-        if next_page_token:
-            args['next_page_token'] = next_page_token
+    max_retries = 3
+    next_page_token = None
 
-        spend = spend_quota(cnx, cursor, user_id, 50, 'videos')
+    while not end and not error and max_retries > 0:
+        # Charge the user's quota for calling YT
+        spend = spend_quota(cnx, cursor, user_id, 1, 'videos')
         if 'error' in spend.keys():
             error = spend['error']
             break
-        logger.info(f"youtube_videos - {json.dumps(args)}")
+        logger.info(f"youtube_videos - {channel_id}")
 
         try:
-            response = yt.videos(**args)
+            # Get the next page of results
+            response = yt.get_playlist_page(
+                playlist_id=playlist_id,
+                next_page_token=next_page_token
+            )
         except Exception as e:
             error = f"Error getting videos from YouTube: {e}"
             break
 
         # Parse response
+        total_videos = response['total_videos']
+        next_page_token = response['next_page_token']
         resp_videos = response['videos']
-        total_videos = int(response['total_videos'])
 
         if len(resp_videos) == 0:
             end = "No videos returned"
@@ -259,29 +256,19 @@ def scan_videos():
             new_videos = [v for v in resp_videos if v['id'] not in all_ids]
             if len(new_videos) == 0:
                 max_retries -= 1
-
             else:
-                loop_ids = [v['id'] for v in new_videos]
-                all_ids.extend(loop_ids)
-                new_ids.extend(loop_ids)
+                page_ids = [v['id'] for v in new_videos]
+                all_ids.extend(page_ids)
                 for video in new_videos:
                     video['channel_id'] = channel_id
                     db.set_video(cnx, cursor, video['id'], video)
-                if (len(new_ids) >= max_videos) | (len(all_ids) == total_videos):
+                if len(all_ids) >= total_videos:
                     end = "Reached target number of videos"
-
-            # Sometimes there is no next_page_token, even though the total_results is not reached.
-            if not response['next_page_token']:
-                end = "End of search results"
-            else:
-                next_page_token = response['next_page_token']
-
 
     # Update database entry
     reset_channel = {
         'total_videos': total_videos,
         'last_scan': datetime.datetime.now(),
-        'next_page_token': next_page_token,
         'db_videos': len(all_ids)
     }
     db.set_channel(cnx, cursor, channel_id, reset_channel)
@@ -290,8 +277,8 @@ def scan_videos():
     new_quota = refreshed_user['user']['quota']
     db.close(cnx, cursor)
 
-    return {'db_videos': len(all_ids), 'next_page_token': next_page_token,
-            'total_videos': total_videos, 'end': end, 'error': error, 'new_quota': new_quota}
+    return {'db_videos': len(all_ids), 'total_videos': total_videos,
+            'end': end, 'error': error, 'new_quota': new_quota}
 
 
 @app.route('/api/videos', methods=['POST'])
@@ -397,7 +384,6 @@ def analyze_comments():
     user = request_data['user']
     user_id = user['id']
     channel_id = request_data['channelId']
-    channel_id = check_channel(channel_id)
     video_id = request_data['videoId']
 
     # Abandon the next_page_token stored in the video and start over form page 1.
@@ -426,6 +412,7 @@ def analyze_comments():
     new_comments = []
     end = False
     error = False
+
     while not end and not error and max_retries > 0:
         args = {'video_id': video_id}
         if next_page_token:
@@ -560,6 +547,7 @@ def topics():
         return {'error': db_topics['error']}
     return {'items': db_topics['topics']}
 
+
 @app.route('/api/refresh_video', methods=['POST'])
 def refresh_video():
     # Get all comments, cluster topics, reset db
@@ -610,6 +598,7 @@ def refresh_video():
 
     return {"status": result, 'db_comments': len(all_comments),
             'last_refresh': timestamp}
+
 
 @app.route('/api/refresh_channel', methods=['POST'])
 def refresh_channel():

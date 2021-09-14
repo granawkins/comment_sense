@@ -35,43 +35,6 @@ class YouTube():
         id = response['items'][0]['id']
         return id
 
-    def get_channels(self, username):
-        args = {'part': 'snippet, contentDetails', 'forUsername': username}
-        request = self.youtube.channels().list(**args)
-        try:
-            response = request.execute()
-        except Exception as e:
-            raise RuntimeError(f"Error fetching channelId for username: {e}")
-
-        if len(response['items']) == 0:
-            raise RuntimeError(f"No channels found for {username}.")
-        channels = [parse_channel(channel) for channel in response['items']]
-        return {'channels': channels}
-
-    def get_playlist_page(self, playlist_id, next_page_token=None, max_results=50):
-        args = {
-            'part': 'snippet',
-            'playlistId': playlist_id,
-            'maxResults': min(max_results, 50)
-        }
-        if next_page_token:
-            args['pageToken'] = next_page_token
-
-        try:
-            request = self.youtube.playlistItems().list(**args)
-            response = request.execute()
-        except Exception as e:
-            raise RuntimeError(f"Error fetching channelId for username: {e}")
-
-        if len(response['items']) == 0:
-            raise RuntimeError(f"No video returned for playlist.")
-
-        total_videos = response['pageInfo']['totalResults']
-        next_page_token = None if 'nextPageToken' not in response.keys() else response['nextPageToken']
-        videos = [parse_video(video) for video in response['items']]
-
-        return {'total_videos': total_videos, 'next_page_token': next_page_token, 'videos': videos}
-
     def channel(self, key, index="id"):
         # QUOTA COST: 1
         args = {'part': 'snippet,statistics'}
@@ -212,24 +175,3 @@ class YouTube():
                 "total_comments": 0 if 'commentCount' not in st.keys() else st['commentCount'],
             }
             return parsed
-
-# Helpers
-def parse_channel(channel):
-    sn = channel['snippet']
-    parsed = {
-        'id': channel['id'],
-        'title': sn['title'],
-        'thumbnail': sn['thumbnails']['medium']['url'],
-        'uploads_playlist': channel['contentDetails']['relatedPlaylists']['uploads']
-    }
-    return parsed
-
-def parse_video(video):
-    sn = video['snippet']
-    parsed = {
-        'id': sn['resourceId']['videoId'],
-        'title': sn['title'],
-        'thumbnail': sn['thumbnails']['medium']['url'],
-        'published': sn['publishedAt'],
-    }
-    return parsed
