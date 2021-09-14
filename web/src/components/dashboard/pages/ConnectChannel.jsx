@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuth0 } from '@auth0/auth0-react'
+// import { useAuth0 } from '@auth0/auth0-react'
 import { withStyles } from '@material-ui/core/styles'
 
 import Button from '@material-ui/core/Button'
@@ -32,7 +32,10 @@ const styles = (theme) => ({
 
 const ConnectChannel = ({classes}) => {
 
-    const { logout } = useAuth0()
+    // const { logout } = useAuth0()
+    const logout = () => {
+        console.log("logout")
+    }
 
     const CLIENT_ID = '116695775417-h8su8m4k9u9vvkfrssor92st63q0ui3k.apps.googleusercontent.com'
 

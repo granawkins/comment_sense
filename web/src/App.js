@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Redirect, Switch, useHistory } from 'react-router-dom'
 import { ThemeProvider } from '@material-ui/core/styles';
 import { withStyles } from '@material-ui/core/styles'
-
 // import { useAuth0 } from '@auth0/auth0-react'
 
 import getTheme from './theme.js'
 import Landing from "./components/landing/Landing.jsx"
 import Dashboard from "./components/dashboard/Dashboard.jsx"
-import Contact from "./components/Contact.jsx"
+import Admin from "./components/admin/Admin.jsx"
 import Placeholder from "./components/Placeholder.jsx"
-import LoadingCircle from './components/utils/LoadingCircle.js';
+import Login from './components/Login.jsx';
+import { postData } from './components/utils/helpers.js';
 
 const theme = getTheme()
 
@@ -39,22 +39,7 @@ const styles = (theme) => ({
   },
 })
 
-const App = ({classes}) => {
-
-  // let { user, isAuthenticated, isLoading } = useAuth0()
-  // const [dashboard, setDashboard] = useState(null)
-  // useEffect(() => {
-  //     if (isLoading) {
-  //       setDashboard(<LoadingCircle />)
-  //     // } else if (!isAuthenticated) {
-  //     //   console.log(`Unable to authenticate user`)
-  //     //   setDashboard(<Redirect to='/' />)
-  //     } else {
-  //       setDashboard(<Dashboard auth0User={user} />)
-  //     }
-  // }, [isLoading, isAuthenticated])
-
-  // // AUTH0 USER STRUCTURE:
+  // AUTH0 GOOGLE USER STRUCTURE:
   // const user = {
   //   email: "granthawkins88@gmail.com",
   //   email_verified: true,
@@ -68,17 +53,38 @@ const App = ({classes}) => {
   //   updated_at: "2021-08-24T02:01:47.992",
   // }
 
-  const dashboard = <Dashboard auth0User={null} />
+const App = ({classes}) => {
+
+  const auth0User = null
+  // let { user } = useAuth0()
+  // const [auth0User, setAuth0User] = useState(null)
+  // useEffect(() => {
+  //     if (user) {
+  //       setAuth0User(user)
+  //     }
+  // }, [user])
+
   return (
     <ThemeProvider theme={theme}>
       <div className={classes.root} style={{backgroundColor: theme.palette.primary.main}}>
         <Router>
           <Switch>
             <Route path='/dashboard/:tab'>
-              {dashboard}
+              <Dashboard auth0User={auth0User} />
             </Route>
             <Route path='/dashboard'>
               <Redirect to='/dashboard/videos' />
+            </Route>
+
+            <Route path='/admin/:tab'>
+              <Admin auth0User={auth0User} />
+            </Route>
+            <Route path='/admin'>
+              <Redirect to='/admin/users' />
+            </Route>
+
+            <Route path='/u/:username'>
+              <Login />
             </Route>
 
             <Route path='/:page'>
@@ -96,4 +102,4 @@ const App = ({classes}) => {
   )
 }
 
-export default withStyles(styles)(App);
+export default withStyles(styles)(App)

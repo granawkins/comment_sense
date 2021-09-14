@@ -91,6 +91,7 @@ const Dashboard = ({auth0User, classes}) => {
                 }
             } else {
                 setUser(response.user)
+                getChannel(response.user)
             }
         }
         catch(e) {
@@ -100,23 +101,9 @@ const Dashboard = ({auth0User, classes}) => {
         }
     }
 
-    useEffect(() => {
-        if (auth0User) {
-            getUser({
-                id: auth0User.sub,
-                email: auth0User.email,
-                email_verified: auth0User.email_verified,
-                nickname: auth0User.nickname,
-                picture: auth0User.picture,
-            })
-        } else {
-            getUser(DEFAULT_USER)
-        }
-    }, [auth0User])
-
     const [unlinked, setUnlinked] = useState(false)
     const [channel, setChannel] = useState(null)
-    const getChannel = async () => {
+    const getChannel = async (user) => {
         if (!user || hasError) {
             return null
         }
@@ -127,7 +114,6 @@ const Dashboard = ({auth0User, classes}) => {
         }
         try {
             setDashboardLoading(true)
-            console.log(`Getting channel for ${user.channel_id}`)
             const response = await postData('/api/channel', {channelId: user.channel_id})
             /*
             const response = {channel: {
@@ -166,9 +152,20 @@ const Dashboard = ({auth0User, classes}) => {
         }
     }
 
+
     useEffect(() => {
-        getChannel()
-    }, [user])
+        if (auth0User) {
+            getUser({
+                id: auth0User.sub,
+                email: auth0User.email,
+                email_verified: auth0User.email_verified,
+                nickname: auth0User.nickname,
+                picture: auth0User.picture,
+            })
+        } else {
+            getUser(DEFAULT_USER)
+        }
+    }, [auth0User])
 
     const [placeholder, setPlaceholder] = useState("")
     useEffect(() => {
@@ -202,8 +199,14 @@ const Dashboard = ({auth0User, classes}) => {
         <div className={classes.root}>
 
             {/* Navigation menu on the left. Fixed xl lg, Hidden md sm xs. */}
-            <ReactiveDrawer drawerItems={drawerItems} activePage={activePage} channel={channel}
-                            mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
+            <ReactiveDrawer
+                section={'dashboard'}
+                drawerItems={drawerItems}
+                activePage={activePage}
+                channel={channel}
+                mobileOpen={mobileOpen}
+                handleDrawerToggle={handleDrawerToggle}
+            />
 
             {/* Page title */}
             <div className={classes.content}>
@@ -227,13 +230,13 @@ const Dashboard = ({auth0User, classes}) => {
                     ? placeholder
                     : <Switch>
                         <Route exact path={`/dashboard/videos`}>
-                            <Videos user={user} channel={channel} key='videos'/>
+                            <Videos user={user} setUser={setUser} channel={channel} key='videos'/>
                         </Route>
                         <Route exact path={`/dashboard/topics`}>
                             <Topics user={user} channel={channel} page='channel' key='topics' />
                         </Route>
                         <Route exact path={`/dashboard/video/:videoId`}>
-                            <Video user={user} channel={channel} key='video' />
+                            <Video user={user} setUser={setUser} channel={channel} key='video' />
                         </Route>
                         <Route exact path={`/dashboard/settings`}>
                             Settings

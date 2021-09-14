@@ -6,6 +6,7 @@ import Feed from './feed/Feed'
 import VideoCard from './feed/VideoCard'
 import { postData, thousands_separator } from '../../utils/helpers'
 import LoadingCircle from '../../utils/LoadingCircle'
+import LoadingBar from '../../utils/LoadingBar'
 import ErrorPage from '../../utils/ErrorPage'
 import ActionControl from './ActionControl'
 
@@ -35,7 +36,7 @@ const styles = (theme) => ({
 })
 
 // Rendered only after dashboard has a valid channel object
-const Videos = ({user, channel, classes}) => {
+const Videos = ({user, setUser, channel, classes}) => {
 
     // const videoId = useParams().videoId
     const [channelId, setChannelId] = useState(null)
@@ -59,10 +60,10 @@ const Videos = ({user, channel, classes}) => {
     }, [dbVideos, totalVideos])
 
     // ScanVideos is the primary action for the videos page.
-    const [pageLoading, setPageLoading] = useState(false)
+    const [grayout, setGrayout] = useState(null)
     const [hasError, setHasError] = useState(false)
-    const scanVideos = async (maxVideos=100, resetToken=false) => {
-        setPageLoading(true)
+    const scanVideos = async (maxVideos=100, resetToken=false, loadtime=5) => {
+        setGrayout(loadtime)
         try {
             const response = await postData('/api/scan_videos', {
                 user,
@@ -82,11 +83,12 @@ const Videos = ({user, channel, classes}) => {
             */
             setDBVideos(response.db_videos)
             setTotalVideos(response.total_videos)
-            setPageLoading(false)
+            setUser({...user, quota: response.new_quota})
+            setGrayout(false)
         }
         catch {
             setHasError(true)
-            setPageLoading(false)
+            setGrayout(false)
         }
     }
 
@@ -108,17 +110,6 @@ const Videos = ({user, channel, classes}) => {
         return <VideoCard video={video} key={video.id} />
     }
 
-    const [placeholder, setPlaceholder] = useState("")
-    useEffect(() => {
-        if (pageLoading) {
-            setPlaceholder(<LoadingCircle />)
-        } else if (hasError) {
-            setPlaceholder(<ErrorPage />)
-        } else {
-            setPlaceholder("")
-        }
-    }, [pageLoading, hasError])
-
     return(
         <div className={classes.root}>
             {!control
@@ -132,8 +123,8 @@ const Videos = ({user, channel, classes}) => {
                     actionLabel="SCAN NOW"
                     sortOptions={['recent', 'oldest', 'top']}
                 />}
-            {pageLoading || hasError
-                ? placeholder
+            {hasError
+                ? <ErrorPage />
                 : <Feed
                     query={query}
                     control={control}
@@ -145,11 +136,12 @@ const Videos = ({user, channel, classes}) => {
                 handleClose={() => setActionOpen(false)}
                 actionTitle="Scan Videos"
                 remaining={totalVideos - dbVideos}
-                quota={user.quota}
+                quota={user ? user.quota : null}
                 verb="Scan"
                 actionLabel="SCAN NOW"
                 action={scanVideos}
             />
+            {grayout && <LoadingBar loadTime={grayout} />}
         </div>
     )
 }

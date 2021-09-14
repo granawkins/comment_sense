@@ -23,6 +23,7 @@ class YouTube():
             api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
     def get_id(self, username):
+        # QUOTA COST: 1
         args = {'part': 'id', 'forUsername': username}
         request = self.youtube.channels().list(**args)
         try:
@@ -35,6 +36,7 @@ class YouTube():
         return id
 
     def channel(self, key, index="id"):
+        # QUOTA COST: 1
         args = {'part': 'snippet,statistics'}
         if index == 'id':
             args['id'] = key
@@ -56,8 +58,8 @@ class YouTube():
         }
         return {'channel': channel}
 
-    def videos(self, channel_id, published_after=None, next_page_token=None):
-        max_results=50
+    def videos(self, channel_id, max_results=50, published_after=None, next_page_token=None):
+        # QUOTA COST: 100
         args = {
             'part': ['snippet'],
             'channelId': channel_id,
@@ -91,6 +93,7 @@ class YouTube():
         return results
 
     def comments(self, video_id, next_page_token=None, sort='relevance'):
+        # QUOTA COST: 1
         max_results = 100
         args = {
             'videoId': video_id,
@@ -145,6 +148,7 @@ class YouTube():
         return results
 
     def video(self, video_id):
+        # QUOTA COST: 1
         video_request = self.youtube.videos().list(
             part="snippet,contentDetails,statistics",
             id=video_id

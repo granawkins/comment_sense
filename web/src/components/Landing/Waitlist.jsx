@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { withStyles } from '@material-ui/core/styles'
 
 import Button from '@material-ui/core/Button'
@@ -10,6 +10,8 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogActions from '@material-ui/core/DialogActions'
 
+import { postData } from '../utils/helpers'
+import LoadingCircle from '../utils/LoadingCircle'
 
 const styles = (theme) => ({
     ...theme.typography,
@@ -31,18 +33,29 @@ const validateEmail = (email) => {
 const Waitlist = ({isOpen, setIsOpen, classes}) => {
 
     // What to do with a valid address
-    const submit = () => {
-        console.log(email)
+    const [submitted, setSubmitted] = useState(false)
+    const [successful, setSuccessful] = useState(false)
+    const [hasError, setHasError] = useState(false)
+    const submit = async () => {
+        setSubmitted(true)
+        const response = await postData('/api/add_waitlist', {email: emailRef.current})
+        if (!response.error) {
+            setSuccessful(true)
+        } else {
+            setHasError(true)
+        }
+        window.setTimeout(() => {
+            setIsOpen(false)
+        }, 1000)
     }
 
     // Handle button clicks
     const [invalid, setInvalid] = useState(false)
     const handleActionSubmit = () => {
-        if (!validateEmail(email)) {
+        if (!validateEmail(emailRef.current)) {
             setInvalid(true)
         } else {
             submit()
-            setIsOpen(false)
         }
     }
     const handleActionClose = () => {
@@ -50,9 +63,12 @@ const Waitlist = ({isOpen, setIsOpen, classes}) => {
     }
 
     // Update email variable while you type
+    // useState to manage input field, useRef for listener (https://stackoverflow.com/a/55265764)
     const [email, setEmail] = useState("")
+    const emailRef = useRef(email)
     const handleEmail = (e) => {
         setEmail(e.target.value)
+        emailRef.current = e.target.value
         // Turn off the error message after they've updated it
         if (invalid) {
             setInvalid(false)
@@ -73,31 +89,60 @@ const Waitlist = ({isOpen, setIsOpen, classes}) => {
         }
     }, [isOpen])
 
+    const [placeholder, setPlaceholder] = useState(null)
+    useEffect(() => {
+        if (submitted && !successful && !hasError) {
+            setPlaceholder(<LoadingCircle />)
+        } else if (successful) {
+            setPlaceholder(
+                <Typography className={classes.body1}>
+                    Success! We'll be in touch.
+                </Typography>
+            )
+        } else if (hasError) {
+            setPlaceholder(
+                <Typography className={classes.body1}>
+                    Error. Please try again later.
+                </Typography>
+            )
+        } else {
+            setPlaceholder(null)
+        }
+    }, [submitted, successful, hasError])
+
     return (
         <Dialog open={isOpen} onClose={handleActionClose}>
             <DialogTitle id="form-dialog-title">
                 <Typography className={classes.h5}>Join Waitlist</Typography>
             </DialogTitle>
             <DialogContent>
-                <TextField
-                    error={invalid ? true : false}
-                    helperText={invalid ? "Enter a valid email address" : ""}
-                    autoFocus
-                    placeholder="Enter email address"
-                    margin="none"
-                    type="email"
-                    onChange={handleEmail}
-                    value={email}
-                />
+                {placeholder
+                    ? placeholder
+                    : <TextField
+                        error={invalid ? true : false}
+                        helperText={invalid ? "Enter a valid email address" : ""}
+                        autoFocus
+                        placeholder="Enter email address"
+                        margin="none"
+                        type="email"
+                        onChange={handleEmail}
+                        value={email}
+                    />
+                }
             </DialogContent>
             <DialogActions>
-            <Button onClick={handleActionClose} variant="contained" color="primary">
-                CANCEL
-            </Button>
-            <Button type="submit" onClick={handleActionSubmit} variant="contained"
-                    className={classes.csRed}>
-                SUBMIT
-            </Button>
+                {placeholder
+                    ? null
+                    : <>
+                        <Button onClick={handleActionClose} variant="contained" color="primary">
+                            CANCEL
+                        </Button>
+                        <Button type="submit" onClick={handleActionSubmit} variant="contained"
+                                className={classes.csRed}>
+                            SUBMIT
+                        </Button>
+                    </>
+                }
             </DialogActions>
         </Dialog>
     )
