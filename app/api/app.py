@@ -17,11 +17,11 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 cs.setFormatter(formatter)
 logger.addHandler(cs)
 
-# env='docker'
-# db_name = 'comment_sense'
+env='docker'
+db_name = 'comment_sense'
 
-env="desktop"
-db_name = 'cs_test_10'
+# env="desktop"
+# db_name = 'cs_test_10'
 
 app = Flask(__name__)
 yt = YouTube()

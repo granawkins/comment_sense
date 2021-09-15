@@ -153,6 +153,7 @@ const Dashboard = ({auth0User, classes}) => {
 
     const [unlinked, setUnlinked] = useState(false)
     useEffect(() => {
+        console.log(user)
         if (!user || hasError) {
             // If user comes back null, show error
             setDashboardLoading(false)
