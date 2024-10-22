@@ -1,15 +1,22 @@
-# Install Python dependencies
-    pip3 install -r app/requirements.txt
+# Ensure we're using Python 3.8
+pyenv install -s 3.8.12
+pyenv global 3.8.12
 
-    # Install Node.js dependencies
-    cd web && npm install && cd ..
+# Create and activate a virtual environment
+python3 -m venv venv
+. venv/bin/activate
 
-    # Build the React app
-    cd web && npm run build && cd ..
+# Upgrade pip and install wheel
+pip install --upgrade pip wheel
 
-    # Set up the database (assuming MySQL is installed)
-    mysql -u root -p < db/init.sql
+# Install Python dependencies without version constraints
+sed 's/==.*//g' app/requirements.txt | pip install -r /dev/stdin
 
-    # Set up environment variables (if needed)
-    export FLASK_APP=app/api/app.py
-    export FLASK_ENV=development
+# Install Node.js dependencies
+cd web
+npm install
+npm run build
+cd ..
+
+# Set up the database (assuming MySQL is already installed)
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS db;"

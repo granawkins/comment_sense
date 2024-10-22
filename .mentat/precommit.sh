@@ -1,14 +1,16 @@
-# Format and lint JavaScript/React code
-    cd web && npm run lint -- --fix && cd ..
+# Activate the virtual environment
+. venv/bin/activate
 
-    # Run React tests
-    cd web && npm test && cd ..
+# Run Python linter (assuming flake8 is used)
+pip install flake8
+flake8 app/
 
-    # Run Python linter (assuming flake8 is installed)
-    flake8 app --max-line-length=100 --extend-ignore=E203
+# Run Python tests (assuming pytest is used)
+pip install pytest
+pytest app/
 
-    # Run Python tests (assuming pytest is installed)
-    pytest app
-
-    # Check database migrations (if using a migration tool like Alembic)
-    alembic check
+# Run JavaScript linter
+cd web
+npm run lint -- --fix
+npm test
+cd ..
