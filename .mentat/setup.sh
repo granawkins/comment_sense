@@ -9,8 +9,11 @@ python3 -m venv venv
 # Upgrade pip and install wheel
 pip install --upgrade pip wheel setuptools
 
-# Install essential Python packages without dependencies
-pip install --no-deps Flask Flask-SocketIO mysql-connector-python spacy
+# Install essential Python packages
+pip install Flask
+pip install Flask-SocketIO
+pip install mysql-connector-python
+pip install spacy
 
 # Download spaCy model
 python -m spacy download en_core_web_sm
