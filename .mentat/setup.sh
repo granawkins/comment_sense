@@ -1,9 +1,10 @@
 # Install python3-venv package
 apt update
-apt install -y python3.8-venv
+apt install -y python3-venv
 
-# Create and activate a virtual environment
-python3.8 -m venv venv
+# Check Python version and create virtual environment
+PYTHON_VERSION=$(python3 --version | cut -d ' ' -f 2 | cut -d '.' -f 1,2)
+python3 -m venv venv
 . venv/bin/activate
 
 # Upgrade pip and install wheel
@@ -19,4 +20,8 @@ npm run build
 cd ..
 
 # Set up the database (assuming MySQL is already installed)
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS db;"
+if command -v mysql &> /dev/null; then
+    mysql -u root -e "CREATE DATABASE IF NOT EXISTS db;"
+else
+    echo "MySQL is not installed. Please install MySQL and run: CREATE DATABASE IF NOT EXISTS db;"
+fi
