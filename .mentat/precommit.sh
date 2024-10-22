@@ -9,7 +9,7 @@ flake8 app/
 pip install pytest
 pytest app/
 
-# Run JavaScript linter
+# Run JavaScript linter and tests
 cd web
 npm run lint -- --fix
 npm test

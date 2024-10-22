@@ -1,7 +1,3 @@
-# Ensure we're using Python 3.8
-pyenv install -s 3.8.12
-pyenv global 3.8.12
-
 # Create and activate a virtual environment
 python3 -m venv venv
 . venv/bin/activate
