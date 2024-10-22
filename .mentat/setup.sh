@@ -1,5 +1,9 @@
+# Install python3-venv package
+apt update
+apt install -y python3.8-venv
+
 # Create and activate a virtual environment
-python3 -m venv venv
+python3.8 -m venv venv
 . venv/bin/activate
 
 # Upgrade pip and install wheel
