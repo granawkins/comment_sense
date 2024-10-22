@@ -1,11 +1,11 @@
 # Activate the virtual environment
 . venv/bin/activate
 
-# Run Python linter (assuming flake8 is used)
+# Run Python linter
 pip install flake8
 flake8 app/
 
-# Run Python tests (assuming pytest is used)
+# Run Python tests
 pip install pytest
 pytest app/
 

@@ -9,11 +9,11 @@ python3 -m venv venv
 # Upgrade pip and install wheel
 pip install --upgrade pip wheel setuptools
 
-# Install Python dependencies without version constraints, one by one
-while read requirement; do
-    requirement=$(echo $requirement | sed 's/==.*//g')
-    pip install --no-cache-dir $requirement || echo "Failed to install $requirement"
-done < app/requirements.txt
+# Install essential Python packages without dependencies
+pip install --no-deps Flask Flask-SocketIO mysql-connector-python spacy
+
+# Download spaCy model
+python -m spacy download en_core_web_sm
 
 # Install Node.js dependencies
 cd web
